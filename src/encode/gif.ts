@@ -1,7 +1,8 @@
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import { run } from './exec.js';
-import { ffmpegPath, gifskiPath } from '../env/doctor.js';
+import { ffmpegPath } from '../env/doctor.js';
+import { resolveGifski } from '../env/gifski.js';
 import type { RenderedFrames } from '../render/frames.js';
 
 export interface GifEncodeResult {
@@ -13,7 +14,7 @@ export async function encodeGif(
   width: number,
   outFile: string,
 ): Promise<GifEncodeResult> {
-  const gifski = gifskiPath();
+  const gifski = resolveGifski();
   if (gifski) {
     const files = readdirSync(frames.dir)
       .filter((f) => f.endsWith('.png'))
@@ -45,8 +46,4 @@ export async function encodeGif(
     outFile,
   ]);
   return { encoder: 'ffmpeg' };
-}
-
-export function gifskiAvailable(): boolean {
-  return gifskiPath() !== null;
 }

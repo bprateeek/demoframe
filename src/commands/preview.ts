@@ -2,6 +2,8 @@ import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 import { runCheck } from './check.js';
+import { ensureChromium } from '../env/install.js';
+import type { LoadedConfig } from '../config/load.js';
 import { buildDocument } from '../templates/document.js';
 import { openRenderSession } from '../render/browser.js';
 
@@ -24,12 +26,8 @@ async function compositeOn(stillPng: Buffer, background: string, outFile: string
     .toFile(outFile);
 }
 
-export async function runPreview(configFile: string, opts: { out: string }): Promise<void> {
-  const { loaded, warnings } = await runCheck(configFile);
-  for (const w of warnings) console.log(`  ! ${w}`);
-
+export async function writePreviewStills(loaded: LoadedConfig, outDir: string): Promise<string[]> {
   const { config, baseDir } = loaded;
-  const outDir = path.resolve(opts.out);
   mkdirSync(outDir, { recursive: true });
 
   const doc = await buildDocument(config, baseDir);
@@ -62,6 +60,19 @@ export async function runPreview(configFile: string, opts: { out: string }): Pro
   } finally {
     await session.close();
   }
+  return written;
+}
+
+export async function runPreview(
+  configFile: string,
+  opts: { out: string; download?: boolean },
+): Promise<void> {
+  const { loaded, warnings } = await runCheck(configFile);
+  for (const w of warnings) console.log(`  ! ${w}`);
+  await ensureChromium(opts.download !== false);
+
+  const outDir = path.resolve(opts.out);
+  const written = await writePreviewStills(loaded, outDir);
 
   console.log(`\nwrote ${written.length} previews to ${outDir}:`);
   for (const file of written) console.log(`  ${path.basename(file)}`);

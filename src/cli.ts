@@ -74,12 +74,23 @@ program
   });
 
 program
+  .command('schema')
+  .description('print the JSON Schema for demo configs (for agents and editors)')
+  .action(async () => {
+    const { readFileSync } = await import('node:fs');
+    const schemaFile = new URL('../schema/demoframe.schema.json', import.meta.url);
+    process.stdout.write(readFileSync(schemaFile, 'utf8'));
+  });
+
+program
   .command('render')
   .description('render frames and encode the final GIF/MP4 with a QA report')
   .argument('<config>', 'path to demo config')
   .option('-o, --out <dir>', 'output directory', 'dist')
   .option('--keep-frames', 'keep the intermediate PNG frames', false)
-  .action(async (config: string, opts: { out: string; keepFrames: boolean }) => {
+  .option('--no-download', 'fail if Chromium or gifski is missing instead of downloading it')
+  .option('--no-stills', 'skip writing per-scene preview stills next to the output')
+  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean }) => {
     try {
       const { runRender } = await import('./commands/render.js');
       await runRender(config, opts);
@@ -93,7 +104,8 @@ program
   .description('render key stills per scene, plus README-size and dark/light composites')
   .argument('<config>', 'path to demo config')
   .option('-o, --out <dir>', 'output directory', 'dist/preview')
-  .action(async (config: string, opts: { out: string }) => {
+  .option('--no-download', 'fail if Chromium is missing instead of downloading it')
+  .action(async (config: string, opts: { out: string; download: boolean }) => {
     try {
       const { runPreview } = await import('./commands/preview.js');
       await runPreview(config, opts);

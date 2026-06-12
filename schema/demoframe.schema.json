@@ -12,11 +12,27 @@
           "type": "object",
           "properties": {
             "format": {
-              "type": "string",
-              "enum": [
-                "gif",
-                "mp4",
-                "both"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "gif",
+                    "webp",
+                    "mp4"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "gif",
+                      "webp",
+                      "mp4"
+                    ]
+                  },
+                  "minItems": 1
+                }
               ],
               "default": "gif"
             },

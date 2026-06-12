@@ -1,7 +1,7 @@
-import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { chromiumExecutablePath, chromiumInstalled } from './browser.js';
+import { resolveGifski } from './gifski.js';
 
 const require = createRequire(import.meta.url);
 
@@ -19,15 +19,6 @@ export function ffmpegPath(): string | null {
   } catch {
     return null;
   }
-}
-
-export function gifskiPath(): string | null {
-  const probe = spawnSync('gifski', ['--version'], { encoding: 'utf8' });
-  if (probe.error || probe.status !== 0) return null;
-  const which = spawnSync(process.platform === 'win32' ? 'where' : 'which', ['gifski'], {
-    encoding: 'utf8',
-  });
-  return which.stdout?.trim().split('\n')[0] || 'gifski';
 }
 
 export function runDoctor(): DoctorCheck[] {
@@ -59,13 +50,13 @@ export function runDoctor(): DoctorCheck[] {
     required: true,
   });
 
-  const gifski = gifskiPath();
+  const gifski = resolveGifski();
   checks.push({
     name: 'gifski',
     ok: gifski !== null,
     detail:
       gifski ??
-      'optional; install for best GIF quality (brew install gifski). Falls back to ffmpeg.',
+      'optional; downloaded automatically on first GIF render, or install it yourself (brew install gifski). Falls back to ffmpeg.',
     required: false,
   });
 

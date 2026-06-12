@@ -34,9 +34,11 @@ export function budgetToBytes(budget: string | number): number {
   return Math.round(value * (unit === 'MB' ? 1024 * 1024 : unit === 'KB' ? 1024 : 1));
 }
 
+const formatValue = z.enum(['gif', 'webp', 'mp4']);
+
 const outputSchema = z
   .object({
-    format: z.enum(['gif', 'mp4', 'both']).default('gif'),
+    format: z.union([formatValue, z.array(formatValue).min(1)]).default('gif'),
     width: z.number().int().min(200).max(1200).default(480),
     fps: z.number().int().min(5).max(30).default(15),
     budget: sizeBudget,
@@ -192,6 +194,13 @@ export type TypingScene = z.infer<typeof typingScene>;
 export type StepsScene = z.infer<typeof stepsScene>;
 export type StatusCardScene = z.infer<typeof statusCardScene>;
 export type ScreenshotScene = z.infer<typeof screenshotScene>;
+
+export type OutputFormat = z.infer<typeof formatValue>;
+
+export function outputFormats(output: Output): OutputFormat[] {
+  const list = Array.isArray(output.format) ? output.format : [output.format];
+  return [...new Set(list)];
+}
 
 export const SCALE_BY_QUALITY = { draft: 1, standard: 2, high: 4 } as const;
 

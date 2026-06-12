@@ -1,12 +1,16 @@
 import { mkdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { runCheck } from './check.js';
+import { ensureChromium } from '../env/install.js';
+import { ensureGifski } from '../env/gifski.js';
+import { writePreviewStills } from './preview.js';
 import { buildDocument } from '../templates/document.js';
 import { renderFrames, type RenderedFrames } from '../render/frames.js';
-import { encodeGif, gifskiAvailable } from '../encode/gif.js';
+import { encodeGif } from '../encode/gif.js';
 import { encodeMp4 } from '../encode/mp4.js';
-import { budgetToBytes } from '../config/schema.js';
-import { inspectGif, inspectMp4, printReport, writeReportJson, type OutputReport } from '../qa/report.js';
+import { encodeWebp } from '../encode/webp.js';
+import { budgetToBytes, outputFormats } from '../config/schema.js';
+import { inspectGif, inspectMp4, inspectWebp, printReport, writeReportJson, type OutputReport } from '../qa/report.js';
 
 interface LadderStep {
   fps: number;
@@ -24,10 +28,11 @@ function ladderSteps(fps: number, width: number): LadderStep[] {
 
 export async function runRender(
   configFile: string,
-  opts: { out: string; keepFrames: boolean },
+  opts: { out: string; keepFrames: boolean; download?: boolean; stills?: boolean },
 ): Promise<void> {
   const { loaded, warnings } = await runCheck(configFile);
   for (const w of warnings) console.log(`  ! ${w}`);
+  await ensureChromium(opts.download !== false);
 
   const { config, baseDir, configPath } = loaded;
   const name = path.basename(configPath).replace(/\.(ya?ml|json)$/i, '');
@@ -35,11 +40,10 @@ export async function runRender(
   mkdirSync(outDir, { recursive: true });
   const framesRoot = path.join(outDir, '.frames');
   const budgetBytes = budgetToBytes(config.output.budget);
-  const wantGif = config.output.format !== 'mp4';
-  const wantMp4 = config.output.format !== 'gif';
+  const formats = outputFormats(config.output);
 
-  if (wantGif && !gifskiAvailable()) {
-    console.log('  hint: install gifski for best GIF quality (brew install gifski); using ffmpeg fallback');
+  if (formats.includes('gif') && !(await ensureGifski(opts.download !== false))) {
+    console.log('  hint: gifski unavailable; encoding GIF with ffmpeg (install gifski or allow downloads for best quality)');
   }
 
   const framesByFps = new Map<number, RenderedFrames>();
@@ -57,18 +61,24 @@ export async function runRender(
   };
 
   const reports: OutputReport[] = [];
-  const attempts: Array<{ fps: number; width: number; sizeBytes: number }> = [];
+  const attempts: Array<{ format: string; fps: number; width: number; sizeBytes: number }> = [];
 
   try {
-    if (wantGif) {
-      const gifPath = path.join(outDir, `${name}.gif`);
+    for (const format of formats) {
+      if (format === 'mp4') continue;
+      const outPath = path.join(outDir, `${name}.${format}`);
       let final: OutputReport | null = null;
       for (const step of ladderSteps(config.output.fps, config.output.width)) {
         const frames = await getFrames(step.fps);
-        console.log(`encoding GIF at ${step.width}px / ${step.fps}fps...`);
-        const { encoder } = await encodeGif(frames, step.width, gifPath);
-        final = inspectGif(gifPath, encoder, budgetBytes, step.fps);
-        attempts.push({ fps: step.fps, width: step.width, sizeBytes: final.sizeBytes });
+        console.log(`encoding ${format.toUpperCase()} at ${step.width}px / ${step.fps}fps...`);
+        if (format === 'gif') {
+          const { encoder } = await encodeGif(frames, step.width, outPath);
+          final = inspectGif(outPath, encoder, budgetBytes, step.fps);
+        } else {
+          await encodeWebp(frames, step.width, outPath);
+          final = await inspectWebp(outPath, budgetBytes, step.fps);
+        }
+        attempts.push({ format, fps: step.fps, width: step.width, sizeBytes: final.sizeBytes });
         if (final.withinBudget) break;
         console.log(
           `  over budget: ${(final.sizeBytes / 1024 / 1024).toFixed(2)}MB > ${(budgetBytes / 1024 / 1024).toFixed(1)}MB, retrying`,
@@ -78,14 +88,14 @@ export async function runRender(
         reports.push(final);
         if (!final.withinBudget) {
           console.log(
-            '\nGIF is still over budget after the retry ladder. Suggestions: shorten scene durations, ' +
+            `\n${format.toUpperCase()} is still over budget after the retry ladder. Suggestions: shorten scene durations, ` +
               'use transition: cut instead of crossfade, avoid photographic screenshots, or switch to format: mp4.',
           );
         }
       }
     }
 
-    if (wantMp4) {
+    if (formats.includes('mp4')) {
       const mp4Path = path.join(outDir, `${name}.mp4`);
       const frames = await getFrames(config.output.fps);
       console.log(`encoding MP4 at ${config.output.width}px / ${config.output.fps}fps...`);
@@ -96,6 +106,13 @@ export async function runRender(
     if (!opts.keepFrames) rmSync(framesRoot, { recursive: true, force: true });
   }
 
+  let previews: string[] = [];
+  if (opts.stills !== false) {
+    const previewDir = path.join(outDir, 'preview');
+    console.log('writing preview stills...');
+    previews = await writePreviewStills(loaded, previewDir);
+  }
+
   for (const report of reports) printReport(report);
   const reportFile = writeReportJson(outDir, reports, {
     title: config.title ?? name,
@@ -103,14 +120,15 @@ export async function runRender(
     budgetBytes,
     attempts,
     warnings,
+    previews: previews.map((f) => path.relative(outDir, f)),
   });
   console.log(`\nreport: ${reportFile}`);
 
-  const gifReport = reports.find((r) => r.format === 'gif');
-  if (gifReport) {
+  const embeddable = reports.find((r) => r.format === 'webp') ?? reports.find((r) => r.format === 'gif');
+  if (embeddable) {
     const width = config.output.displayWidth ?? Math.round(config.output.width * 0.6);
     console.log(
-      `\nREADME snippet:\n  <img src="${path.relative(process.cwd(), gifReport.file)}" alt="${config.title ?? name}" width="${width}">`,
+      `\nREADME snippet:\n  <img src="${path.relative(process.cwd(), embeddable.file)}" alt="${config.title ?? name}" width="${width}">`,
     );
   }
 }

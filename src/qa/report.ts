@@ -1,12 +1,13 @@
 import { readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import sharp from 'sharp';
 import { parseGif } from './gifInfo.js';
 import { ffmpegPath } from '../env/doctor.js';
 
 export interface OutputReport {
   file: string;
-  format: 'gif' | 'mp4';
+  format: 'gif' | 'webp' | 'mp4';
   sizeBytes: number;
   width: number | null;
   height: number | null;
@@ -46,20 +47,7 @@ export function inspectGif(
   };
 }
 
-export function inspectMp4(file: string): OutputReport {
-  const sizeBytes = statSync(file).size;
-  const report: OutputReport = {
-    file,
-    format: 'mp4',
-    sizeBytes,
-    width: null,
-    height: null,
-    durationS: null,
-    fps: null,
-    frameCount: null,
-    loopsForever: null,
-    hasAudio: null,
-  };
+function probeWithFfmpeg(file: string, report: OutputReport): OutputReport {
   const ffmpeg = ffmpegPath();
   if (ffmpeg) {
     const probe = spawnSync(ffmpeg, ['-i', file], { encoding: 'utf8' });
@@ -78,6 +66,52 @@ export function inspectMp4(file: string): OutputReport {
     if (fps) report.fps = parseFloat(fps[1]);
     report.hasAudio = /Stream #.*Audio:/.test(meta);
   }
+  return report;
+}
+
+export function inspectMp4(file: string): OutputReport {
+  return probeWithFfmpeg(file, {
+    file,
+    format: 'mp4',
+    sizeBytes: statSync(file).size,
+    width: null,
+    height: null,
+    durationS: null,
+    fps: null,
+    frameCount: null,
+    loopsForever: null,
+    hasAudio: null,
+  });
+}
+
+export async function inspectWebp(
+  file: string,
+  budgetBytes: number,
+  encodeFps: number,
+): Promise<OutputReport> {
+  const sizeBytes = statSync(file).size;
+  const report: OutputReport = {
+    file,
+    format: 'webp',
+    sizeBytes,
+    width: null,
+    height: null,
+    durationS: null,
+    fps: encodeFps,
+    frameCount: null,
+    loopsForever: null,
+    hasAudio: false,
+    encoder: 'sharp',
+    withinBudget: sizeBytes <= budgetBytes,
+  };
+  const meta = await sharp(file, { animated: true }).metadata();
+  report.width = meta.width ?? null;
+  report.height = meta.pages ? Math.round((meta.height ?? 0) / meta.pages) : (meta.height ?? null);
+  report.frameCount = meta.pages ?? null;
+  if (meta.delay && meta.delay.length > 0) {
+    report.durationS = meta.delay.reduce((sum, d) => sum + d, 0) / 1000;
+  }
+  report.loopsForever = meta.loop === 0;
   return report;
 }
 

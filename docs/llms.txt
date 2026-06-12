@@ -1,45 +1,59 @@
 # demoframe: contract for coding agents
 
-demoframe turns a YAML/JSON config into a polished demo GIF/MP4 by rendering
-HTML templates in Chromium. You (the agent) write the config; the tool owns
-the pixels. Everything is deterministic and local: no network calls.
+demoframe turns a YAML/JSON config into a polished demo GIF/WebP/MP4 by
+rendering HTML templates in Chromium. You (the agent) write the config; the
+tool owns the pixels. Rendering is deterministic and local; the only network
+use is the one-time, checksum-pinned download of Chromium and gifski.
+
+An MCP server is included: `demoframe-mcp` (stdio) exposes get_schema,
+validate_config, render_demo, get_report. A Claude Code skill ships at
+skills/demoframe/SKILL.md in the package.
 
 ## Commands
 
 - `demoframe init [dir] --frame phone|browser|terminal`: scaffold demo.yml + assets/
+- `demoframe schema`: print the JSON Schema for configs. The schema is pre-1.0
+  and changes between versions; read it instead of relying on memorized fields.
 - `demoframe check <config> [--strict]`: validate without rendering. Exit 0 = valid.
   Errors are printed as `path: message` with hints. Warnings cover missing
   assets, privacy findings (emails/tokens/URLs in copy), and screenshots
   likely to blow the GIF size budget. Fast (<1s without screenshot assets); run after every config edit.
-- `demoframe preview <config> [-o dir]`: writes per-scene stills
-  (scene_<i>_<type>.png), final_readme_size.png, and final_github_dark/light.png
-  composites. Inspect these to verify layout before rendering.
-- `demoframe render <config> [-o dir] [--keep-frames]`: renders frames, encodes,
-  writes <name>.gif / <name>.mp4 plus report.json. If the GIF exceeds
-  output.budget it retries at 12fps, then 400px, then reports failure with
-  suggestions.
-- `demoframe doctor`: environment report. `demoframe install-browser`: one-time
-  Chromium download.
+- `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]`:
+  the full pipeline. Validates, renders frames, encodes every format in
+  output.format, writes preview stills to <dir>/preview/, and writes
+  report.json. Missing Chromium/gifski are downloaded automatically
+  (--no-download fails fast instead). If a GIF/WebP exceeds output.budget it
+  retries at 12fps, then 400px, then reports failure with suggestions.
+- `demoframe preview <config> [-o dir]`: stills only, no encode. Writes
+  per-scene stills (scene_<i>_<type>.png), final_readme_size.png, and
+  final_github_dark/light.png composites. Faster iteration than render.
+- `demoframe doctor`: environment report. `demoframe install-browser`: explicit
+  Chromium download (otherwise automatic on first render).
 - `demoframe serve <config> [-p port]`: live preview server with a scrubber (for humans).
 
 ## report.json shape
 
-{ "title", "config", "budgetBytes", "attempts": [{fps,width,sizeBytes}],
-  "warnings": [...], "outputs": [{ "file", "format": "gif"|"mp4", "sizeBytes",
+{ "title", "config", "budgetBytes", "attempts": [{format,fps,width,sizeBytes}],
+  "warnings": [...], "previews": ["preview/scene_0_typing.png", ...],
+  "outputs": [{ "file", "format": "gif"|"webp"|"mp4", "sizeBytes",
   "width", "height", "durationS", "fps", "frameCount", "loopsForever",
   "hasAudio", "encoder", "withinBudget" }] }
 
-Verify after render: withinBudget true, loopsForever true, durationS as designed.
+Verify after render: withinBudget true, loopsForever true, durationS as
+designed. Then read the preview stills to verify layout: text readable at
+README size, nothing clipped, final frame tells the story alone.
 
 ## Config schema
 
-Full JSON Schema: schema/demoframe.schema.json (in the npm package root).
+Full JSON Schema: `demoframe schema` or schema/demoframe.schema.json (npm package root).
 
 Top level: { title?, output?, theme?, frame, scenes }
 
-output (all optional): format gif|mp4|both (gif), width 200-1200 (480),
-fps 5-30 (15), budget e.g. "5MB", displayWidth (README <img> width),
-quality draft|standard|high (standard; high = 4x supersampling, slower).
+output (all optional): format gif|webp|mp4 or a list like [webp, mp4] (gif),
+width 200-1200 (480), fps 5-30 (15), budget e.g. "5MB" (applies to gif and
+webp), displayWidth (README <img> width), quality draft|standard|high
+(standard; high = 4x supersampling, slower). Prefer webp for READMEs: GIF-like
+autoplay at a fraction of the size, full color.
 
 theme: accent hex ("#e2603a"), mode light|dark, font inter|system,
 background hex (defaults derived from mode), logo path.
@@ -75,5 +89,6 @@ optional transition cut|crossfade (cut default; crossfade costs GIF size):
   nice touch and usually affordable.
 - Never put real emails, tokens, internal URLs, or customer data in copy;
   check will warn, --strict will fail.
-- Workflow: edit config -> check -> preview (inspect stills) -> render ->
-  parse report.json.
+- Workflow: edit config -> check -> render -> parse report.json -> inspect
+  <out>/preview/ stills -> fix and re-render. Use preview/serve for cheaper
+  iteration while the config is still changing.

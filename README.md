@@ -1,9 +1,9 @@
 # demoframe
 
-Template-driven demo GIF/MP4 generator for READMEs and launch posts.
+Template-driven demo GIF/WebP/MP4 generator for READMEs and launch posts.
 
 Write a small YAML scene file, render it in a device frame, and get a polished
-looping GIF or MP4 without screen recording.
+looping GIF, animated WebP, or MP4 without screen recording.
 
 [![npm](https://img.shields.io/npm/v/demoframe)](https://www.npmjs.com/package/demoframe)
 [![license](https://img.shields.io/github/license/bprateeek/demoframe)](./LICENSE)
@@ -24,32 +24,43 @@ Point your agent at a screenshot of your product and ask it to create a demo
 config. demoframe validates the YAML, renders the frames, encodes the GIF/MP4,
 and writes a machine-readable QA report.
 
-Useful files for agents:
+Useful surfaces for agents:
 
-- `docs/llms.txt` explains the full contract
-- `schema/demoframe.schema.json` validates generated configs
+- `demoframe schema` prints the JSON Schema for configs; `docs/llms.txt` explains the full contract
+- `npx demoframe-mcp` is an MCP server exposing `get_schema`, `validate_config`, `render_demo`, and `get_report`
+- `skills/demoframe/SKILL.md` (shipped in the package) teaches Claude Code the full authoring loop
 - `demoframe check` catches privacy, asset, and config issues before rendering
+- `report.json` and the preview stills written by every render close the feedback loop
 
 ## Install
 
 ```sh
 npm install -g demoframe
-demoframe install-browser   # one-time Chromium download (~150MB)
-demoframe doctor            # verify the environment
 ```
 
-ffmpeg ships with the package. For best GIF quality also install
-[gifski](https://gif.ski) (`brew install gifski`); demoframe uses it
-automatically when present and falls back to ffmpeg otherwise.
+That's it. The first render downloads a pinned Chromium build (~150MB, one-time)
+and a pinned [gifski](https://gif.ski) build for best GIF quality; ffmpeg ships
+with the package. Pass `--no-download` to fail instead of downloading, and run
+`demoframe install-browser` / `demoframe doctor` to set up or inspect the
+environment explicitly.
 
 ## Quick start
 
 ```sh
 demoframe init my-demo --frame phone
 cd my-demo
-demoframe check demo.yml      # validate config, assets, privacy scan
-demoframe preview demo.yml    # key stills + README-size + dark/light composites
-demoframe render demo.yml     # frames -> GIF/MP4 + report.json
+demoframe render demo.yml     # validate -> frames -> GIF/WebP/MP4 + stills + report.json
+```
+
+One `render` does the whole pipeline: validation and privacy scan, frame
+rendering, encoding with the size-budget retry ladder, per-scene preview
+stills in `dist/preview/`, and a machine-readable `dist/report.json`.
+
+For faster iteration while authoring:
+
+```sh
+demoframe check demo.yml      # validate config, assets, privacy scan (<1s)
+demoframe preview demo.yml    # key stills only, no encode
 demoframe serve demo.yml      # live preview with a time scrubber
 ```
 
@@ -121,13 +132,19 @@ No AI calls, no uploads: everything renders locally. The config format is
 designed so your coding agent can write it for you (see `docs/llms.txt` and
 `schema/demoframe.schema.json`).
 
-## Size budget
+## Output formats and size budget
 
-GIFs default to a 5MB budget (GitHub renders README GIFs poorly past that).
-If an encode exceeds the budget, demoframe automatically retries down a
-ladder (15fps to 12fps, then 480px to 400px) and reports what it did. Every
-render ends with a QA report (dimensions, duration, fps, frame count, size,
-loop marker, audio absence), printed and written to `report.json`.
+`output.format` takes `gif`, `webp`, `mp4`, or a list like `[webp, mp4]`.
+Animated WebP is the recommended README format: it autoplays on GitHub like a
+GIF at a fraction of the size with full color. Keep `gif` for destinations
+that require it.
+
+GIF and WebP outputs default to a 5MB budget (GitHub renders README GIFs
+poorly past that). If an encode exceeds the budget, demoframe automatically
+retries down a ladder (15fps to 12fps, then 480px to 400px) and reports what
+it did. Every render ends with a QA report (dimensions, duration, fps, frame
+count, size, loop marker, audio absence), printed and written to
+`report.json`.
 
 ## Privacy
 

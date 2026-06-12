@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { budgetToBytes, demoConfigSchema } from './schema.js';
+import { budgetToBytes, demoConfigSchema, outputFormats } from './schema.js';
 
 const minimal = {
   frame: { type: 'phone' },
@@ -43,6 +43,24 @@ describe('demoConfigSchema', () => {
   it('rejects unknown frame types', () => {
     const result = demoConfigSchema.safeParse({ ...minimal, frame: { type: 'tablet' } });
     expect(result.success).toBe(false);
+  });
+
+  it('accepts a single format or a list, rejects the removed "both"', () => {
+    expect(demoConfigSchema.parse({ ...minimal, output: { format: 'webp' } }).output.format).toBe('webp');
+    expect(
+      demoConfigSchema.parse({ ...minimal, output: { format: ['webp', 'mp4'] } }).output.format,
+    ).toEqual(['webp', 'mp4']);
+    expect(demoConfigSchema.safeParse({ ...minimal, output: { format: 'both' } }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, output: { format: [] } }).success).toBe(false);
+  });
+});
+
+describe('outputFormats', () => {
+  it('normalizes to a unique list', () => {
+    const single = demoConfigSchema.parse({ ...minimal, output: { format: 'gif' } });
+    expect(outputFormats(single.output)).toEqual(['gif']);
+    const list = demoConfigSchema.parse({ ...minimal, output: { format: ['webp', 'webp', 'mp4'] } });
+    expect(outputFormats(list.output)).toEqual(['webp', 'mp4']);
   });
 });
 
