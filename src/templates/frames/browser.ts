@@ -3,8 +3,8 @@ import type { Frame } from '../../config/schema.js';
 
 export const browserCss = `
 .df-device-browser {
-  width: 912px;
-  height: 592px;
+  width: calc(100vw - 48px);
+  height: calc(100vh - 48px);
   background: var(--df-card);
   border-radius: var(--df-radius-lg);
   border: 1px solid var(--df-border);

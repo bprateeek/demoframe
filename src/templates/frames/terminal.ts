@@ -3,8 +3,8 @@ import type { Frame } from '../../config/schema.js';
 
 export const terminalCss = `
 .df-device-terminal {
-  width: 772px;
-  height: 472px;
+  width: calc(100vw - 48px);
+  height: calc(100vh - 48px);
   background: #11151c;
   border-radius: var(--df-radius-lg);
   border: 1px solid #262d38;

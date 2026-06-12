@@ -4,8 +4,8 @@ import type { Frame } from '../../config/schema.js';
 
 export const phoneCss = `
 .df-device-phone {
-  width: 448px;
-  height: 1008px;
+  width: calc(100vw - 32px);
+  height: calc(100vh - 32px);
   background: var(--df-device);
   border-radius: 64px;
   padding: 7px;
