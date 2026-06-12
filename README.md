@@ -6,10 +6,11 @@ deterministically in Chromium at high resolution, downscales cleanly, and
 encodes a tight, looping GIF (or MP4) with a QA report.
 
 <p align="center">
-  <img src="docs/assets/hero.gif" alt="demoframe phone demo: typing a task, progress steps, pull request ready" width="280">
+  <img src="https://raw.githubusercontent.com/bprateeek/demoframe/main/docs/assets/hero.gif" alt="demoframe phone demo: typing a task, progress steps, pull request ready" width="280">
 </p>
 
-The hero above is demoframe's own output: `examples/fieldwork-hero/demo.yml`,
+The hero above is demoframe's own output:
+[`examples/fieldwork-hero/demo.yml`](https://github.com/bprateeek/demoframe/blob/main/examples/fieldwork-hero/demo.yml),
 439KB, 480px, 15fps, loops forever.
 
 ## Why

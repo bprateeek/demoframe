@@ -11,6 +11,15 @@
     "demoframe": "dist/cli.js"
   },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bprateeek/demoframe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bprateeek/demoframe/issues"
+  },
+  "homepage": "https://github.com/bprateeek/demoframe#readme",
   "files": [
     "dist",
     "schema",
