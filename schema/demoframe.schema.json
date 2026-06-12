@@ -84,33 +84,134 @@
         "theme": {
           "type": "object",
           "properties": {
+            "preset": {
+              "type": "string",
+              "enum": [
+                "github-dark",
+                "paper",
+                "midnight",
+                "candy"
+              ]
+            },
             "accent": {
               "type": "string",
-              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
-              "default": "#e2603a"
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
             },
             "mode": {
               "type": "string",
               "enum": [
                 "light",
                 "dark"
-              ],
-              "default": "light"
+              ]
             },
             "font": {
-              "type": "string",
-              "enum": [
-                "inter",
-                "system"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "inter",
+                    "system"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "sans": {
+                      "type": "string",
+                      "pattern": "\\.(woff2|ttf)$"
+                    },
+                    "mono": {
+                      "type": "string",
+                      "pattern": "\\.(woff2|ttf)$"
+                    }
+                  },
+                  "additionalProperties": false
+                }
               ],
               "default": "inter"
             },
             "logo": {
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "src": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "placement": {
+                      "type": "string",
+                      "enum": [
+                        "header",
+                        "corner"
+                      ],
+                      "default": "header"
+                    }
+                  },
+                  "required": [
+                    "src"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
             },
             "background": {
               "type": "string",
               "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "palette": {
+              "type": "object",
+              "properties": {
+                "page": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "screen": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "card": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "text": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "muted": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "faint": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "border": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "success": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "successBg": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "info": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                },
+                "shadow": {
+                  "type": "string",
+                  "pattern": "^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\\([0-9.,\\s%/]+\\))$"
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false,
@@ -124,6 +225,16 @@
                 "type": {
                   "type": "string",
                   "const": "phone"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
                 },
                 "title": {
                   "type": "string",
@@ -151,6 +262,16 @@
                   "type": "string",
                   "const": "browser"
                 },
+                "width": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
                 "url": {
                   "type": "string",
                   "maxLength": 80
@@ -172,6 +293,16 @@
                   "type": "string",
                   "const": "terminal"
                 },
+                "width": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
                 "title": {
                   "type": "string",
                   "maxLength": 40
@@ -180,6 +311,60 @@
                   "type": "string",
                   "maxLength": 16,
                   "default": "$"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "desktop"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "subtitle": {
+                  "type": "string",
+                  "maxLength": 100
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "none"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
+                },
+                "height": {
+                  "type": "integer",
+                  "minimum": 320,
+                  "maximum": 1920
                 }
               },
               "required": [

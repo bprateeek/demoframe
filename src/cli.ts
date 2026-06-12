@@ -120,13 +120,15 @@ program
 
 program
   .command('init')
-  .description('scaffold a starter demo config and assets folder')
+  .description('scaffold a demo config from a gallery template')
   .argument('[dir]', 'target directory', '.')
-  .option('-f, --frame <type>', 'frame type: phone, browser, or terminal', 'phone')
-  .action(async (dir: string, opts: { frame: string }) => {
+  .option('-f, --frame <type>', 'starter frame type: phone, browser, or terminal')
+  .option('-t, --template <name>', 'gallery template name (see --list)')
+  .option('--list', 'list available gallery templates')
+  .action(async (dir: string, opts: { frame?: string; template?: string; list?: boolean }) => {
     try {
       const { runInit } = await import('./commands/init.js');
-      await runInit(dir, opts.frame);
+      await runInit(dir, opts);
     } catch (err) {
       fail(err);
     }

@@ -3,7 +3,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { loadConfig, type LoadedConfig } from '../config/load.js';
 import { scanForPrivateData } from '../config/privacy.js';
-import { budgetToBytes } from '../config/schema.js';
+import { budgetToBytes, normalizeLogo } from '../config/schema.js';
 
 export interface CheckResult {
   loaded: LoadedConfig;
@@ -13,7 +13,13 @@ export interface CheckResult {
 function referencedAssets(loaded: LoadedConfig): Array<{ at: string; file: string }> {
   const refs: Array<{ at: string; file: string }> = [];
   const { config, baseDir } = loaded;
-  if (config.theme.logo) refs.push({ at: 'theme.logo', file: path.resolve(baseDir, config.theme.logo) });
+  const logo = normalizeLogo(config.theme.logo);
+  if (logo) refs.push({ at: 'theme.logo', file: path.resolve(baseDir, logo.src) });
+  if (typeof config.theme.font === 'object') {
+    const { sans, mono } = config.theme.font;
+    if (sans) refs.push({ at: 'theme.font.sans', file: path.resolve(baseDir, sans) });
+    if (mono) refs.push({ at: 'theme.font.mono', file: path.resolve(baseDir, mono) });
+  }
   config.scenes.forEach((scene, i) => {
     if (scene.type === 'screenshot') {
       refs.push({ at: `scenes[${i}].src`, file: path.resolve(baseDir, scene.src) });

@@ -1,8 +1,8 @@
 import { escapeHtml } from '../html.js';
 import type { Frame } from '../../config/schema.js';
 
-export const browserCss = `
-.df-device-browser {
+export const desktopCss = `
+.df-device-desktop {
   width: calc(100vw - 48px);
   height: calc(100vh - 48px);
   background: var(--df-card);
@@ -13,7 +13,7 @@ export const browserCss = `
   display: flex;
   flex-direction: column;
 }
-.df-browser-bar {
+.df-desktop-bar {
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: 96px 1fr 96px;
@@ -21,27 +21,26 @@ export const browserCss = `
   padding: var(--df-s3) var(--df-s4);
   border-bottom: 1px solid var(--df-border);
 }
-.df-traffic { display: flex; gap: 8px; }
-.df-traffic i { width: 13px; height: 13px; border-radius: 50%; }
-.df-traffic i:nth-child(1) { background: #f25f57; }
-.df-traffic i:nth-child(2) { background: #fbbe2e; }
-.df-traffic i:nth-child(3) { background: #2bc740; }
-.df-urlbar {
+.df-desktop-title {
   justify-self: center;
-  max-width: 420px;
-  width: 100%;
-  background: var(--df-screen);
-  border: 1px solid var(--df-border);
-  border-radius: 999px;
-  padding: 7px var(--df-s4);
   font-size: var(--df-fs-sm);
+  font-weight: 600;
   color: var(--df-muted);
-  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.df-browser-content {
+.df-desktop-toolbar {
+  flex: 0 0 auto;
+  padding: var(--df-s2) var(--df-s4);
+  font-size: var(--df-fs-xs);
+  color: var(--df-faint);
+  border-bottom: 1px solid var(--df-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.df-desktop-content {
   flex: 1;
   min-height: 0;
   background: var(--df-screen);
@@ -50,20 +49,23 @@ export const browserCss = `
 }
 `;
 
-export function browserHtml(
-  frame: Extract<Frame, { type: 'browser' }>,
+export function desktopHtml(
+  frame: Extract<Frame, { type: 'desktop' }>,
   scenesHtml: string,
   headerLogoHtml = '',
 ): string {
-  const label = frame.url ?? frame.title ?? 'localhost:3000';
+  const toolbar = frame.subtitle
+    ? `<div class="df-desktop-toolbar">${escapeHtml(frame.subtitle)}</div>`
+    : '';
   return `<div class="df-stage">
-  <div class="df-device-browser">
-    <div class="df-browser-bar">
+  <div class="df-device-desktop">
+    <div class="df-desktop-bar">
       <div class="df-traffic"><i></i><i></i><i></i></div>
-      <div class="df-urlbar">${escapeHtml(label)}</div>
+      <div class="df-desktop-title">${escapeHtml(frame.title ?? 'My App')}</div>
       <div class="df-logo-slot">${headerLogoHtml}</div>
     </div>
-    <div class="df-browser-content">
+    ${toolbar}
+    <div class="df-desktop-content">
       <div class="df-safe">${scenesHtml}</div>
     </div>
   </div>

@@ -1,6 +1,7 @@
-import type { Theme } from '../config/schema.js';
+import type { Theme, ThemePalette, ThemePresetName } from '../config/schema.js';
+import { fontStacks } from './fonts.js';
 
-const PALETTES = {
+export const PALETTES: Record<'light' | 'dark', ThemePalette> = {
   light: {
     page: '#eef0f4',
     screen: '#faf8f4',
@@ -27,17 +28,96 @@ const PALETTES = {
     info: '#539bf5',
     shadow: 'rgba(0, 0, 0, 0.45)',
   },
-} as const;
+};
+
+export interface ThemePreset {
+  accent: string;
+  mode: 'light' | 'dark';
+  palette: Partial<ThemePalette>;
+}
+
+export const THEME_PRESETS: Record<ThemePresetName, ThemePreset> = {
+  'github-dark': {
+    accent: '#3fb950',
+    mode: 'dark',
+    palette: {
+      page: '#010409',
+      screen: '#0d1117',
+      card: '#161b22',
+      text: '#e6edf3',
+      muted: '#8b949e',
+      faint: '#6e7681',
+      border: '#30363d',
+      info: '#58a6ff',
+    },
+  },
+  paper: {
+    accent: '#b45309',
+    mode: 'light',
+    palette: {
+      page: '#f6f1e7',
+      screen: '#fdfaf3',
+      card: '#fffdf8',
+      text: '#292524',
+      muted: '#78716c',
+      faint: '#a8a29e',
+      border: '#e7ddc8',
+      shadow: 'rgba(41, 37, 36, 0.08)',
+    },
+  },
+  midnight: {
+    accent: '#818cf8',
+    mode: 'dark',
+    palette: {
+      page: '#050614',
+      screen: '#0b0d1f',
+      card: '#131631',
+      text: '#e2e4f5',
+      muted: '#9aa0c7',
+      faint: '#6b719b',
+      border: '#272c52',
+      info: '#7dd3fc',
+      shadow: 'rgba(0, 0, 0, 0.55)',
+    },
+  },
+  candy: {
+    accent: '#ec4899',
+    mode: 'light',
+    palette: {
+      page: '#fdf2f8',
+      screen: '#fff7fb',
+      card: '#ffffff',
+      text: '#3f2335',
+      muted: '#9d6b8a',
+      faint: '#c39bb1',
+      border: '#fbcfe8',
+      shadow: 'rgba(190, 24, 93, 0.10)',
+    },
+  },
+};
+
+export interface ResolvedTheme {
+  accent: string;
+  mode: 'light' | 'dark';
+  palette: ThemePalette;
+}
+
+export function resolveTheme(theme: Theme): ResolvedTheme {
+  const preset = theme.preset ? THEME_PRESETS[theme.preset] : undefined;
+  const mode = theme.mode ?? preset?.mode ?? 'light';
+  const palette: ThemePalette = { ...PALETTES[mode], ...preset?.palette };
+  if (theme.background && theme.palette?.page === undefined) palette.page = theme.background;
+  Object.assign(palette, theme.palette);
+  const accent = theme.accent ?? preset?.accent ?? '#e2603a';
+  return { accent, mode, palette };
+}
 
 export function themeCss(theme: Theme): string {
-  const p = PALETTES[theme.mode];
-  const sans =
-    theme.font === 'inter'
-      ? "'Inter', -apple-system, 'Segoe UI', sans-serif"
-      : "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  const { accent, palette: p } = resolveTheme(theme);
+  const { sans, mono } = fontStacks(theme.font);
   return `:root {
-  --df-accent: ${theme.accent};
-  --df-page: ${theme.background ?? p.page};
+  --df-accent: ${accent};
+  --df-page: ${p.page};
   --df-screen: ${p.screen};
   --df-card: ${p.card};
   --df-text: ${p.text};
@@ -50,7 +130,7 @@ export function themeCss(theme: Theme): string {
   --df-shadow: ${p.shadow};
   --df-device: #18243a;
   --df-font-sans: ${sans};
-  --df-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --df-font-mono: ${mono};
   --df-s1: 4px; --df-s2: 8px; --df-s3: 12px; --df-s4: 16px; --df-s5: 24px; --df-s6: 32px;
   --df-fs-xs: 12px; --df-fs-sm: 14px; --df-fs-base: 16px; --df-fs-lg: 18px;
   --df-fs-xl: 22px; --df-fs-2xl: 28px;

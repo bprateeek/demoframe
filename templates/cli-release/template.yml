@@ -1,0 +1,16 @@
+title: CLI release demo
+output: { format: gif, width: 640, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { preset: github-dark }
+frame: { type: terminal, title: "~/release", prompt: "$" }
+scenes:
+  - type: terminal-playback
+    duration: 6.5
+    command: "npm run release"
+    output:
+      - "building 42 modules..."
+      - { text: "build passed in 1.8s", style: success }
+      - "publishing to npm..."
+    spinner: Publishing
+    exit: { status: success, label: "released v1.2.0 in 12s" }
+  - type: hold
+    duration: 1.2

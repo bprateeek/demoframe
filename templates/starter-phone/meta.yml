@@ -1,0 +1,5 @@
+name: starter-phone
+description: Phone-framed product walkthrough with typing, steps, and a status card
+frames: [phone]
+scenes: [typing, steps, status-card, hold]
+demoframeVersion: "0.4.0"

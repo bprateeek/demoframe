@@ -11,7 +11,12 @@ skills/demoframe/SKILL.md in the package.
 
 ## Commands
 
-- `demoframe init [dir] --frame phone|browser|terminal`: scaffold demo.yml + assets/
+- `demoframe init [dir] [--template <name>] [--frame phone|browser|terminal]
+  [--list]`: scaffold demo.yml + assets/ from a gallery template. --list prints
+  the gallery (starters plus showcase templates, shipped in the package under
+  templates/). --frame is sugar for --template starter-<frame>; the default is
+  starter-phone. Each template's meta.yml records the demoframe version it
+  targets.
 - `demoframe schema`: print the JSON Schema for configs. The schema is pre-1.0
   and changes between versions; read it instead of relying on memorized fields.
 - `demoframe check <config> [--strict]`: validate without rendering. Exit 0 = valid.
@@ -63,12 +68,32 @@ supersampling, slower). Prefer webp for READMEs: GIF-like autoplay at a
 fraction of the size, full color. webm is VP9: smaller than mp4 for video
 destinations that accept it.
 
-theme: accent hex ("#e2603a"), mode light|dark, font inter|system,
-background hex (defaults derived from mode), logo path.
+theme (all optional):
+- preset github-dark|paper|midnight|candy: a curated accent+mode+palette
+  bundle. Explicit theme keys silently override the preset.
+- accent hex ("#e2603a" when neither accent nor preset set), mode light|dark
+  (light when neither mode nor preset set).
+- font: inter|system, or { sans?: path, mono?: path } pointing at local
+  .woff2/.ttf files (embedded at render; one file per family serves all
+  weights). A missing slot falls back to the bundled Inter / JetBrains Mono.
+- logo: path, or { src: path, placement: header|corner (header) }. header puts
+  a small logo in the frame's title bar; corner overlays a badge bottom-right
+  over the scenes. Falls back to corner when there is no header to use (frame
+  type none, or phone without a title).
+- palette: partial override of the 11 named slots (page, screen, card, text,
+  muted, faint, border, success, successBg, info, shadow), values hex or
+  rgb()/rgba(). Applied over the mode/preset palette. Unknown keys are errors.
+- background hex: shorthand for palette.page; palette.page wins if both set.
 
 frame: { type: phone, title?, subtitle?, statusBarTime? }
      | { type: browser, url?, title? }
      | { type: terminal, title?, prompt? }
+     | { type: desktop, title?, subtitle? }  macOS-style app window
+     | { type: none }  frameless: scenes fill the canvas edge-to-edge
+Every frame also takes width? and height? (320-1920) overriding the default
+canvas: phone 480x1040, browser 960x640, terminal 820x520, desktop 1024x640,
+none 960x640. output.width still controls the encoded pixel width; frame
+width/height set the canvas shape and aspect.
 
 scenes: 1-12 entries, each with duration (seconds, <=30, total <=60) and
 optional transition cut|crossfade (cut default; crossfade costs GIF size):
@@ -115,7 +140,10 @@ optional transition cut|crossfade (cut default; crossfade costs GIF size):
   closes a launch-post demo with numbers. Match scene to frame:
   terminal-playback + terminal, chat + phone, code/metric-card + browser.
 - Rendering examples ship in the package under examples/ (one per scene
-  type); copy one as a starting point.
+  type, plus desktop-app and frameless for the v0.4 frames); copy one as a
+  starting point, or start from a gallery template via init --template.
+- A GitHub Action lives at bprateeek/demoframe/action for CI renders
+  (README auto-refresh and PR preview recipes in action/README.md).
 - Keep total duration 8-15s for README heroes.
 - Respect the text limits; check enforces them. Shorter copy reads better at
   280px display width.

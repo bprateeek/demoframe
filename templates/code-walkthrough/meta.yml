@@ -1,0 +1,5 @@
+name: code-walkthrough
+description: Desktop-framed code reveal on the paper preset
+frames: [desktop]
+scenes: [code, hold]
+demoframeVersion: "0.4.0"

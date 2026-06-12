@@ -1,0 +1,24 @@
+title: My product demo
+output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
+theme: { accent: "#e2603a", mode: light, font: inter }
+frame: { type: phone, title: my-app, subtitle: "workspace · cloud" }
+scenes:
+  - type: typing
+    duration: 3.6
+    text: "Describe the task you want done"
+    send: true
+  - type: steps
+    duration: 3.4
+    header: { title: Workspace ready, detail: "Connected. Ready to work." }
+    items:
+      - { label: First step done, detail: "Something useful happened", state: done }
+      - { label: Working on the next step, state: active }
+  - type: status-card
+    duration: 3.4
+    transition: crossfade
+    title: Result ready for review
+    checks: [Checks passed, Ready for review]
+    cta: { label: Approve, style: success }
+    caption: Awaiting human review
+  - type: hold
+    duration: 1.4

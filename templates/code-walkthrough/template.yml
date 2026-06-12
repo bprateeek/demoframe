@@ -1,0 +1,18 @@
+title: Code walkthrough demo
+output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 600 }
+theme: { preset: paper }
+frame: { type: desktop, title: notes.app, subtitle: "draft: parser rewrite" }
+scenes:
+  - type: code
+    duration: 5.5
+    lang: python
+    title: parser.py
+    lineNumbers: true
+    code: |-
+      def parse(tokens):
+          tree = []
+          for tok in tokens:
+              tree.append(node(tok))
+          return tree
+  - type: hold
+    duration: 1.2

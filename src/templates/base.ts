@@ -39,6 +39,21 @@ svg { display: block; width: 100%; height: 100%; }
   flex-direction: column;
   padding: var(--df-s5);
 }
+.df-logo-slot {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+}
+.df-logo-header { height: 20px; width: auto; display: block; }
+.df-logo-corner {
+  position: absolute;
+  right: var(--df-s4);
+  bottom: var(--df-s4);
+  height: 28px;
+  opacity: 0.85;
+  z-index: 1;
+}
+.df-logo-corner img { height: 100%; width: auto; display: block; }
 .df-slot-header { flex: 0 0 auto; }
 .df-slot-body { flex: 1 1 auto; min-height: 0; }
 .df-slot-footer { flex: 0 0 auto; margin-top: auto; }

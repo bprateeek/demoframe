@@ -3,6 +3,46 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
+## 0.4.0
+
+The make-it-yours release: custom frames and viewports, deep theming, a
+template gallery, and a GitHub Action. All config-facing changes are
+additive; every 0.3.0 config parses and renders identically.
+
+### Added
+
+- `desktop` frame: macOS-style app window with title bar and optional
+  subtitle toolbar (default canvas 1024x640).
+- `none` frame: frameless rendering, scenes fill the canvas edge-to-edge on
+  the screen background (default canvas 960x640).
+- `width`/`height` (320-1920) on every frame to customize the canvas size
+  and aspect ratio.
+- `theme.preset`: `github-dark`, `paper`, `midnight`, `candy`. Presets
+  pre-fill accent, mode, and palette; explicit theme keys silently win.
+- `theme.palette`: partial override of the 11 named color slots (hex or
+  rgb()/rgba() values); `palette.page` wins over the `background` shorthand.
+- `theme.font` object form `{ sans?, mono? }` embedding local .woff2/.ttf
+  files; one file per family serves all weights.
+- `theme.logo` object form `{ src, placement: header|corner }`.
+- Template gallery under `templates/` (three starters plus cli-release,
+  code-walkthrough, assistant-chat, launch-metrics); `demoframe init
+  --template <name>` and `init --list`. `init --frame <type>` now resolves
+  to the matching starter template.
+- GitHub Action (`bprateeek/demoframe/action`) rendering demos in CI, with
+  README-refresh and PR-preview recipes; this repo's hero GIF refreshes on
+  merge via the action.
+- Examples `desktop-app` and `frameless` with golden coverage, including the
+  corner logo badge.
+
+### Changed
+
+- `theme.logo` now actually renders; it was accepted and validated but never
+  drawn before 0.4.0. String form places it in the frame header (corner
+  fallback for frame `none` and phones without a title bar).
+- Library API: `Theme['accent']` and `Theme['mode']` are optional at parse
+  time; defaults apply during rendering via the new exported `resolveTheme`.
+  CLI behavior is unchanged.
+
 ## 0.3.0
 
 The tell-any-story release: four new scene types, destination presets, and

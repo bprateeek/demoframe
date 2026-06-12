@@ -56,18 +56,77 @@ const outputSchema = z
   })
   .default({});
 
+const cssColor = z
+  .string()
+  .regex(
+    /^(#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})|rgba?\([0-9.,\s%/]+\))$/,
+    'expected hex like "#3b82f6" or rgb()/rgba()',
+  );
+
+export const PALETTE_KEYS = [
+  'page',
+  'screen',
+  'card',
+  'text',
+  'muted',
+  'faint',
+  'border',
+  'success',
+  'successBg',
+  'info',
+  'shadow',
+] as const;
+
+const paletteSchema = z
+  .object(
+    Object.fromEntries(PALETTE_KEYS.map((key) => [key, cssColor.optional()])) as Record<
+      (typeof PALETTE_KEYS)[number],
+      z.ZodOptional<typeof cssColor>
+    >,
+  )
+  .strict();
+
+export const THEME_PRESET_NAMES = ['github-dark', 'paper', 'midnight', 'candy'] as const;
+
+const fontFile = z
+  .string()
+  .regex(/\.(woff2|ttf)$/i, 'expected a .woff2 or .ttf file path');
+
+const fontValue = z.union([
+  z.enum(['inter', 'system']),
+  z.object({ sans: fontFile.optional(), mono: fontFile.optional() }).strict(),
+]);
+
 const themeSchema = z
   .object({
-    accent: hexColor.default('#e2603a'),
-    mode: z.enum(['light', 'dark']).default('light'),
-    font: z.enum(['inter', 'system']).default('inter'),
-    logo: z.string().optional(),
+    preset: z.enum(THEME_PRESET_NAMES).optional(),
+    accent: hexColor.optional(),
+    mode: z.enum(['light', 'dark']).optional(),
+    font: fontValue.default('inter'),
+    logo: z
+      .union([
+        z.string().min(1),
+        z
+          .object({
+            src: z.string().min(1),
+            placement: z.enum(['header', 'corner']).default('header'),
+          })
+          .strict(),
+      ])
+      .optional(),
     background: hexColor.optional(),
+    palette: paletteSchema.optional(),
   })
   .default({});
 
+const frameBase = {
+  width: z.number().int().min(320).max(1920).optional(),
+  height: z.number().int().min(320).max(1920).optional(),
+};
+
 const phoneFrame = z.object({
   type: z.literal('phone'),
+  ...frameBase,
   title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
   subtitle: z.string().max(TEXT_LIMITS.headerDetail).optional(),
   statusBarTime: z.string().max(8).default('9:41'),
@@ -75,17 +134,37 @@ const phoneFrame = z.object({
 
 const browserFrame = z.object({
   type: z.literal('browser'),
+  ...frameBase,
   url: z.string().max(80).optional(),
   title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
 });
 
 const terminalFrame = z.object({
   type: z.literal('terminal'),
+  ...frameBase,
   title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
   prompt: z.string().max(16).default('$'),
 });
 
-const frameSchema = z.discriminatedUnion('type', [phoneFrame, browserFrame, terminalFrame]);
+const desktopFrame = z.object({
+  type: z.literal('desktop'),
+  ...frameBase,
+  title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
+  subtitle: z.string().max(TEXT_LIMITS.headerDetail).optional(),
+});
+
+const noneFrame = z.object({
+  type: z.literal('none'),
+  ...frameBase,
+});
+
+const frameSchema = z.discriminatedUnion('type', [
+  phoneFrame,
+  browserFrame,
+  terminalFrame,
+  desktopFrame,
+  noneFrame,
+]);
 
 const sceneBase = {
   duration: z.number().positive().max(30),
@@ -352,6 +431,9 @@ export type TypingScene = z.infer<typeof typingScene>;
 export type StepsScene = z.infer<typeof stepsScene>;
 export type StatusCardScene = z.infer<typeof statusCardScene>;
 export type ScreenshotScene = z.infer<typeof screenshotScene>;
+export type DesktopFrame = z.infer<typeof desktopFrame>;
+export type ThemePalette = Record<(typeof PALETTE_KEYS)[number], string>;
+export type ThemePresetName = (typeof THEME_PRESET_NAMES)[number];
 export type TerminalPlaybackScene = z.infer<typeof terminalPlaybackScene>;
 export type CodeScene = z.infer<typeof codeScene>;
 export type ChatScene = z.infer<typeof chatScene>;
@@ -370,6 +452,17 @@ export function normalizeTermLines(output: TerminalPlaybackScene['output']): Nor
   );
 }
 
+export type LogoPlacement = 'header' | 'corner';
+
+export function normalizeLogo(
+  logo: Theme['logo'],
+): { src: string; placement: LogoPlacement } | undefined {
+  if (logo === undefined) return undefined;
+  return typeof logo === 'string'
+    ? { src: logo, placement: 'header' }
+    : { src: logo.src, placement: logo.placement };
+}
+
 export type OutputFormat = z.infer<typeof formatValue>;
 
 export function outputFormats(output: Output): OutputFormat[] {
@@ -383,4 +476,11 @@ export const FRAME_VIEWPORTS = {
   phone: { width: 480, height: 1040 },
   browser: { width: 960, height: 640 },
   terminal: { width: 820, height: 520 },
+  desktop: { width: 1024, height: 640 },
+  none: { width: 960, height: 640 },
 } as const;
+
+export function frameViewport(frame: Frame): { width: number; height: number } {
+  const d = FRAME_VIEWPORTS[frame.type];
+  return { width: frame.width ?? d.width, height: frame.height ?? d.height };
+}

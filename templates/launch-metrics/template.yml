@@ -1,0 +1,18 @@
+title: Launch metrics demo
+output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 600 }
+theme: { preset: midnight }
+frame: { type: browser, url: metrics.example.com/launch }
+scenes:
+  - type: metric-card
+    duration: 6.0
+    title: Launch day
+    metrics:
+      - { label: Signups, value: 1840 }
+      - { label: Conversion, value: 4.2, suffix: "%", decimals: 1 }
+    chart:
+      kind: bar
+      series: [12, 28, 41, 64, 90, 122, 161]
+      labels: [9a, 10a, 11a, 12p, 1p, 2p, 3p]
+    caption: Live from the dashboard
+  - type: hold
+    duration: 1.2

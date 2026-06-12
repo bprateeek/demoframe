@@ -1,0 +1,23 @@
+title: Desktop app demo
+output: { format: gif, width: 720, fps: 15, displayWidth: 560 }
+theme: { preset: github-dark }
+frame: { type: desktop, title: demoframe Studio, subtitle: "workspace: release-notes" }
+scenes:
+  - type: code
+    duration: 5.0
+    lang: typescript
+    title: src/release.ts
+    lineNumbers: true
+    code: |-
+      export function releaseNotes(commits: Commit[]): string {
+        const lines = commits.map((c) => `- ${c.summary}`)
+        return ['## Changes', ...lines].join('\n')
+      }
+  - type: status-card
+    duration: 3.4
+    transition: crossfade
+    title: Release notes generated
+    checks: [Lint passed, Types check]
+    cta: { label: Publish draft, style: primary }
+  - type: hold
+    duration: 1.2

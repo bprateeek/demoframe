@@ -1,0 +1,30 @@
+name: Refresh README demo
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'examples/fieldwork-hero/**'
+permissions:
+  contents: write
+jobs:
+  render:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: ./action
+        with:
+          config: examples/fieldwork-hero/demo.yml
+          out: /tmp/demo-out
+          version: 0.4.0
+      - run: cp /tmp/demo-out/demo.gif docs/assets/hero.gif
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/assets/hero.gif
+          git diff --cached --quiet && exit 0
+          git commit -m "Refresh README hero demo"
+          git push

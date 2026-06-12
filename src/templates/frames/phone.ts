@@ -70,7 +70,14 @@ export const phoneCss = `
 }
 `;
 
-export function phoneHtml(frame: Extract<Frame, { type: 'phone' }>, scenesHtml: string): string {
+export function phoneHtml(
+  frame: Extract<Frame, { type: 'phone' }>,
+  scenesHtml: string,
+  headerLogoHtml = '',
+): string {
+  const rightSlot = headerLogoHtml
+    ? `<div class="df-logo-slot">${headerLogoHtml}</div>`
+    : `<div class="df-circle-btn">${icons.ellipsis}</div>`;
   const title = frame.title
     ? `<div class="df-appbar">
         <div class="df-circle-btn">${icons.chevronLeft}</div>
@@ -78,7 +85,7 @@ export function phoneHtml(frame: Extract<Frame, { type: 'phone' }>, scenesHtml: 
           <strong>${escapeHtml(frame.title)}</strong>
           ${frame.subtitle ? `<span>${escapeHtml(frame.subtitle)}</span>` : ''}
         </div>
-        <div class="df-circle-btn">${icons.ellipsis}</div>
+        ${rightSlot}
       </div>`
     : '';
   return `<div class="df-stage">

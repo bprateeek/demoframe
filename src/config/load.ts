@@ -19,7 +19,7 @@ const HINTS: Array<{ match: RegExp; hint: string }> = [
     match: /scenes\[\d+\]\.type/,
     hint: 'valid scene types: typing, steps, status-card, screenshot, terminal-playback, code, chat, metric-card, hold',
   },
-  { match: /^frame\.type/, hint: 'valid frame types: phone, browser, terminal' },
+  { match: /^frame\.type/, hint: 'valid frame types: phone, browser, terminal, desktop, none' },
   { match: /duration/, hint: 'durations are seconds per scene, e.g. duration: 3.8' },
   { match: /accent|background/, hint: 'colors are hex strings, e.g. "#e2603a"' },
   { match: /budget/, hint: 'budget accepts "5MB", "800KB", or a byte count' },

@@ -9,7 +9,7 @@ demoframe turns a YAML config into a designed, deterministic demo animation. You
 
 ## The loop
 
-1. **Scaffold or author.** `npx demoframe init --frame phone|browser|terminal` writes a starter `demo.yml`, or write the config from scratch. Get the authoritative schema with `npx demoframe schema` (JSON Schema on stdout); do not rely on memorized field names, the schema is pre-1.0 and changes between versions.
+1. **Scaffold or author.** `npx demoframe init --template <name>` writes a `demo.yml` from the gallery (`--list` shows the templates; `--frame phone|browser|terminal` picks the matching starter), or write the config from scratch. Get the authoritative schema with `npx demoframe schema` (JSON Schema on stdout); do not rely on memorized field names, the schema is pre-1.0 and changes between versions.
 2. **Validate fast.** `npx demoframe check demo.yml` after every edit. Errors print as `path: message` with hints. Warnings cover missing assets, privacy findings, and screenshots likely to blow the size budget. Fix every warning you can before rendering; with `--strict` warnings fail.
 3. **Render one-shot.** `npx demoframe render demo.yml -o dist` validates, renders, encodes, and writes. Rendering for a specific destination? Add `--for github-readme|x-post|linkedin|product-hunt` to set format, width, fps, budget, and quality in one flag (it overrides the config's `output` values and prints what it changed):
    - the outputs (`demo.gif`, `demo.webp`, and/or `demo.mp4` per `output.format`)

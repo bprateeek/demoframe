@@ -1,0 +1,19 @@
+title: My product demo
+output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 600 }
+theme: { accent: "#2563eb", mode: light, font: inter }
+frame: { type: browser, url: app.example.com/dashboard }
+scenes:
+  - type: steps
+    duration: 3.5
+    header: { title: Deploy started, detail: "Building and shipping your app." }
+    items:
+      - { label: Build passed, detail: "42s", state: done }
+      - { label: Deploying to production, state: active }
+  - type: status-card
+    duration: 3.5
+    transition: crossfade
+    title: Deployed to production
+    checks: [Build passed, Smoke tests green]
+    cta: { label: View deployment, style: primary }
+  - type: hold
+    duration: 1.2

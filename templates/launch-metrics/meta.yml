@@ -1,0 +1,5 @@
+name: launch-metrics
+description: Browser-framed launch metrics card on the midnight preset
+frames: [browser]
+scenes: [metric-card, hold]
+demoframeVersion: "0.4.0"

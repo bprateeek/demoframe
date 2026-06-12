@@ -52,6 +52,12 @@ cd my-demo
 demoframe render demo.yml     # validate -> frames -> GIF/WebP/MP4 + stills + report.json
 ```
 
+Or start from the template gallery: `demoframe init --list` shows curated
+configs (CLI release, code walkthrough, assistant chat, launch metrics, and
+the three starters); `demoframe init my-demo --template cli-release` copies
+one. Community templates are welcome as PRs adding a `templates/<name>/`
+directory with `template.yml` and `meta.yml`.
+
 One `render` does the whole pipeline: validation and privacy scan, frame
 rendering, encoding with the size-budget retry ladder, per-scene preview
 stills in `dist/preview/`, and a machine-readable `dist/report.json`.
@@ -103,7 +109,9 @@ scenes:
     duration: 1.4
 ```
 
-**Frames**: `phone`, `browser`, `terminal`.
+**Frames**: `phone`, `browser`, `terminal`, `desktop` (macOS-style app
+window), and `none` (frameless, scenes fill the canvas). Every frame accepts
+`width`/`height` (320-1920) to change the canvas size and aspect.
 
 **Scenes**: `typing` (animated typing with caret), `steps` (progress rows with
 done/active/pending states), `status-card` (PR-style result screen with checks
@@ -118,12 +126,35 @@ example config per scene type ships under `examples/`.
 palettes; prefer cuts when size matters.
 
 **Theme**: accent color, light/dark mode, bundled Inter + JetBrains Mono
-fonts (pixel-stable across machines), optional background override.
+fonts (pixel-stable across machines), optional background override. v0.4 adds
+`preset` (`github-dark`, `paper`, `midnight`, `candy`; explicit keys win),
+full `palette` control over the 11 named color slots, custom font files
+(`font: { sans: brand.woff2, mono: brand-mono.ttf }`, embedded at render),
+and a rendered `logo` (`header` places it in the frame's title bar, `corner`
+overlays a badge over the scenes).
 
 </details>
 
 JSON configs are accepted too. Validate anything against
 `schema/demoframe.schema.json`.
+
+## Render in CI
+
+A composite GitHub Action ships in this repo. Linux runners are the
+determinism reference, so CI renders are pixel-stable:
+
+```yaml
+- uses: actions/setup-node@v4
+  with:
+    node-version: 20
+- uses: bprateeek/demoframe/action@v0.4.0
+  with:
+    config: demo/demo.yml
+```
+
+[`action/README.md`](./action/README.md) has copy-paste recipes for
+refreshing README media on merge and attaching renders to pull requests; this
+repo's own hero GIF refreshes that way.
 
 ## Why use this?
 

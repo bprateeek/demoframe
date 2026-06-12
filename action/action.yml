@@ -1,0 +1,44 @@
+name: demoframe render
+description: Render a deterministic demo GIF/WebP/MP4/WebM from a demoframe YAML config
+branding:
+  icon: film
+  color: orange
+inputs:
+  config:
+    description: Path to the demo config (YAML)
+    required: true
+  out:
+    description: Output directory for rendered media, preview stills, and report.json
+    required: false
+    default: dist
+  version:
+    description: demoframe npm version to run
+    required: false
+    default: latest
+  for:
+    description: "Destination preset: github-readme, x-post, linkedin, or product-hunt"
+    required: false
+    default: ''
+outputs:
+  report:
+    description: Path to report.json
+    value: ${{ steps.render.outputs.report }}
+  files:
+    description: JSON array of rendered output file paths
+    value: ${{ steps.render.outputs.files }}
+runs:
+  using: composite
+  steps:
+    - id: render
+      shell: bash
+      env:
+        DF_CONFIG: ${{ inputs.config }}
+        DF_OUT: ${{ inputs.out }}
+        DF_VERSION: ${{ inputs.version }}
+        DF_FOR: ${{ inputs.for }}
+      run: |
+        ARGS=(render "$DF_CONFIG" -o "$DF_OUT")
+        if [ -n "$DF_FOR" ]; then ARGS+=(--for "$DF_FOR"); fi
+        npx --yes "demoframe@$DF_VERSION" "${ARGS[@]}"
+        echo "report=$DF_OUT/report.json" >> "$GITHUB_OUTPUT"
+        echo "files=$(node -p "JSON.stringify(require(require('path').resolve(process.env.DF_OUT, 'report.json')).outputs.map(o => o.file))")" >> "$GITHUB_OUTPUT"

@@ -1,0 +1,5 @@
+name: assistant-chat
+description: Phone-framed chat conversation on the candy preset
+frames: [phone]
+scenes: [chat, hold]
+demoframeVersion: "0.4.0"

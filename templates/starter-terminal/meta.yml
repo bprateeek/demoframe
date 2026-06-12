@@ -1,0 +1,5 @@
+name: starter-terminal
+description: Terminal-framed CLI run with typing, steps, and a result card
+frames: [terminal]
+scenes: [typing, steps, status-card, hold]
+demoframeVersion: "0.4.0"

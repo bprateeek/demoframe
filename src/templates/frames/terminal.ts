@@ -44,13 +44,17 @@ export const terminalCss = `
 .df-frame-terminal .df-rail { padding: var(--df-s4) var(--df-s5); }
 `;
 
-export function terminalHtml(frame: Extract<Frame, { type: 'terminal' }>, scenesHtml: string): string {
+export function terminalHtml(
+  frame: Extract<Frame, { type: 'terminal' }>,
+  scenesHtml: string,
+  headerLogoHtml = '',
+): string {
   return `<div class="df-stage">
   <div class="df-device-terminal">
     <div class="df-terminal-bar">
       <div class="df-traffic"><i></i><i></i><i></i></div>
       <div class="df-terminal-title">${escapeHtml(frame.title ?? 'demo')}</div>
-      <div></div>
+      <div class="df-logo-slot">${headerLogoHtml}</div>
     </div>
     <div class="df-terminal-content">
       <div class="df-safe">${scenesHtml}</div>

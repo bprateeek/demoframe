@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { budgetToBytes, demoConfigSchema, normalizeTermLines, outputFormats } from './schema.js';
+import {
+  budgetToBytes,
+  demoConfigSchema,
+  frameViewport,
+  normalizeLogo,
+  normalizeTermLines,
+  outputFormats,
+} from './schema.js';
 
 const minimal = {
   frame: { type: 'phone' },
@@ -12,7 +19,8 @@ describe('demoConfigSchema', () => {
     expect(config.output.format).toBe('gif');
     expect(config.output.width).toBe(480);
     expect(config.output.fps).toBe(15);
-    expect(config.theme.mode).toBe('light');
+    expect(config.theme.mode).toBeUndefined();
+    expect(config.theme.font).toBe('inter');
     expect(config.scenes[0].transition).toBe('cut');
   });
 
@@ -218,5 +226,96 @@ describe('budgetToBytes', () => {
     expect(budgetToBytes('800KB')).toBe(800 * 1024);
     expect(budgetToBytes(1234)).toBe(1234);
     expect(budgetToBytes('1.5MB')).toBe(Math.round(1.5 * 1024 * 1024));
+  });
+});
+
+describe('frames (v0.4)', () => {
+  it('accepts desktop and none frames with defaults', () => {
+    const desktop = demoConfigSchema.parse({
+      ...minimal,
+      frame: { type: 'desktop', title: 'My App', subtitle: 'workspace' },
+    });
+    expect(desktop.frame.type).toBe('desktop');
+    expect(frameViewport(desktop.frame)).toEqual({ width: 1024, height: 640 });
+    const none = demoConfigSchema.parse({ ...minimal, frame: { type: 'none' } });
+    expect(frameViewport(none.frame)).toEqual({ width: 960, height: 640 });
+  });
+
+  it('lets every frame override width and height within bounds', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      frame: { type: 'phone', width: 400, height: 900 },
+    });
+    expect(frameViewport(config.frame)).toEqual({ width: 400, height: 900 });
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, frame: { type: 'none', width: 319 } }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, frame: { type: 'browser', height: 1921 } }).success,
+    ).toBe(false);
+  });
+});
+
+describe('theme (v0.4)', () => {
+  it('accepts palette overrides in hex and rgb()/rgba(), rejects named colors', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      theme: { palette: { page: '#fff', card: 'rgb(1, 2, 3)', shadow: 'rgba(0, 0, 0, 0.4)' } },
+    });
+    expect(config.theme.palette?.card).toBe('rgb(1, 2, 3)');
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, theme: { palette: { page: 'red' } } }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, theme: { palette: { tint: '#fff' } } }).success,
+    ).toBe(false);
+  });
+
+  it('accepts known presets and rejects unknown ones', () => {
+    const config = demoConfigSchema.parse({ ...minimal, theme: { preset: 'midnight' } });
+    expect(config.theme.preset).toBe('midnight');
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, theme: { preset: 'vaporwave' } }).success,
+    ).toBe(false);
+  });
+});
+
+describe('theme.font (v0.4)', () => {
+  it('accepts the enum values and the file object form', () => {
+    expect(demoConfigSchema.parse({ ...minimal, theme: { font: 'system' } }).theme.font).toBe('system');
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      theme: { font: { sans: 'brand.woff2', mono: 'brand-mono.ttf' } },
+    });
+    expect(config.theme.font).toEqual({ sans: 'brand.woff2', mono: 'brand-mono.ttf' });
+  });
+
+  it('rejects unsupported font file extensions', () => {
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, theme: { font: { sans: 'brand.otf' } } }).success,
+    ).toBe(false);
+  });
+});
+
+describe('theme.logo (v0.4)', () => {
+  it('accepts the string shorthand and the placement object', () => {
+    expect(demoConfigSchema.parse({ ...minimal, theme: { logo: 'assets/logo.png' } }).theme.logo).toBe(
+      'assets/logo.png',
+    );
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      theme: { logo: { src: 'assets/logo.png', placement: 'corner' } },
+    });
+    expect(normalizeLogo(config.theme.logo)).toEqual({ src: 'assets/logo.png', placement: 'corner' });
+    expect(normalizeLogo('assets/logo.png')).toEqual({ src: 'assets/logo.png', placement: 'header' });
+  });
+
+  it('rejects unknown placements', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        theme: { logo: { src: 'assets/logo.png', placement: 'footer' } },
+      }).success,
+    ).toBe(false);
   });
 });

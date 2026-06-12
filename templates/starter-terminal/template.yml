@@ -1,0 +1,20 @@
+title: My CLI demo
+output: { format: gif, width: 640, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#3fb950", mode: dark, font: inter }
+frame: { type: terminal, title: "demo — zsh", prompt: "$" }
+scenes:
+  - type: typing
+    duration: 2.8
+    text: "mytool deploy --prod"
+  - type: steps
+    duration: 3.2
+    items:
+      - { label: Build passed, detail: "42 modules in 1.8s", state: done }
+      - { label: Uploading artifacts, state: active }
+  - type: status-card
+    duration: 3.0
+    transition: crossfade
+    title: Deployed in 12s
+    checks: [All checks green]
+  - type: hold
+    duration: 1.0

@@ -21,6 +21,8 @@ const EXAMPLES = [
   { dir: 'code-reveal', prefix: 'code', times: [1.8, 4.6, 6.4] },
   { dir: 'chat', prefix: 'chat', times: [2.2, 5.6, 7.8] },
   { dir: 'metric-card', prefix: 'metric', times: [1.5, 4.2, 6.8] },
+  { dir: 'desktop-app', prefix: 'desktop', times: [2.4, 6.2, 9.0] },
+  { dir: 'frameless', prefix: 'frameless', times: [1.5, 4.6, 6.2] },
 ];
 
 describe.skipIf(!chromiumInstalled())('golden frames', () => {

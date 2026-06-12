@@ -6,6 +6,10 @@ export {
   TEXT_LIMITS,
   CODE_LANGS,
   FRAME_VIEWPORTS,
+  frameViewport,
+  normalizeLogo,
+  PALETTE_KEYS,
+  THEME_PRESET_NAMES,
 } from './config/schema.js';
 export type {
   DemoConfig,
@@ -18,6 +22,9 @@ export type {
   CodeScene,
   ChatScene,
   MetricCardScene,
+  DesktopFrame,
+  ThemePalette,
+  ThemePresetName,
   CodeLang,
 } from './config/schema.js';
 export { loadConfig, ConfigError } from './config/load.js';
@@ -26,6 +33,8 @@ export type { DestinationPreset, PresetName } from './config/presets.js';
 export { scanForPrivateData } from './config/privacy.js';
 export { resolveTimeline } from './render/timeline.js';
 export type { Timeline, TimelineScene } from './render/timeline.js';
+export { PALETTES, THEME_PRESETS, resolveTheme } from './templates/theme.js';
+export type { ResolvedTheme, ThemePreset } from './templates/theme.js';
 export { buildDocument } from './templates/document.js';
 export type { BuiltDocument } from './templates/document.js';
 export { renderFrames } from './render/frames.js';

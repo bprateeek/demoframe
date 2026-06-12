@@ -1,0 +1,14 @@
+title: Assistant chat demo
+output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
+theme: { preset: candy }
+frame: { type: phone, title: Assistant, subtitle: "always on" }
+scenes:
+  - type: chat
+    duration: 7.5
+    messages:
+      - { role: user, text: "Can you summarize the meeting notes?" }
+      - { role: assistant, text: "Done. Three action items, two owners assigned." }
+      - { role: user, text: "Send them to the team." }
+      - { role: assistant, text: "Sent to 5 people." }
+  - type: hold
+    duration: 1.2

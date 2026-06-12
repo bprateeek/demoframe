@@ -1,0 +1,22 @@
+title: Frameless metrics demo
+output: { format: gif, width: 600, fps: 15, displayWidth: 420 }
+theme:
+  accent: "#e2603a"
+  mode: light
+  palette: { screen: "#fbf6ee", border: "#e3d9c8" }
+  logo: { src: assets/logo.png, placement: corner }
+frame: { type: none, width: 600, height: 600 }
+scenes:
+  - type: metric-card
+    duration: 5.4
+    title: Launch week
+    metrics:
+      - { label: Installs, value: 4210 }
+      - { label: Stars, value: 318 }
+    chart:
+      kind: line
+      series: [3, 8, 14, 22, 31, 45, 60]
+      labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+    caption: All numbers local
+  - type: hold
+    duration: 1.2
