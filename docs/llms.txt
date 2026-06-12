@@ -1,0 +1,79 @@
+# demoframe: contract for coding agents
+
+demoframe turns a YAML/JSON config into a polished demo GIF/MP4 by rendering
+HTML templates in Chromium. You (the agent) write the config; the tool owns
+the pixels. Everything is deterministic and local: no network calls.
+
+## Commands
+
+- `demoframe init [dir] --frame phone|browser|terminal`: scaffold demo.yml + assets/
+- `demoframe check <config> [--strict]`: validate without rendering. Exit 0 = valid.
+  Errors are printed as `path: message` with hints. Warnings cover missing
+  assets, privacy findings (emails/tokens/URLs in copy), and screenshots
+  likely to blow the GIF size budget. Fast (<1s without screenshot assets); run after every config edit.
+- `demoframe preview <config> [-o dir]`: writes per-scene stills
+  (scene_<i>_<type>.png), final_readme_size.png, and final_github_dark/light.png
+  composites. Inspect these to verify layout before rendering.
+- `demoframe render <config> [-o dir] [--keep-frames]`: renders frames, encodes,
+  writes <name>.gif / <name>.mp4 plus report.json. If the GIF exceeds
+  output.budget it retries at 12fps, then 400px, then reports failure with
+  suggestions.
+- `demoframe doctor`: environment report. `demoframe install-browser`: one-time
+  Chromium download.
+- `demoframe serve <config> [-p port]`: live preview server with a scrubber (for humans).
+
+## report.json shape
+
+{ "title", "config", "budgetBytes", "attempts": [{fps,width,sizeBytes}],
+  "warnings": [...], "outputs": [{ "file", "format": "gif"|"mp4", "sizeBytes",
+  "width", "height", "durationS", "fps", "frameCount", "loopsForever",
+  "hasAudio", "encoder", "withinBudget" }] }
+
+Verify after render: withinBudget true, loopsForever true, durationS as designed.
+
+## Config schema
+
+Full JSON Schema: schema/demoframe.schema.json (in the npm package root).
+
+Top level: { title?, output?, theme?, frame, scenes }
+
+output (all optional): format gif|mp4|both (gif), width 200-1200 (480),
+fps 5-30 (15), budget e.g. "5MB", displayWidth (README <img> width),
+quality draft|standard|high (standard; high = 4x supersampling, slower).
+
+theme: accent hex ("#e2603a"), mode light|dark, font inter|system,
+background hex (defaults derived from mode), logo path.
+
+frame: { type: phone, title?, subtitle?, statusBarTime? }
+     | { type: browser, url?, title? }
+     | { type: terminal, title?, prompt? }
+
+scenes: 1-12 entries, each with duration (seconds, <=30, total <=60) and
+optional transition cut|crossfade (cut default; crossfade costs GIF size):
+
+- typing: { text (<=220 chars), placeholder?, send?: bool }
+  Phone/browser: chat composer with typing animation. Terminal: prompt line.
+- steps: { header?: {title<=40, detail<=100}, items: 1-6 of
+  { label<=60, detail?<=120, state: done|active|pending, link?: bool } }
+  Rows appear sequentially with staggered timing.
+- status-card: { title<=80, subtitle?<=100, branch?: {from<=60, into<=40},
+  checks: 0-4 strings<=60, cta?: {label<=40, style: success|primary|neutral},
+  caption?<=120 }  PR/deploy-style result screen.
+- screenshot: { src: path relative to config, fit: contain|cover,
+  pan: none|up|down|left|right|zoom-in|zoom-out, caption?<=120 }
+  Prefer clean UI screenshots; photographic images explode GIF size.
+- hold: {} freezes the previous scene's final state (cannot be first).
+
+## Authoring guidance
+
+- Story arc that works: typing (the ask) -> steps (the work) -> status-card
+  (the result) -> hold 1-1.5s so the ending reads before the loop.
+- Keep total duration 8-15s for README heroes.
+- Respect the text limits; check enforces them. Shorter copy reads better at
+  280px display width.
+- Default transition cut everywhere; one crossfade into the final scene is a
+  nice touch and usually affordable.
+- Never put real emails, tokens, internal URLs, or customer data in copy;
+  check will warn, --strict will fail.
+- Workflow: edit config -> check -> preview (inspect stills) -> render ->
+  parse report.json.

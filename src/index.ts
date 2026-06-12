@@ -1,0 +1,16 @@
+export { demoConfigSchema, budgetToBytes, TEXT_LIMITS, FRAME_VIEWPORTS } from './config/schema.js';
+export type { DemoConfig, Scene, Frame, Theme, Output } from './config/schema.js';
+export { loadConfig, ConfigError } from './config/load.js';
+export { scanForPrivateData } from './config/privacy.js';
+export { resolveTimeline } from './render/timeline.js';
+export type { Timeline, TimelineScene } from './render/timeline.js';
+export { buildDocument } from './templates/document.js';
+export type { BuiltDocument } from './templates/document.js';
+export { renderFrames } from './render/frames.js';
+export type { RenderedFrames } from './render/frames.js';
+export { openRenderSession } from './render/browser.js';
+export { encodeGif } from './encode/gif.js';
+export { encodeMp4 } from './encode/mp4.js';
+export { parseGif } from './qa/gifInfo.js';
+export { inspectGif, inspectMp4 } from './qa/report.js';
+export { runCheck } from './commands/check.js';

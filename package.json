@@ -1,0 +1,53 @@
+{
+  "name": "demoframe",
+  "version": "0.1.0",
+  "description": "Template-driven demo GIF/MP4 generator: compose scenes in device frames, render deterministically in Chromium, encode for READMEs.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "demoframe": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "schema",
+    "docs/llms.txt",
+    "THIRD_PARTY_LICENSES.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "schema": "tsx src/config/export-schema.ts"
+  },
+  "keywords": [
+    "gif",
+    "demo",
+    "readme",
+    "screencast",
+    "playwright",
+    "render"
+  ],
+  "dependencies": {
+    "@fontsource/inter": "^5.2.5",
+    "@fontsource/jetbrains-mono": "^5.2.5",
+    "commander": "^14.0.0",
+    "ffmpeg-static": "^5.2.0",
+    "playwright-core": "^1.53.0",
+    "sharp": "^0.34.2",
+    "yaml": "^2.8.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.2.0",
+    "zod-to-json-schema": "^3.24.0"
+  }
+}

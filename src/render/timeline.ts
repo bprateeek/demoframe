@@ -1,0 +1,67 @@
+import type { DemoConfig, Scene } from '../config/schema.js';
+
+export interface TimelineScene {
+  index: number;
+  type: Scene['type'];
+  start: number;
+  end: number;
+  duration: number;
+  renderIndex: number;
+  transition: 'cut' | 'crossfade';
+  data: Record<string, unknown>;
+}
+
+export interface Timeline {
+  duration: number;
+  fps: number;
+  frameCount: number;
+  fade: number;
+  scenes: TimelineScene[];
+}
+
+function clientData(scene: Scene): Record<string, unknown> {
+  switch (scene.type) {
+    case 'typing':
+      return { text: scene.text, send: scene.send };
+    case 'steps':
+      return { count: scene.items.length };
+    case 'status-card':
+      return { checks: scene.checks.length };
+    case 'screenshot':
+      return { pan: scene.pan };
+    case 'hold':
+      return {};
+  }
+}
+
+export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timeline {
+  const fps = fpsOverride ?? config.output.fps;
+  let cursor = 0;
+  const scenes: TimelineScene[] = config.scenes.map((scene, index) => {
+    const start = cursor;
+    cursor += scene.duration;
+    return {
+      index,
+      type: scene.type,
+      start,
+      end: cursor,
+      duration: scene.duration,
+      renderIndex: index,
+      transition: scene.transition,
+      data: clientData(scene),
+    };
+  });
+  for (const ts of scenes) {
+    let r = ts.index;
+    while (r > 0 && scenes[r].type === 'hold') r -= 1;
+    ts.renderIndex = r;
+  }
+  const duration = cursor;
+  return {
+    duration,
+    fps,
+    frameCount: Math.max(1, Math.round(duration * fps)),
+    fade: 0.45,
+    scenes,
+  };
+}
