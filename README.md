@@ -1,28 +1,34 @@
 # demoframe
 
-Template-driven demo GIF/MP4 generator for READMEs and launch posts. Compose
-scenes inside device frames in a small YAML config; demoframe renders them
-deterministically in Chromium at high resolution, downscales cleanly, and
-encodes a tight, looping GIF (or MP4) with a QA report.
+Template-driven demo GIF/MP4 generator for READMEs and launch posts.
+
+Write a small YAML scene file, render it in a device frame, and get a polished
+looping GIF or MP4 without screen recording.
+
+[![npm](https://img.shields.io/npm/v/demoframe)](https://www.npmjs.com/package/demoframe)
+[![license](https://img.shields.io/github/license/bprateeek/demoframe)](./LICENSE)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/bprateeek/demoframe/main/docs/assets/hero.gif" alt="demoframe phone demo: typing a task, progress steps, pull request ready" width="280">
+  <img src="https://raw.githubusercontent.com/bprateeek/demoframe/main/docs/assets/hero.gif" alt="demoframe phone demo" width="280">
 </p>
 
 The hero above is demoframe's own output:
 [`examples/fieldwork-hero/demo.yml`](https://github.com/bprateeek/demoframe/blob/main/examples/fieldwork-hero/demo.yml),
 439KB, 480px, 15fps, loops forever.
 
-## Why
+## For coding agents
 
-Hand-crafting README demos means fighting screen recorders, fonts, GIF
-palettes, and file size limits every single time. demoframe replaces that
-with a deterministic pipeline: config in, designed-looking pixels out, same
-result on every machine with the pinned renderer.
+demoframe is designed to be written by coding agents.
 
-No AI calls, no uploads: everything renders locally. The config format is
-designed so your coding agent can write it for you (see `docs/llms.txt` and
-`schema/demoframe.schema.json`).
+Point your agent at a screenshot of your product and ask it to create a demo
+config. demoframe validates the YAML, renders the frames, encodes the GIF/MP4,
+and writes a machine-readable QA report.
+
+Useful files for agents:
+
+- `docs/llms.txt` explains the full contract
+- `schema/demoframe.schema.json` validates generated configs
+- `demoframe check` catches privacy, asset, and config issues before rendering
 
 ## Install
 
@@ -47,7 +53,18 @@ demoframe render demo.yml     # frames -> GIF/MP4 + report.json
 demoframe serve demo.yml      # live preview with a time scrubber
 ```
 
-## Config
+## Use it for
+
+- README hero GIFs
+- launch post demos
+- mobile app walkthroughs
+- PR/status flow demos
+- agent-generated product demos
+
+## Config example
+
+<details>
+<summary>View YAML scene file</summary>
 
 ```yaml
 title: Fieldwork mobile to pull request demo
@@ -88,8 +105,21 @@ palettes; prefer cuts when size matters.
 **Theme**: accent color, light/dark mode, bundled Inter + JetBrains Mono
 fonts (pixel-stable across machines), optional background override.
 
+</details>
+
 JSON configs are accepted too. Validate anything against
 `schema/demoframe.schema.json`.
+
+## Why use this?
+
+Hand-crafting README demos means fighting screen recorders, fonts, GIF
+palettes, and file size limits every single time. demoframe replaces that
+with a deterministic pipeline: config in, designed-looking pixels out, same
+result on every machine with the pinned renderer.
+
+No AI calls, no uploads: everything renders locally. The config format is
+designed so your coding agent can write it for you (see `docs/llms.txt` and
+`schema/demoframe.schema.json`).
 
 ## Size budget
 
@@ -106,13 +136,6 @@ like emails, credentials, URLs, or private hosts, since they would be baked
 into a published asset. Screenshots are normalized with EXIF/GPS metadata
 stripped. Use `--strict` in CI to fail on warnings. Still: review your own
 screenshots before publishing.
-
-## For coding agents
-
-demoframe is built to be driven by agents: `check` validates in milliseconds
-with precise paths and hints, `render` writes machine-readable `report.json`,
-and `docs/llms.txt` documents the full contract. Point your agent at a
-screenshot of your product and ask it to write the demo config.
 
 ## Determinism
 
