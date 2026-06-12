@@ -32,3 +32,7 @@ The OFL permits embedding these fonts in rendered images and videos.
 - **playwright-core**: Apache-2.0
 - **sharp**: Apache-2.0 (bundles libvips, LGPLv3)
 - **commander**, **zod**, **yaml**: MIT
+- **@shikijs/core**, **@shikijs/engine-javascript**, **@shikijs/langs**,
+  **@shikijs/themes**: MIT. Bundled TextMate grammars and themes carry their
+  upstream licenses, listed per grammar/theme in the shiki repository
+  (https://github.com/shikijs/shiki).

@@ -1,4 +1,4 @@
-import type { DemoConfig, Scene } from '../config/schema.js';
+import { normalizeTermLines, type DemoConfig, type Scene } from '../config/schema.js';
 
 export interface TimelineScene {
   index: number;
@@ -29,6 +29,30 @@ function clientData(scene: Scene): Record<string, unknown> {
       return { checks: scene.checks.length };
     case 'screenshot':
       return { pan: scene.pan };
+    case 'terminal-playback':
+      return {
+        command: scene.command,
+        lines: normalizeTermLines(scene.output).length,
+        spinner: Boolean(scene.spinner),
+        exit: Boolean(scene.exit),
+      };
+    case 'code':
+      return { lines: scene.code.split('\n').length, reveal: scene.reveal };
+    case 'chat':
+      return {
+        messages: scene.messages.map((m) => ({ role: m.role, length: m.text.length })),
+        typingIndicator: scene.typingIndicator,
+      };
+    case 'metric-card':
+      return {
+        metrics: scene.metrics.map((m) => ({
+          value: m.value,
+          decimals: m.decimals,
+          prefix: m.prefix ?? '',
+          suffix: m.suffix ?? '',
+        })),
+        chart: scene.chart ? { kind: scene.chart.kind, count: scene.chart.series.length } : null,
+      };
     case 'hold':
       return {};
   }

@@ -7,7 +7,7 @@ import { ffmpegPath } from '../env/doctor.js';
 
 export interface OutputReport {
   file: string;
-  format: 'gif' | 'webp' | 'mp4';
+  format: 'gif' | 'webp' | 'mp4' | 'webm';
   sizeBytes: number;
   width: number | null;
   height: number | null;
@@ -73,6 +73,21 @@ export function inspectMp4(file: string): OutputReport {
   return probeWithFfmpeg(file, {
     file,
     format: 'mp4',
+    sizeBytes: statSync(file).size,
+    width: null,
+    height: null,
+    durationS: null,
+    fps: null,
+    frameCount: null,
+    loopsForever: null,
+    hasAudio: null,
+  });
+}
+
+export function inspectWebm(file: string): OutputReport {
+  return probeWithFfmpeg(file, {
+    file,
+    format: 'webm',
     sizeBytes: statSync(file).size,
     width: null,
     height: null,

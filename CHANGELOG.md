@@ -3,6 +3,39 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
+## 0.3.0
+
+The tell-any-story release: four new scene types, destination presets, and
+WebM output. No breaking schema changes; everything in 0.2.0 configs renders
+identically.
+
+### Added
+
+- `terminal-playback` scene: typed command, optional spinner while "running",
+  streamed output lines with per-line styles (normal/dim/success/error/warn),
+  exit status indicator, and a fresh prompt for the loop. Native in the
+  terminal frame; renders as a mini terminal panel in phone/browser frames.
+- `code` scene: syntax-highlighted code reveal via a bundled, version-pinned
+  shiki (github-light/dark theme follows `theme.mode`, pure-JS regex engine,
+  16 languages). Diff mode via `added`/`removed` line marks with +/- gutters
+  and tinted backgrounds; optional line numbers; `reveal: lines|fade|none`.
+- `chat` scene: user/assistant conversation bubbles with a typing indicator
+  before assistant replies. `check` warns when it is used in a terminal frame.
+- `metric-card` scene: animated counters (deterministic thousands formatting)
+  with an optional bar or line chart and axis labels.
+- Destination presets: `render --for github-readme|x-post|linkedin|product-hunt`
+  sets output format, width, fps, budget, and quality in one flag. Presets
+  override the config's `output` values; every override is printed and the
+  preset name is recorded in report.json.
+- WebM (VP9) output: `output.format: webm`, encoded with the bundled ffmpeg
+  at constant quality (CRF 32). Like mp4 it encodes once and skips the
+  GIF/WebP budget retry ladder.
+- Privacy scan: new tuned patterns for home-directory paths and
+  secret-looking assignments with literal values (env-var references and
+  placeholders pass quietly). Existing configs may surface new warnings.
+- One example config per new scene type under `examples/`, each covered by
+  Linux-pinned golden tests.
+
 ## 0.2.0
 
 The seamless-loop release: an agent (or you) goes from nothing to a finished

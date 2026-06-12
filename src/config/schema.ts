@@ -11,7 +11,16 @@ export const TEXT_LIMITS = {
   headerTitle: 40,
   headerDetail: 100,
   ctaLabel: 40,
+  termCommand: 150,
+  termLine: 100,
+  chatMessage: 200,
+  metricLabel: 40,
+  codeTitle: 60,
+  chartLabel: 12,
 } as const;
+
+export const CODE_MAX_LINES = 24;
+export const CODE_MAX_LINE_LENGTH = 100;
 
 const hexColor = z
   .string()
@@ -34,7 +43,7 @@ export function budgetToBytes(budget: string | number): number {
   return Math.round(value * (unit === 'MB' ? 1024 * 1024 : unit === 'KB' ? 1024 : 1));
 }
 
-const formatValue = z.enum(['gif', 'webp', 'mp4']);
+const formatValue = z.enum(['gif', 'webp', 'mp4', 'webm']);
 
 const outputSchema = z
   .object({
@@ -151,12 +160,114 @@ const holdScene = z.object({
   ...sceneBase,
 });
 
+const termLineStyle = z.enum(['normal', 'dim', 'success', 'error', 'warn']);
+
+const termLine = z.union([
+  z.string().min(1).max(TEXT_LIMITS.termLine),
+  z.object({
+    text: z.string().min(1).max(TEXT_LIMITS.termLine),
+    style: termLineStyle.default('normal'),
+  }),
+]);
+
+const terminalPlaybackScene = z.object({
+  type: z.literal('terminal-playback'),
+  ...sceneBase,
+  command: z.string().min(1).max(TEXT_LIMITS.termCommand),
+  output: z.array(termLine).max(10).default([]),
+  spinner: z.string().max(40).optional(),
+  exit: z
+    .object({
+      status: z.enum(['success', 'error']),
+      label: z.string().max(60).optional(),
+    })
+    .optional(),
+  prompt: z.string().max(16).optional(),
+});
+
+export const CODE_LANGS = [
+  'text',
+  'bash',
+  'typescript',
+  'javascript',
+  'tsx',
+  'jsx',
+  'json',
+  'yaml',
+  'python',
+  'go',
+  'rust',
+  'html',
+  'css',
+  'sql',
+  'markdown',
+  'diff',
+] as const;
+
+const codeScene = z.object({
+  type: z.literal('code'),
+  ...sceneBase,
+  lang: z.enum(CODE_LANGS).default('text'),
+  title: z.string().max(TEXT_LIMITS.codeTitle).optional(),
+  code: z.string().min(1).max(1500),
+  added: z.array(z.number().int().min(1)).default([]),
+  removed: z.array(z.number().int().min(1)).default([]),
+  lineNumbers: z.boolean().default(false),
+  reveal: z.enum(['lines', 'fade', 'none']).default('lines'),
+});
+
+const chatScene = z.object({
+  type: z.literal('chat'),
+  ...sceneBase,
+  messages: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'assistant']),
+        text: z.string().min(1).max(TEXT_LIMITS.chatMessage),
+      }),
+    )
+    .min(1)
+    .max(6),
+  typingIndicator: z.boolean().default(true),
+});
+
+const metricCardScene = z.object({
+  type: z.literal('metric-card'),
+  ...sceneBase,
+  title: z.string().max(TEXT_LIMITS.cardTitle).optional(),
+  metrics: z
+    .array(
+      z.object({
+        label: z.string().min(1).max(TEXT_LIMITS.metricLabel),
+        value: z.number().finite().min(-1e9).max(1e9),
+        prefix: z.string().max(8).optional(),
+        suffix: z.string().max(12).optional(),
+        decimals: z.number().int().min(0).max(2).default(0),
+      }),
+    )
+    .min(1)
+    .max(4),
+  chart: z
+    .object({
+      kind: z.enum(['bar', 'line']),
+      series: z.array(z.number().finite().min(0)).min(2).max(16),
+      labels: z.array(z.string().min(1).max(TEXT_LIMITS.chartLabel)).optional(),
+      color: hexColor.optional(),
+    })
+    .optional(),
+  caption: z.string().max(TEXT_LIMITS.caption).optional(),
+});
+
 export const sceneSchema = z.discriminatedUnion('type', [
   typingScene,
   stepsScene,
   statusCardScene,
   screenshotScene,
   holdScene,
+  terminalPlaybackScene,
+  codeScene,
+  chatScene,
+  metricCardScene,
 ]);
 
 export const demoConfigSchema = z
@@ -183,6 +294,53 @@ export const demoConfigSchema = z
         message: `total duration is ${total.toFixed(1)}s; README demos should stay under 60s`,
       });
     }
+    for (const [index, scene] of config.scenes.entries()) {
+      if (scene.type === 'code') {
+        const lines = scene.code.split('\n');
+        if (lines.length > CODE_MAX_LINES) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'code'],
+            message: `code has ${lines.length} lines; the panel fits at most ${CODE_MAX_LINES}`,
+          });
+        }
+        const long = lines.findIndex((l) => l.length > CODE_MAX_LINE_LENGTH);
+        if (long !== -1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'code'],
+            message: `line ${long + 1} is ${lines[long].length} chars; keep lines at or under ${CODE_MAX_LINE_LENGTH}`,
+          });
+        }
+        for (const field of ['added', 'removed'] as const) {
+          const bad = scene[field].find((n) => n > lines.length);
+          if (bad !== undefined) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['scenes', index, field],
+              message: `line ${bad} is out of range; the code has ${lines.length} lines`,
+            });
+          }
+        }
+        const overlap = scene.added.find((n) => scene.removed.includes(n));
+        if (overlap !== undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'added'],
+            message: `line ${overlap} is marked both added and removed`,
+          });
+        }
+      }
+      if (scene.type === 'metric-card' && scene.chart?.labels) {
+        if (scene.chart.labels.length !== scene.chart.series.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'chart', 'labels'],
+            message: `labels has ${scene.chart.labels.length} entries but series has ${scene.chart.series.length}; they must match`,
+          });
+        }
+      }
+    }
   });
 
 export type DemoConfig = z.infer<typeof demoConfigSchema>;
@@ -194,6 +352,23 @@ export type TypingScene = z.infer<typeof typingScene>;
 export type StepsScene = z.infer<typeof stepsScene>;
 export type StatusCardScene = z.infer<typeof statusCardScene>;
 export type ScreenshotScene = z.infer<typeof screenshotScene>;
+export type TerminalPlaybackScene = z.infer<typeof terminalPlaybackScene>;
+export type CodeScene = z.infer<typeof codeScene>;
+export type ChatScene = z.infer<typeof chatScene>;
+export type MetricCardScene = z.infer<typeof metricCardScene>;
+export type TermLineStyle = z.infer<typeof termLineStyle>;
+export type CodeLang = (typeof CODE_LANGS)[number];
+
+export interface NormalizedTermLine {
+  text: string;
+  style: TermLineStyle;
+}
+
+export function normalizeTermLines(output: TerminalPlaybackScene['output']): NormalizedTermLine[] {
+  return output.map((line) =>
+    typeof line === 'string' ? { text: line, style: 'normal' } : { text: line.text, style: line.style },
+  );
+}
 
 export type OutputFormat = z.infer<typeof formatValue>;
 

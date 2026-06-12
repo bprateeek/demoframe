@@ -12,6 +12,10 @@ import { typingCss, typingHtml } from './scenes/typing.js';
 import { stepsCss, stepsHtml } from './scenes/steps.js';
 import { statusCardCss, statusCardHtml } from './scenes/statusCard.js';
 import { screenshotCss, screenshotHtml } from './scenes/screenshot.js';
+import { terminalPlaybackCss, terminalPlaybackHtml } from './scenes/terminalPlayback.js';
+import { codeCss, codeHtml } from './scenes/code.js';
+import { chatCss, chatHtml } from './scenes/chat.js';
+import { metricCardCss, metricCardHtml } from './scenes/metricCard.js';
 
 export interface BuiltDocument {
   html: string;
@@ -46,6 +50,20 @@ export async function buildDocument(
         sceneParts.push(screenshotHtml(scene, index, dataUrl));
         break;
       }
+      case 'terminal-playback': {
+        const framePrompt = config.frame.type === 'terminal' ? config.frame.prompt : '$';
+        sceneParts.push(terminalPlaybackHtml(scene, index, frameType, framePrompt));
+        break;
+      }
+      case 'code':
+        sceneParts.push(await codeHtml(scene, index, config.theme.mode));
+        break;
+      case 'chat':
+        sceneParts.push(chatHtml(scene, index));
+        break;
+      case 'metric-card':
+        sceneParts.push(metricCardHtml(scene, index));
+        break;
       case 'hold':
         break;
     }
@@ -76,6 +94,10 @@ export async function buildDocument(
     stepsCss,
     statusCardCss,
     screenshotCss,
+    terminalPlaybackCss,
+    codeCss,
+    chatCss,
+    metricCardCss,
   ].join('\n');
 
   const { runtimeJs } = await import('./runtime.js');

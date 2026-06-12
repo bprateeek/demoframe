@@ -21,6 +21,17 @@ const PATTERNS: Array<{ kind: string; regex: RegExp }> = [
     kind: 'high-entropy string',
     regex: /(?=[A-Za-z0-9+/=_-]{32,}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z0-9+/=_-]{32,}/,
   },
+  {
+    kind: 'home-directory path',
+    regex: /(?:(?<![\w.-])\/(?:Users|home)\/|[A-Za-z]:\\Users\\)[\w.-]+/,
+  },
+  // Value side requires a literal-looking secret (charset-only, contains a
+  // digit) so env-var references and ALL_CAPS placeholders pass quietly
+  {
+    kind: 'secret-looking assignment',
+    regex:
+      /\b(?:api[_-]?key|apikey|secret|token|password|passwd|access[_-]?key)\b\s*[=:]\s*(?:["'](?=[A-Za-z0-9+/=_-]*\d)[A-Za-z0-9+/=_-]{8,}["']|(?=[A-Za-z0-9+/=_-]*\d)[A-Za-z0-9+/=_-]{16,})/i,
+  },
 ];
 
 function excerptAround(value: string, match: string): string {

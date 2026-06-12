@@ -18,12 +18,17 @@ skills/demoframe/SKILL.md in the package.
   Errors are printed as `path: message` with hints. Warnings cover missing
   assets, privacy findings (emails/tokens/URLs in copy), and screenshots
   likely to blow the GIF size budget. Fast (<1s without screenshot assets); run after every config edit.
-- `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]`:
+- `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]
+  [--for github-readme|x-post|linkedin|product-hunt]`:
   the full pipeline. Validates, renders frames, encodes every format in
   output.format, writes preview stills to <dir>/preview/, and writes
   report.json. Missing Chromium/gifski are downloaded automatically
   (--no-download fails fast instead). If a GIF/WebP exceeds output.budget it
   retries at 12fps, then 400px, then reports failure with suggestions.
+  --for applies a destination preset that overrides output format/width/fps/
+  budget/quality in one flag (github-readme: webp 640px 15fps 4MB; x-post:
+  mp4 1080px 30fps; linkedin: mp4 1080px 24fps; product-hunt: gif 1200px
+  12fps 3MB). Overrides are printed and the preset name lands in report.json.
 - `demoframe preview <config> [-o dir]`: stills only, no encode. Writes
   per-scene stills (scene_<i>_<type>.png), final_readme_size.png, and
   final_github_dark/light.png composites. Faster iteration than render.
@@ -33,9 +38,10 @@ skills/demoframe/SKILL.md in the package.
 
 ## report.json shape
 
-{ "title", "config", "budgetBytes", "attempts": [{format,fps,width,sizeBytes}],
+{ "title", "config", "preset"?, "budgetBytes",
+  "attempts": [{format,fps,width,sizeBytes}],
   "warnings": [...], "previews": ["preview/scene_0_typing.png", ...],
-  "outputs": [{ "file", "format": "gif"|"webp"|"mp4", "sizeBytes",
+  "outputs": [{ "file", "format": "gif"|"webp"|"mp4"|"webm", "sizeBytes",
   "width", "height", "durationS", "fps", "frameCount", "loopsForever",
   "hasAudio", "encoder", "withinBudget" }] }
 
@@ -49,11 +55,13 @@ Full JSON Schema: `demoframe schema` or schema/demoframe.schema.json (npm packag
 
 Top level: { title?, output?, theme?, frame, scenes }
 
-output (all optional): format gif|webp|mp4 or a list like [webp, mp4] (gif),
-width 200-1200 (480), fps 5-30 (15), budget e.g. "5MB" (applies to gif and
-webp), displayWidth (README <img> width), quality draft|standard|high
-(standard; high = 4x supersampling, slower). Prefer webp for READMEs: GIF-like
-autoplay at a fraction of the size, full color.
+output (all optional): format gif|webp|mp4|webm or a list like [webp, mp4]
+(gif), width 200-1200 (480), fps 5-30 (15), budget e.g. "5MB" (applies to gif
+and webp; mp4/webm encode once without the retry ladder), displayWidth
+(README <img> width), quality draft|standard|high (standard; high = 4x
+supersampling, slower). Prefer webp for READMEs: GIF-like autoplay at a
+fraction of the size, full color. webm is VP9: smaller than mp4 for video
+destinations that accept it.
 
 theme: accent hex ("#e2603a"), mode light|dark, font inter|system,
 background hex (defaults derived from mode), logo path.
@@ -76,12 +84,38 @@ optional transition cut|crossfade (cut default; crossfade costs GIF size):
 - screenshot: { src: path relative to config, fit: contain|cover,
   pan: none|up|down|left|right|zoom-in|zoom-out, caption?<=120 }
   Prefer clean UI screenshots; photographic images explode GIF size.
+- terminal-playback: { command<=150, output?: 0-10 lines (string or
+  {text<=100, style: normal|dim|success|error|warn}), spinner?<=40,
+  exit?: {status: success|error, label?<=60}, prompt?<=16 }
+  Types the command, shows a spinner while "running", streams output lines,
+  then the exit status and a fresh prompt. Native in the terminal frame;
+  renders as a mini terminal panel inside phone/browser frames.
+- code: { lang: text|bash|typescript|javascript|tsx|jsx|json|yaml|python|go|
+  rust|html|css|sql|markdown|diff (text), title?<=60, code (<=1500 chars,
+  <=24 lines, <=100 chars/line), added?: [1-based line numbers],
+  removed?: [...], lineNumbers?: bool, reveal: lines|fade|none (lines) }
+  Syntax-highlighted panel (bundled shiki, github-light/dark per theme.mode).
+  added/removed mark diff lines with +/- gutters and tinted backgrounds.
+- chat: { messages: 1-6 of {role: user|assistant, text<=200},
+  typingIndicator?: bool (true) }  Conversation bubbles; assistant replies
+  show a typing indicator first. Pairs best with the phone frame (check
+  warns in a terminal frame).
+- metric-card: { title?<=80, metrics: 1-4 of {label<=40, value, prefix?<=8,
+  suffix?<=12, decimals: 0-2 (0)}, chart?: {kind: bar|line, series: 2-16
+  numbers >=0, labels?: same length as series, each<=12, color?: hex},
+  caption?<=120 }  Counters tick up, bars/line reveal, labels fade in last.
 - hold: {} freezes the previous scene's final state (cannot be first).
 
 ## Authoring guidance
 
 - Story arc that works: typing (the ask) -> steps (the work) -> status-card
   (the result) -> hold 1-1.5s so the ending reads before the loop.
+- More arcs: terminal-playback alone sells a CLI; chat (the ask) ->
+  code with added/removed (the fix) -> status-card (the PR); metric-card
+  closes a launch-post demo with numbers. Match scene to frame:
+  terminal-playback + terminal, chat + phone, code/metric-card + browser.
+- Rendering examples ship in the package under examples/ (one per scene
+  type); copy one as a starting point.
 - Keep total duration 8-15s for README heroes.
 - Respect the text limits; check enforces them. Shorter copy reads better at
   280px display width.

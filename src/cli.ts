@@ -90,7 +90,11 @@ program
   .option('--keep-frames', 'keep the intermediate PNG frames', false)
   .option('--no-download', 'fail if Chromium or gifski is missing instead of downloading it')
   .option('--no-stills', 'skip writing per-scene preview stills next to the output')
-  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean }) => {
+  .option(
+    '--for <destination>',
+    'destination preset overriding output settings: github-readme, x-post, linkedin, or product-hunt',
+  )
+  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string }) => {
     try {
       const { runRender } = await import('./commands/render.js');
       await runRender(config, opts);

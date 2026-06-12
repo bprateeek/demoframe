@@ -15,4 +15,5 @@ export const icons = {
   code: svg('0 0 24 24', '<path d="M8.5 7L4 12l4.5 5M15.5 7L20 12l-4.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   share: svg('0 0 24 24', '<path d="M12 14.5V3.5m0 0L7.5 8M12 3.5L16.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 11.5v7a2 2 0 002 2h10a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   arrowLeft: svg('0 0 24 24', '<path d="M19 12H5m0 0l5.5-5.5M5 12l5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+  cross: svg('0 0 24 24', '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>'),
 } as const;

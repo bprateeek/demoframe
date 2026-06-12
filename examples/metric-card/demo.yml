@@ -1,0 +1,19 @@
+title: Metric card demo
+output: { format: gif, width: 600, fps: 15, displayWidth: 420 }
+theme: { accent: "#1f9d55", mode: light, font: inter }
+frame: { type: browser, title: Weekly report }
+scenes:
+  - type: metric-card
+    duration: 6
+    title: Last 30 days
+    metrics:
+      - { label: Renders, value: 12840 }
+      - { label: Median encode, value: 3.4, suffix: s, decimals: 1 }
+      - { label: Within budget, value: 98, suffix: "%" }
+    chart:
+      kind: bar
+      series: [4, 7, 6, 11, 14, 18, 23]
+      labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+    caption: Numbers from report.json
+  - type: hold
+    duration: 1.2

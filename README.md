@@ -107,8 +107,12 @@ scenes:
 
 **Scenes**: `typing` (animated typing with caret), `steps` (progress rows with
 done/active/pending states), `status-card` (PR-style result screen with checks
-and a CTA), `screenshot` (your image with optional pan/zoom), `hold` (freeze
-the previous scene).
+and a CTA), `screenshot` (your image with optional pan/zoom),
+`terminal-playback` (typed command, spinner, streamed output, exit status),
+`code` (syntax-highlighted reveal with optional diff marks), `chat`
+(conversation bubbles with a typing indicator), `metric-card` (animated
+counters with a bar/line chart), `hold` (freeze the previous scene). One
+example config per scene type ships under `examples/`.
 
 **Transitions**: `cut` (default) and `crossfade`. Crossfades inflate GIF
 palettes; prefer cuts when size matters.
@@ -134,10 +138,15 @@ designed so your coding agent can write it for you (see `docs/llms.txt` and
 
 ## Output formats and size budget
 
-`output.format` takes `gif`, `webp`, `mp4`, or a list like `[webp, mp4]`.
-Animated WebP is the recommended README format: it autoplays on GitHub like a
-GIF at a fraction of the size with full color. Keep `gif` for destinations
-that require it.
+`output.format` takes `gif`, `webp`, `mp4`, `webm`, or a list like
+`[webp, mp4]`. Animated WebP is the recommended README format: it autoplays
+on GitHub like a GIF at a fraction of the size with full color. Keep `gif`
+for destinations that require it; `webm` (VP9) beats `mp4` on size where
+it's accepted.
+
+Rendering for a specific destination? `render --for github-readme | x-post |
+linkedin | product-hunt` sets format, width, fps, budget, and quality in one
+flag, overriding the config's `output` values and printing what it changed.
 
 GIF and WebP outputs default to a 5MB budget (GitHub renders README GIFs
 poorly past that). If an encode exceeds the budget, demoframe automatically

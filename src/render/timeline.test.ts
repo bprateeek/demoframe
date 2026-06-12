@@ -40,4 +40,50 @@ describe('resolveTimeline', () => {
     expect(timeline.scenes[0].data).toEqual({ text: 'hello', send: false });
     expect(timeline.scenes[1].data).toEqual({ count: 1 });
   });
+
+  it('carries client data for the v0.3 scene types', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'terminal' },
+        scenes: [
+          {
+            type: 'terminal-playback',
+            duration: 6,
+            command: 'npm test',
+            output: ['ok', { text: 'done', style: 'success' }],
+            spinner: 'Running',
+            exit: { status: 'success' },
+          },
+          { type: 'code', duration: 5, code: 'a\nb\nc', reveal: 'fade' },
+          {
+            type: 'chat',
+            duration: 7,
+            messages: [
+              { role: 'user', text: 'hi' },
+              { role: 'assistant', text: 'hello there' },
+            ],
+          },
+          {
+            type: 'metric-card',
+            duration: 5,
+            metrics: [{ label: 'Renders', value: 12840, suffix: 'x', decimals: 1 }],
+            chart: { kind: 'bar', series: [1, 2, 3] },
+          },
+        ],
+      }),
+    );
+    expect(timeline.scenes[0].data).toEqual({ command: 'npm test', lines: 2, spinner: true, exit: true });
+    expect(timeline.scenes[1].data).toEqual({ lines: 3, reveal: 'fade' });
+    expect(timeline.scenes[2].data).toEqual({
+      messages: [
+        { role: 'user', length: 2 },
+        { role: 'assistant', length: 11 },
+      ],
+      typingIndicator: true,
+    });
+    expect(timeline.scenes[3].data).toEqual({
+      metrics: [{ value: 12840, decimals: 1, prefix: '', suffix: 'x' }],
+      chart: { kind: 'bar', count: 3 },
+    });
+  });
 });

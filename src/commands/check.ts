@@ -71,6 +71,12 @@ export async function runCheck(file: string): Promise<CheckResult> {
     }
   }
 
+  if (loaded.config.frame.type === 'terminal' && loaded.config.scenes.some((s) => s.type === 'chat')) {
+    warnings.push(
+      'chat scenes pair best with the phone or browser frame; bubbles read oddly inside a terminal window',
+    );
+  }
+
   warnings.push(...(await screenshotSizeWarnings(loaded)));
 
   return { loaded, warnings };

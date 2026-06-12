@@ -9,8 +9,18 @@ import { renderFrames, type RenderedFrames } from '../render/frames.js';
 import { encodeGif } from '../encode/gif.js';
 import { encodeMp4 } from '../encode/mp4.js';
 import { encodeWebp } from '../encode/webp.js';
+import { encodeWebm } from '../encode/webm.js';
 import { budgetToBytes, outputFormats } from '../config/schema.js';
-import { inspectGif, inspectMp4, inspectWebp, printReport, writeReportJson, type OutputReport } from '../qa/report.js';
+import { applyPreset } from '../config/presets.js';
+import {
+  inspectGif,
+  inspectMp4,
+  inspectWebm,
+  inspectWebp,
+  printReport,
+  writeReportJson,
+  type OutputReport,
+} from '../qa/report.js';
 
 interface LadderStep {
   fps: number;
@@ -28,13 +38,18 @@ function ladderSteps(fps: number, width: number): LadderStep[] {
 
 export async function runRender(
   configFile: string,
-  opts: { out: string; keepFrames: boolean; download?: boolean; stills?: boolean },
+  opts: { out: string; keepFrames: boolean; download?: boolean; stills?: boolean; for?: string },
 ): Promise<void> {
   const { loaded, warnings } = await runCheck(configFile);
   for (const w of warnings) console.log(`  ! ${w}`);
+  const { baseDir, configPath } = loaded;
+  let config = loaded.config;
+  if (opts.for) {
+    const applied = applyPreset(config, opts.for);
+    config = applied.config;
+    for (const change of applied.changes) console.log(`  ! preset ${opts.for} overrides ${change}`);
+  }
   await ensureChromium(opts.download !== false);
-
-  const { config, baseDir, configPath } = loaded;
   const name = path.basename(configPath).replace(/\.(ya?ml|json)$/i, '');
   const outDir = path.resolve(opts.out);
   mkdirSync(outDir, { recursive: true });
@@ -65,7 +80,7 @@ export async function runRender(
 
   try {
     for (const format of formats) {
-      if (format === 'mp4') continue;
+      if (format === 'mp4' || format === 'webm') continue;
       const outPath = path.join(outDir, `${name}.${format}`);
       let final: OutputReport | null = null;
       for (const step of ladderSteps(config.output.fps, config.output.width)) {
@@ -102,6 +117,14 @@ export async function runRender(
       await encodeMp4(frames, config.output.width, mp4Path);
       reports.push(inspectMp4(mp4Path));
     }
+
+    if (formats.includes('webm')) {
+      const webmPath = path.join(outDir, `${name}.webm`);
+      const frames = await getFrames(config.output.fps);
+      console.log(`encoding WebM at ${config.output.width}px / ${config.output.fps}fps...`);
+      await encodeWebm(frames, config.output.width, webmPath);
+      reports.push(inspectWebm(webmPath));
+    }
   } finally {
     if (!opts.keepFrames) rmSync(framesRoot, { recursive: true, force: true });
   }
@@ -110,13 +133,14 @@ export async function runRender(
   if (opts.stills !== false) {
     const previewDir = path.join(outDir, 'preview');
     console.log('writing preview stills...');
-    previews = await writePreviewStills(loaded, previewDir);
+    previews = await writePreviewStills({ ...loaded, config }, previewDir);
   }
 
   for (const report of reports) printReport(report);
   const reportFile = writeReportJson(outDir, reports, {
     title: config.title ?? name,
     config: configPath,
+    ...(opts.for ? { preset: opts.for } : {}),
     budgetBytes,
     attempts,
     warnings,

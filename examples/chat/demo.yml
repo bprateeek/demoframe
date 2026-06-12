@@ -1,0 +1,14 @@
+title: Chat conversation demo
+output: { format: gif, width: 480, fps: 15, displayWidth: 280 }
+theme: { accent: "#e2603a", mode: light, font: inter }
+frame: { type: phone, title: Assistant, subtitle: working on fix-auth-test }
+scenes:
+  - type: chat
+    duration: 7
+    messages:
+      - { role: user, text: "Can you fix the failing auth test?" }
+      - { role: assistant, text: "Found it. The mock session was stale, so I patched the fixture and re-ran the suite." }
+      - { role: user, text: "Nice. Open a PR?" }
+      - { role: assistant, text: "PR opened and checks are green. Ready for review." }
+  - type: hold
+    duration: 1.4

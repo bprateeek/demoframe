@@ -1,0 +1,20 @@
+title: Code reveal demo
+output: { format: gif, width: 600, fps: 15, displayWidth: 420 }
+theme: { accent: "#2563eb", mode: dark, font: inter }
+frame: { type: browser, title: release.ts }
+scenes:
+  - type: code
+    duration: 5.5
+    lang: typescript
+    title: src/release.ts
+    lineNumbers: true
+    removed: [3]
+    added: [4]
+    code: |-
+      export function releaseNotes(commits: Commit[]): string {
+        const lines = commits.map((c) => `- ${c.summary}`)
+        return lines.join('\n')
+        return ['## Changes', ...lines].join('\n')
+      }
+  - type: hold
+    duration: 1.5

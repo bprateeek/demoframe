@@ -31,4 +31,27 @@ describe('scanForPrivateData', () => {
     const token = findings.find((f) => f.kind === 'credential-shaped token');
     expect(token?.excerpt.length).toBeLessThan(40);
   });
+
+  it('finds home-directory paths', () => {
+    expect(scanForPrivateData('saved to /Users/jdoe/demo.gif').some((f) => f.kind === 'home-directory path')).toBe(true);
+    expect(scanForPrivateData('cd /home/jdoe/app').some((f) => f.kind === 'home-directory path')).toBe(true);
+    expect(scanForPrivateData('C:\\Users\\jdoe\\app').some((f) => f.kind === 'home-directory path')).toBe(true);
+    expect(scanForPrivateData('open src/Users/avatar.tsx')).toHaveLength(0);
+  });
+
+  it('finds secret-looking assignments with literal values', () => {
+    expect(
+      scanForPrivateData('api_key = "k9PzqW3vT81xLmNo"').some((f) => f.kind === 'secret-looking assignment'), // synthetic fixture, gitleaks:allow
+    ).toBe(true);
+    expect(
+      scanForPrivateData('TOKEN=a1b2c3d4e5f6a7b8c9d0').some((f) => f.kind === 'secret-looking assignment'), // synthetic fixture, gitleaks:allow
+    ).toBe(true);
+  });
+
+  it('lets env-var references and placeholders pass quietly', () => {
+    expect(scanForPrivateData('token: process.env.TOKEN')).toHaveLength(0);
+    expect(scanForPrivateData('api_key = "${API_KEY}"')).toHaveLength(0);
+    expect(scanForPrivateData('password: YOUR_PASSWORD')).toHaveLength(0);
+    expect(scanForPrivateData('export TOKEN=$GITHUB_TOKEN')).toHaveLength(0);
+  });
 });

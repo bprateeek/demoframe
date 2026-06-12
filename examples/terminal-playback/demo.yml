@@ -1,0 +1,16 @@
+title: Terminal playback demo
+output: { format: gif, width: 480, fps: 15, displayWidth: 320 }
+theme: { accent: "#e2603a", mode: dark, font: inter }
+frame: { type: terminal, title: demoframe, prompt: "$" }
+scenes:
+  - type: terminal-playback
+    duration: 7
+    command: npx demoframe render demo.yml
+    spinner: Rendering frames
+    output:
+      - { text: "validated demo.yml (2 scenes, 8.6s)", style: dim }
+      - "rendering 105 frames at 15fps..."
+      - { text: "demo.gif 1.9MB (within budget)", style: success }
+    exit: { status: success, label: done in 4.2s }
+  - type: hold
+    duration: 1.6
