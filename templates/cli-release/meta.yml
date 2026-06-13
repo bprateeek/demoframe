@@ -1,5 +1,6 @@
 name: cli-release
 description: Terminal playback of a release command on the github-dark preset
+category: developer-tool
 frames: [terminal]
 scenes: [terminal-playback, hold]
 demoframeVersion: "0.4.0"

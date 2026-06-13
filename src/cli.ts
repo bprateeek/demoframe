@@ -108,9 +108,11 @@ program
   )
   .option(
     '--for <destination>',
-    'destination preset overriding output settings: github-readme, x-post, linkedin, or product-hunt',
+    'destination preset(s), comma-separated: github-readme, x-post, linkedin, or product-hunt',
   )
-  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string; allowRawScreenshots: boolean }) => {
+  .option('--asset-out <path>', 'copy the primary rendered asset to a file or directory')
+  .option('--strict', 'treat check warnings and layout findings as render failures', false)
+  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string; assetOut?: string; strict: boolean; allowRawScreenshots: boolean }) => {
     try {
       const { runRender } = await import('./commands/render.js');
       await runRender(config, opts);
@@ -140,8 +142,9 @@ program
   .argument('[dir]', 'target directory', '.')
   .option('-f, --frame <type>', 'starter frame type: phone, browser, or terminal')
   .option('-t, --template <name>', 'gallery template name (see --list)')
+  .option('-c, --category <name>', 'category default template name (see --list)')
   .option('--list', 'list available gallery templates')
-  .action(async (dir: string, opts: { frame?: string; template?: string; list?: boolean }) => {
+  .action(async (dir: string, opts: { frame?: string; template?: string; category?: string; list?: boolean }) => {
     try {
       const { runInit } = await import('./commands/init.js');
       await runInit(dir, opts);

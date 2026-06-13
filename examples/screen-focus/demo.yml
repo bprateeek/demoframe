@@ -1,0 +1,27 @@
+title: Screen focus zoom
+output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#1f9d55", mode: light, font: inter }
+frame: { type: none, width: 960, height: 640 }
+scenes:
+  - type: screen
+    duration: 5
+    motion: focus
+    focus: score
+    blocks:
+      - { block: app-header, title: Grind50, subtitle: "Adaptive study plan", icon: spark }
+      - block: stat-strip
+        tiles:
+          - { label: Today, value: { value: 24 } }
+          - { label: Accuracy, value: { value: 91, suffix: "%" }, delta: { value: 5, dir: up } }
+      - block: callout
+        name: score
+        variant: hero-stat
+        value: { value: 742 }
+        label: Readiness score
+      - block: list
+        rows:
+          - { avatar: { initials: JS, color: "#2f7de1" }, label: JavaScript arrays, trailing: Strong }
+          - { avatar: { initials: DP, color: "#e2603a" }, label: Dynamic programming, trailing: Review }
+          - { icon: check, label: Graph traversal, trailing: Done }
+  - type: hold
+    duration: 1

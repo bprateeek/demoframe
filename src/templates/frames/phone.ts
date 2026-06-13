@@ -38,6 +38,7 @@ export const phoneCss = `
   justify-content: space-between;
   padding: 14px 20px 10px;
 }
+.df-appbar-empty { visibility: hidden; }
 .df-circle-btn {
   width: 52px;
   height: 52px;
@@ -70,15 +71,16 @@ export const phoneCss = `
 }
 `;
 
-export function phoneHtml(
+export function phoneChromeHtml(
   frame: Extract<Frame, { type: 'phone' }>,
-  scenesHtml: string,
+  layerId: number,
   headerLogoHtml = '',
+  reserveAppBar = Boolean(frame.title),
 ): string {
   const rightSlot = headerLogoHtml
     ? `<div class="df-logo-slot">${headerLogoHtml}</div>`
     : `<div class="df-circle-btn">${icons.ellipsis}</div>`;
-  const title = frame.title
+  const appbar = frame.title
     ? `<div class="df-appbar">
         <div class="df-circle-btn">${icons.chevronLeft}</div>
         <div class="df-appbar-title">
@@ -87,10 +89,14 @@ export function phoneHtml(
         </div>
         ${rightSlot}
       </div>`
+    : reserveAppBar
+      ? `<div class="df-appbar df-appbar-empty" aria-hidden="true">
+        <div class="df-circle-btn">${icons.chevronLeft}</div>
+        <div class="df-appbar-title"><strong>&nbsp;</strong></div>
+        <div class="df-circle-btn">${icons.ellipsis}</div>
+      </div>`
     : '';
-  return `<div class="df-stage">
-  <div class="df-device-phone">
-    <div class="df-phone-screen">
+  return `<div class="df-chrome-layer" data-chrome="${layerId}">
       <div class="df-statusbar">
         <span class="df-sb-time">${escapeHtml(frame.statusBarTime)}</span>
         <span class="df-sb-icons">
@@ -99,9 +105,25 @@ export function phoneHtml(
           <span class="df-ic" style="width:27px">${icons.battery}</span>
         </span>
       </div>
-      ${title}
+      ${appbar}
+  </div>`;
+}
+
+export function phoneShellHtml(chromeLayersHtml: string, scenesHtml: string): string {
+  return `<div class="df-stage">
+  <div class="df-device-phone">
+    <div class="df-phone-screen">
+      <div class="df-chrome-stack">${chromeLayersHtml}</div>
       <div class="df-safe">${scenesHtml}</div>
     </div>
   </div>
 </div>`;
+}
+
+export function phoneHtml(
+  frame: Extract<Frame, { type: 'phone' }>,
+  scenesHtml: string,
+  headerLogoHtml = '',
+): string {
+  return phoneShellHtml(phoneChromeHtml(frame, 0, headerLogoHtml), scenesHtml);
 }

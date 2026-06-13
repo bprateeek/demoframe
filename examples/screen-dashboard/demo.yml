@@ -1,0 +1,27 @@
+title: Screen dashboard reveal
+output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#2f7de1", mode: light, font: inter }
+frame: { type: browser, chrome: thin, title: Product dashboard }
+scenes:
+  - type: screen
+    duration: 5.5
+    blocks:
+      - { block: app-header, title: Atlas Ops, subtitle: "Live product health", icon: bolt }
+      - block: stat-strip
+        name: stats
+        tiles:
+          - { label: Active teams, value: { value: 128 } }
+          - { label: Conversion, value: { value: 18.4, suffix: "%", decimals: 1 }, delta: { value: 3.2, dir: up } }
+          - { label: Median wait, value: { value: 2.8, suffix: s, decimals: 1 } }
+      - block: chart-card
+        name: trend
+        title: Weekly activation
+        chart: { kind: area, series: [4, 6, 5, 9, 11, 15, 18], labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun] }
+      - block: card-grid
+        cards:
+          - { title: Onboarding, value: "84%", badge: Live }
+          - { title: Billing, desc: "No failed jobs", icon: check }
+          - { title: Reviews, value: "42", desc: "Ready today" }
+          - { title: Launch, desc: "All gates clear", badge: Ready }
+  - type: hold
+    duration: 1.2

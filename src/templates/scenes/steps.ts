@@ -71,7 +71,7 @@ export function stepsHtml(scene: StepsScene, index: number): string {
     .map((item, k) => {
       const tapAttr = k === tapIdx ? ' data-tap-target' : '';
       const anchorAttr = k === celebrateIdx ? ' data-celebrate-anchor' : '';
-      return `<div class="df-step" data-step="${k}"${tapAttr}${anchorAttr}>
+      return `<div class="df-step" data-step="${k}" data-qa-key="step-${k}"${tapAttr}${anchorAttr}>
         ${stepIcon(item.state)}
         <div class="df-step-text">
           <strong>${escapeHtml(item.label)}</strong>

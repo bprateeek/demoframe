@@ -25,6 +25,7 @@
     "dist",
     "schema",
     "docs/llms.txt",
+    "docs/categories",
     "skills",
     "examples",
     "templates",

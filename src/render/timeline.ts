@@ -1,12 +1,15 @@
 import { normalizeTermLines, type DemoConfig, type Scene } from '../config/schema.js';
+import { chromeSignature, renderFrame } from './chrome.js';
 
 export interface TimelineScene {
   index: number;
   type: Scene['type'];
+  name?: string;
   start: number;
   end: number;
   duration: number;
   renderIndex: number;
+  chromeLayer: number;
   transition: 'cut' | 'crossfade';
   data: Record<string, unknown>;
 }
@@ -53,6 +56,14 @@ function clientData(scene: Scene): Record<string, unknown> {
         })),
         chart: scene.chart ? { kind: scene.chart.kind, count: scene.chart.series.length } : null,
       };
+    case 'screen': {
+      const focusIndex = scene.focus ? scene.blocks.findIndex((block) => block.name === scene.focus) : -1;
+      return {
+        motion: scene.motion,
+        focusIndex: focusIndex >= 0 ? focusIndex : null,
+        blocks: scene.blocks.map((block) => ({ block: block.block })),
+      };
+    }
     case 'hold':
       return {};
   }
@@ -67,10 +78,12 @@ export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timel
     return {
       index,
       type: scene.type,
+      ...(scene.name ? { name: scene.name } : {}),
       start,
       end: cursor,
       duration: scene.duration,
       renderIndex: index,
+      chromeLayer: 0,
       transition: scene.transition,
       data: {
         ...clientData(scene),
@@ -83,6 +96,16 @@ export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timel
     let r = ts.index;
     while (r > 0 && scenes[r].type === 'hold') r -= 1;
     ts.renderIndex = r;
+  }
+  const chromeLayers = new Map<string, number>();
+  for (const ts of scenes) {
+    const signature = chromeSignature(renderFrame(config, ts.renderIndex));
+    let layer = chromeLayers.get(signature);
+    if (layer === undefined) {
+      layer = chromeLayers.size;
+      chromeLayers.set(signature, layer);
+    }
+    ts.chromeLayer = layer;
   }
   const duration = cursor;
   return {

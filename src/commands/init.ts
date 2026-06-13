@@ -6,10 +6,20 @@ import { parse as parseYaml } from 'yaml';
 export interface TemplateMeta {
   name: string;
   description: string;
+  category: string;
   frames: string[];
   scenes: string[];
   demoframeVersion: string;
 }
+
+const CATEGORY_DEFAULTS: Record<string, string> = {
+  agent: 'assistant-chat',
+  'developer-tool': 'starter-terminal',
+  marketing: 'launch-metrics',
+  mobile: 'starter-phone',
+  product: 'product-dashboard',
+  'web-app': 'starter-browser',
+};
 
 function templatesDir(): string {
   return fileURLToPath(new URL('../../templates', import.meta.url));
@@ -26,26 +36,54 @@ export function listTemplates(): TemplateMeta[] {
 export interface InitOptions {
   frame?: string;
   template?: string;
+  category?: string;
   list?: boolean;
 }
 
 export async function runInit(dir: string, opts: InitOptions = {}): Promise<void> {
+  const templates = listTemplates();
   if (opts.list) {
-    for (const meta of listTemplates()) {
-      console.log(`${meta.name}`);
-      console.log(`    ${meta.description}`);
-      console.log(`    frames: ${meta.frames.join(', ')} | scenes: ${meta.scenes.join(', ')}`);
+    const byCategory = new Map<string, TemplateMeta[]>();
+    for (const meta of templates) {
+      const group = byCategory.get(meta.category) ?? [];
+      group.push(meta);
+      byCategory.set(meta.category, group);
     }
-    console.log('\nusage: demoframe init --template <name>');
+    for (const category of [...byCategory.keys()].sort()) {
+      console.log(`${category}:`);
+      for (const meta of byCategory.get(category) ?? []) {
+        console.log(`  ${meta.name}`);
+        console.log(`      ${meta.description}`);
+        console.log(`      frames: ${meta.frames.join(', ')} | scenes: ${meta.scenes.join(', ')}`);
+      }
+    }
+    console.log('\nusage: demoframe init --template <name> | --category <name>');
     return;
   }
 
-  const name = opts.template ?? `starter-${opts.frame ?? 'phone'}`;
+  const categories = [...new Set(templates.map((meta) => meta.category))].sort();
+  const byName = new Map(templates.map((meta) => [meta.name, meta]));
+  if (opts.category && !categories.includes(opts.category)) {
+    throw new Error(`unknown category "${opts.category}"; available: ${categories.join(', ')}`);
+  }
+
+  const name = opts.template
+    ? opts.template
+    : opts.category
+      ? CATEGORY_DEFAULTS[opts.category] ?? templates.find((meta) => meta.category === opts.category)?.name
+      : `starter-${opts.frame ?? 'phone'}`;
+  if (!name) {
+    throw new Error(`no template found for category "${opts.category}"`);
+  }
+  const selectedMeta = byName.get(name);
+  if (opts.template && opts.category && selectedMeta && selectedMeta.category !== opts.category) {
+    throw new Error(
+      `template "${opts.template}" is in category "${selectedMeta.category}", not "${opts.category}"`,
+    );
+  }
   const templateFile = path.join(templatesDir(), name, 'template.yml');
   if (!existsSync(templateFile)) {
-    const available = listTemplates()
-      .map((meta) => meta.name)
-      .join(', ');
+    const available = templates.map((meta) => meta.name).join(', ');
     throw new Error(`unknown template "${name}"; available: ${available}`);
   }
 
@@ -58,8 +96,10 @@ export async function runInit(dir: string, opts: InitOptions = {}): Promise<void
   writeFileSync(configFile, readFileSync(templateFile));
   console.log(`created ${configFile} (${name} template) and assets/`);
   console.log('\nreconstruct first: screenshots are reference, not ingredients. Rebuild the flow as');
-  console.log('synthetic scenes (typing/steps/status-card/chat); a frameless all-screenshot demo is');
+  console.log('synthetic scenes (typing/steps/status-card/chat/screen); a frameless all-screenshot demo is');
   console.log('rejected by check/render. Pass --allow-raw-screenshots only for an intentional raw demo.');
+  console.log('Asset paths resolve relative to the demo.yml file; screen blocks use built-in icons/avatars.');
+  console.log('For product/category mapping guidance, see docs/categories/ in the package.');
   console.log('\ninterview before authoring:');
   console.log('  1. Narrative arc: the ask, the work, the result.');
   console.log('  2. Climax / money shot: which single moment to land and hold on.');

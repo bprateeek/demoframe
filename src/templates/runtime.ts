@@ -12,8 +12,57 @@ export function runtimeJs(timelineJson: string): string {
   // Shared so the cursor tap and the button press land on the same frame.
   const TAP_PRESS = 0.94;
   const scenesEl = document.querySelector('.df-scenes');
+  const chromeEls = Array.from(document.querySelectorAll('[data-chrome]'));
   const cursorEl = document.querySelector('.df-cursor');
   const burstEl = document.querySelector('.df-celebrate');
+
+  function setChromeLayer(layer, opacity) {
+    chromeEls.forEach((el) => {
+      if (el.getAttribute('data-chrome') === String(layer)) el.style.opacity = String(opacity);
+    });
+  }
+
+  function formatNumber(v, dec) {
+    const fixed = Math.abs(v).toFixed(dec);
+    const parts = fixed.split('.');
+    const grouped = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+    return (v < 0 ? '-' : '') + grouped + (parts[1] ? '.' + parts[1] : '');
+  }
+
+  function animateCounterText(el, value, prefix, suffix, decimals, p) {
+    if (!el) return;
+    const eo = 1 - Math.pow(1 - clamp(p, 0, 1), 3);
+    el.textContent = prefix + formatNumber(value * eo, decimals) + suffix;
+  }
+
+  function animateDatasetCounter(el, p) {
+    animateCounterText(
+      el,
+      Number(el.dataset.value || 0),
+      el.dataset.prefix || '',
+      el.dataset.suffix || '',
+      Number(el.dataset.decimals || 0),
+      p,
+    );
+  }
+
+  function animateChart(scope, d, lt, startRatio) {
+    const start = (startRatio ?? 0.35) * d;
+    const bars = scope.querySelectorAll('[data-bar]');
+    bars.forEach((bar, k) => {
+      const at = start + (k * 0.5 * d) / Math.max(1, bars.length);
+      bar.style.transform = 'scaleY(' + ease(clamp((lt - at) / 0.4, 0, 1)) + ')';
+    });
+    const line = scope.querySelector('.df-chart-line');
+    if (line) {
+      const p = ease(clamp((lt - start) / (0.45 * d), 0, 1));
+      line.style.strokeDashoffset = 100 * (1 - p);
+      const area = scope.querySelector('.df-chart-area');
+      if (area) area.style.opacity = String(0.85 * p);
+    }
+    const labels = scope.querySelector('.df-chart-labels');
+    if (labels) labels.style.opacity = ease(clamp((lt - 0.8 * d) / 0.3, 0, 1));
+  }
 
   const updaters = {
     typing(el, s, lt) {
@@ -153,12 +202,6 @@ export function runtimeJs(timelineJson: string): string {
     },
     'metric-card'(el, s, lt) {
       const d = s.duration;
-      const fmt = (v, dec) => {
-        const fixed = Math.abs(v).toFixed(dec);
-        const parts = fixed.split('.');
-        const grouped = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
-        return (v < 0 ? '-' : '') + grouped + (parts[1] ? '.' + parts[1] : '');
-      };
       s.data.metrics.forEach((m, k) => {
         const item = el.querySelector('[data-metric="' + k + '"]');
         if (!item) return;
@@ -167,32 +210,56 @@ export function runtimeJs(timelineJson: string): string {
         item.style.opacity = e;
         item.style.transform = 'translateY(' + 8 * (1 - e) + 'px)';
         const cp = clamp((lt - at) / Math.max(0.3, 0.6 * d - at), 0, 1);
-        const eo = 1 - Math.pow(1 - cp, 3);
-        item.querySelector('.df-metric-value').textContent = m.prefix + fmt(m.value * eo, m.decimals) + m.suffix;
+        animateCounterText(item.querySelector('.df-metric-value'), m.value, m.prefix, m.suffix, m.decimals, cp);
       });
-      const chart = s.data.chart;
-      if (chart) {
-        if (chart.kind === 'bar') {
-          for (let k = 0; k < chart.count; k++) {
-            const bar = el.querySelector('[data-bar="' + k + '"]');
-            if (!bar) continue;
-            const at = 0.35 * d + (k * 0.5 * d) / chart.count;
-            bar.style.transform = 'scaleY(' + ease(clamp((lt - at) / 0.4, 0, 1)) + ')';
-          }
-        } else {
-          const line = el.querySelector('.df-chart-line');
-          if (line) {
-            const p = ease(clamp((lt - 0.35 * d) / (0.45 * d), 0, 1));
-            line.style.strokeDashoffset = 100 * (1 - p);
-          }
-        }
-        const labels = el.querySelector('.df-chart-labels');
-        if (labels) labels.style.opacity = ease(clamp((lt - 0.8 * d) / 0.3, 0, 1));
-      }
+      if (s.data.chart) animateChart(el, d, lt, 0.35);
       const title = el.querySelector('.df-metric-title');
       if (title) title.style.opacity = ease(clamp((lt - 0.02 * d) / 0.3, 0, 1));
       const cap = el.querySelector('.df-metric-caption');
       if (cap) cap.style.opacity = ease(clamp((lt - 0.85 * d) / 0.3, 0, 1));
+    },
+    screen(el, s, lt) {
+      const d = s.duration;
+      const motion = s.data.motion || 'reveal';
+      const safe = el.closest('.df-safe');
+      const stack = el.querySelector('.df-screen-stack');
+      const blocks = Array.from(el.querySelectorAll('[data-block]'));
+      if (!stack) return;
+
+      blocks.forEach((block, k) => {
+        const at = motion === 'reveal' ? 0.12 + k * 0.14 : 0.05;
+        const e = ease(clamp((lt - at) / 0.38, 0, 1));
+        block.style.opacity = e;
+        block.style.transform = motion === 'reveal' ? 'translateY(' + 12 * (1 - e) + 'px)' : 'translateY(0)';
+        block.querySelectorAll('.df-screen-counter').forEach((counter) => {
+          animateDatasetCounter(counter, clamp((lt - at) / Math.max(0.35, d * 0.45 - at), 0, 1));
+        });
+        block.querySelectorAll('[data-progress]').forEach((bar) => {
+          const target = Number(bar.dataset.value || 0) / 100;
+          bar.style.transform = 'scaleX(' + target * ease(clamp((lt - at) / 0.55, 0, 1)) + ')';
+        });
+        if (block.querySelector('.df-chart')) animateChart(block, d, lt, Math.min(0.55, (at + 0.15) / d));
+      });
+
+      if (motion === 'focus') {
+        stack.style.transform = 'translate(0,0) scale(1)';
+        const focus = typeof s.data.focusIndex === 'number' ? el.querySelector('[data-block="' + s.data.focusIndex + '"]') : null;
+        if (safe && focus) {
+          const sr = safe.getBoundingClientRect();
+          const br = focus.getBoundingClientRect();
+          const scale = clamp(Math.min((sr.width * 0.86) / br.width, (sr.height * 0.78) / br.height), 1, 1.65);
+          const dx = sr.left + sr.width / 2 - (br.left + br.width / 2);
+          const dy = sr.top + sr.height / 2 - (br.top + br.height / 2);
+          const p = ease(clamp((lt - d * 0.24) / (d * 0.48), 0, 1));
+          stack.style.transform = 'translate(' + dx * p + 'px,' + dy * p + 'px) scale(' + (1 + (scale - 1) * p) + ')';
+        }
+      } else if (motion === 'scroll') {
+        const maxScroll = Math.max(0, stack.scrollHeight - (safe ? safe.clientHeight : stack.clientHeight));
+        const p = ease(clamp((lt - d * 0.18) / (d * 0.66), 0, 1));
+        stack.style.transform = 'translateY(' + -maxScroll * p + 'px)';
+      } else {
+        stack.style.transform = 'translateY(0)';
+      }
     },
     screenshot(el, s, lt) {
       const img = el.querySelector('img');
@@ -310,21 +377,31 @@ export function runtimeJs(timelineJson: string): string {
       const el = els[s.index];
       if (el) el.style.opacity = 0;
     });
+    chromeEls.forEach((el) => { el.style.opacity = 0; });
     const rScene = T.scenes[act.renderIndex];
     const lt = act.index === rScene.index ? t - act.start : rScene.duration;
     let curOpacity = 1;
+    let prevChromeLayer = null;
     if (act.transition === 'crossfade' && a > 0) {
       const fade = Math.min(T.fade, act.duration / 2);
       const fp = clamp((t - act.start) / fade, 0, 1);
       if (fp < 1) {
-        const prev = T.scenes[T.scenes[a - 1].renderIndex];
+        const prevAct = T.scenes[a - 1];
+        const prev = T.scenes[prevAct.renderIndex];
         // Only fade when the previous render scene differs; a hold (or any scene)
         // that re-renders the same DOM must not fade its own held frame back in.
         if (prev.index !== rScene.index) {
           apply(prev, prev.duration, 1);
           curOpacity = fp;
+          prevChromeLayer = prevAct.chromeLayer;
         }
       }
+    }
+    if (prevChromeLayer !== null && prevChromeLayer !== act.chromeLayer) {
+      setChromeLayer(prevChromeLayer, 1);
+      setChromeLayer(act.chromeLayer, curOpacity);
+    } else {
+      setChromeLayer(act.chromeLayer, 1);
     }
     apply(rScene, lt, curOpacity);
     drawOverlays(act, rScene, curOpacity, t);

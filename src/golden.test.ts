@@ -25,6 +25,9 @@ const EXAMPLES = [
   { dir: 'desktop-app', prefix: 'desktop', times: [2.4, 6.2, 9.0] },
   { dir: 'frameless', prefix: 'frameless', times: [1.5, 4.6, 6.2] },
   { dir: 'expense-report', prefix: 'expense', times: [2.5, 4.6, 11.8] },
+  { dir: 'screen-dashboard', prefix: 'screen_dashboard', times: [1.2, 3.2, 5.4] },
+  { dir: 'screen-focus', prefix: 'screen_focus', times: [1.0, 3.2, 5.0] },
+  { dir: 'screen-scroll', prefix: 'screen_scroll', times: [1.0, 3.6, 6.0] },
 ];
 
 describe.skipIf(!chromiumInstalled())('golden frames', () => {

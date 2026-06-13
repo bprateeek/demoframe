@@ -8,6 +8,13 @@ function writeConfig(yaml: string): string {
   const dir = mkdtempSync(path.join(process.env.TMPDIR ?? tmpdir(), 'df-check-'));
   const file = path.join(dir, 'demo.yml');
   writeFileSync(file, yaml);
+  const tinyPng = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',
+    'base64',
+  );
+  for (const asset of ['a.png', 'b.png']) {
+    if (yaml.includes(asset)) writeFileSync(path.join(dir, asset), tinyPng);
+  }
   return file;
 }
 
@@ -76,7 +83,39 @@ scenes:
     expect(warnings.some((w) => w.includes('of the runtime') || w.includes('pasted'))).toBe(false);
   });
 
-  it('warns about a missing avatar image', async () => {
+  it('does not flag an all-screen frameless demo as pasted screenshots', async () => {
+    const file = writeConfig(`
+frame: { type: none }
+scenes:
+  - type: screen
+    duration: 4
+    blocks:
+      - { block: app-header, title: Product }
+      - block: stat-strip
+        tiles:
+          - { label: Active, value: { value: 128 } }
+          - { label: Done, value: { value: 92, suffix: "%" } }
+`);
+    const { errors, warnings } = await runCheck(file);
+    expect(errors).toHaveLength(0);
+    expect(warnings.some((w) => w.includes('pasted'))).toBe(false);
+  });
+
+  it('warns when screen scenes render at draft quality', async () => {
+    const file = writeConfig(`
+output: { quality: draft, displayWidth: 560 }
+frame: { type: none }
+scenes:
+  - type: screen
+    duration: 4
+    blocks:
+      - { block: app-header, title: Product }
+`);
+    const { warnings } = await runCheck(file);
+    expect(warnings.some((w) => w.includes('dense product UI'))).toBe(true);
+  });
+
+  it('errors about a missing avatar image', async () => {
     const file = writeConfig(`
 frame: { type: phone }
 scenes:
@@ -85,8 +124,8 @@ scenes:
     avatars: { assistant: bot.png }
     messages: [{ role: assistant, text: hi }]
 `);
-    const { warnings } = await runCheck(file);
-    expect(warnings.some((w) => w.includes('avatars.assistant') && w.includes('not found'))).toBe(true);
+    const { errors } = await runCheck(file);
+    expect(errors.some((w) => w.includes('avatars.assistant') && w.includes('not found'))).toBe(true);
   });
 
   it('warns when celebrate is not on the final scene or a trailing hold', async () => {
@@ -109,5 +148,27 @@ scenes:
 `);
     const { warnings } = await runCheck(file);
     expect(warnings.some((w) => w.includes('celebrate fires before the end'))).toBe(false);
+  });
+
+  it('warns when the README embed would make small text unreadable', async () => {
+    const file = writeConfig(`
+output: { width: 200 }
+frame: { type: browser }
+scenes:
+  - { type: typing, duration: 3, text: hi }
+`);
+    const { warnings } = await runCheck(file);
+    expect(warnings.some((w) => w.includes('small body text'))).toBe(true);
+  });
+
+  it('does not warn about README legibility for comfortable display sizes', async () => {
+    const file = writeConfig(`
+output: { width: 480, displayWidth: 280 }
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 3, text: hi }
+`);
+    const { warnings } = await runCheck(file);
+    expect(warnings.some((w) => w.includes('small body text'))).toBe(false);
   });
 });

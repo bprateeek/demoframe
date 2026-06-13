@@ -14,7 +14,7 @@ demoframe turns a YAML config into a designed, deterministic demo animation. You
 - **Extraction:** when screenshots are provided, extract the intent, not the layout. Preserve the user journey, important labels, product names, and final outcome. Redraw the UI with fewer elements than the original screen.
 - **Taste boundary (cute but not childish):** the reconstructed UI should feel friendly and lightly cartooned, but not childish. Prefer soft rounded cards, simple icons, clean spacing, and crisp readable text over mascots, stickers, heavy gradients, or decorative clutter.
 
-A demo built from `type: screenshot` scenes is a last resort, never the goal. The synthetic scenes (`typing`, `steps`, `status-card`, `chat`, `code`, `metric-card`) already animate with charm: a typed caret, staggered step reveals, a rising result card, chat bubble pops, counters. That charm is the product; use it.
+A demo built from `type: screenshot` scenes is a last resort, never the goal. The synthetic scenes (`typing`, `steps`, `status-card`, `chat`, `code`, `metric-card`, `screen`) already animate with charm: a typed caret, staggered step reveals, a rising result card, chat bubble pops, counters, and product UI block reveals. That charm is the product; use it.
 
 ## Interview first (required before authoring)
 
@@ -35,7 +35,7 @@ Then confirm the screen-to-scene mapping with the user before rendering. In auto
 ## The loop
 
 1. **Scaffold or author.** `npx demoframe init --template <name>` writes a `demo.yml` from the gallery (`--list` shows the templates; `--frame phone|browser|terminal` picks the matching starter), or write the config from scratch. Get the authoritative schema with `npx demoframe schema` (JSON Schema on stdout); do not rely on memorized field names, the schema is pre-1.0 and changes between versions.
-2. **Validate fast.** `npx demoframe check demo.yml` after every edit. Errors print as `path: message` with hints and block rendering; warnings cover missing assets, privacy findings, screenshots likely to blow the size budget, and screenshot-dominant configs. A frameless demo whose every content scene is a raw screenshot is a hard **error** (`check` exits non-zero, `render` refuses) so the "screenshots pasted in a frame" output cannot ship by default. Fix every warning you can before rendering; with `--strict` warnings fail too.
+2. **Validate fast.** `npx demoframe check demo.yml` after every edit. Errors print as `path: message` with hints and block rendering; warnings cover privacy findings, screenshots likely to blow the size budget, and screenshot-dominant configs. Missing referenced assets are hard errors. A frameless demo whose every content scene is a raw screenshot is a hard **error** (`check` exits non-zero, `render` refuses) so the "screenshots pasted in a frame" output cannot ship by default. Fix every warning you can before rendering; with `--strict` warnings fail too.
 3. **Pre-render quality gate.** Before spending render time, self-check the draft against the reconstruction rule. **If the draft could be described as "screenshots inside a frame," reject it and rewrite it as synthetic scenes.** Exception: unless the user explicitly asked for an exact/raw screenshot demo (a bug report, before/after proof, a dashboard layout), in which case pass `--allow-raw-screenshots` to `check`/`render` to demote the error to a warning.
 4. **Render one-shot.** `npx demoframe render demo.yml -o dist` validates, renders, encodes, and writes. Rendering for a specific destination? Add `--for github-readme|x-post|linkedin|product-hunt` to set format, width, fps, budget, and quality in one flag (it overrides the config's `output` values and prints what it changed):
    - the outputs (`demo.gif`, `demo.webp`, and/or `demo.mp4` per `output.format`)
@@ -49,7 +49,7 @@ Then confirm the screen-to-scene mapping with the user before rendering. In auto
 ## Authoring guidance
 
 - Story arc that works: typing (the ask) then steps (the work) then status-card (the result) then `hold` 1 to 1.5s so the ending reads before the loop.
-- Scene palette: `typing`, `steps`, `status-card`, `screenshot`, `terminal-playback` (typed command, streamed output, exit status), `code` (syntax-highlighted reveal, diff marks via `added`/`removed`), `chat` (conversation bubbles with typing indicator and optional avatars), `metric-card` (animated counters plus bar/line chart), `hold`. Match scene to frame: terminal-playback + terminal, chat + phone, code/metric-card + browser.
+- Scene palette: `typing`, `steps`, `status-card`, `screenshot`, `terminal-playback` (typed command, streamed output, exit status), `code` (syntax-highlighted reveal, diff marks via `added`/`removed`), `chat` (conversation bubbles with typing indicator and optional avatars), `metric-card` (animated counters plus bar/line chart), `screen` (reconstructed product UI blocks), `hold`. Match scene to frame: terminal-playback + terminal, chat + phone, code/metric-card/screen + browser or none.
 - **Delight primitives (opt-in, keep them rare and intentional):**
   - `tap: true` on a `typing`, `steps`, or `status-card` scene drops a soft touch cursor that glides to that scene's action and taps it near the scene's end (the send button, the one linked step, the CTA). `typing.tap` needs `send: true`; it is not available in a terminal frame.
   - `celebrate: true` plays a restrained success burst (a checkmark pop, a ring pulse, a few accent dots) anchored to the scene's CTA or result. Put it on the final scene or a trailing `hold` so the burst lands on the closing frame.
@@ -67,3 +67,4 @@ Then confirm the screen-to-scene mapping with the user before rendering. In auto
 - Environment report: `npx demoframe doctor`
 - Live preview for humans: `npx demoframe serve demo.yml`
 - Worked example using the delight primitives: `node_modules/demoframe/examples/mobile-flow/demo.yml`
+- Screen reconstruction examples: `node_modules/demoframe/examples/screen-dashboard/demo.yml`, `screen-focus/demo.yml`, and `screen-scroll/demo.yml`

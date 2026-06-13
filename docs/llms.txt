@@ -11,12 +11,12 @@ skills/demoframe/SKILL.md in the package.
 
 ## Commands
 
-- `demoframe init [dir] [--template <name>] [--frame phone|browser|terminal]
-  [--list]`: scaffold demo.yml + assets/ from a gallery template. --list prints
+- `demoframe init [dir] [--template <name>] [--category <name>]
+  [--frame phone|browser|terminal] [--list]`: scaffold demo.yml + assets/ from a gallery template. --list prints
   the gallery (starters plus showcase templates, shipped in the package under
   templates/). --frame is sugar for --template starter-<frame>; the default is
   starter-phone. Each template's meta.yml records the demoframe version it
-  targets.
+  targets. --category chooses a category default unless --template is supplied.
 - `demoframe schema`: print the JSON Schema for configs. The schema is pre-1.0
   and changes between versions; read it instead of relying on memorized fields.
 - `demoframe check <config> [--strict] [--allow-raw-screenshots]`: validate without
@@ -24,11 +24,12 @@ skills/demoframe/SKILL.md in the package.
   as `path: message` with hints. A frameless demo whose every content scene is a raw
   screenshot is a hard error ("screenshots pasted in a frame") that also makes render
   refuse; pass --allow-raw-screenshots to demote it to a warning for an intentional
-  raw demo. Warnings also cover missing assets, privacy findings (emails/tokens/URLs
-  in copy), and screenshots likely to blow the GIF size budget. Fast (<1s without
+  raw demo. Missing referenced assets are hard errors. Warnings cover privacy findings (emails/tokens/URLs
+  in copy), README legibility, and screenshots likely to blow the GIF size budget. Fast (<1s without
   screenshot assets); run after every config edit.
 - `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]
-  [--allow-raw-screenshots] [--for github-readme|x-post|linkedin|product-hunt]`:
+  [--allow-raw-screenshots] [--strict] [--asset-out path]
+  [--for github-readme,x-post,linkedin,product-hunt]`:
   the full pipeline. Validates, renders frames, encodes every format in
   output.format, writes preview stills to <dir>/preview/, and writes
   report.json. Missing Chromium/gifski are downloaded automatically
@@ -37,9 +38,12 @@ skills/demoframe/SKILL.md in the package.
   --for applies a destination preset that overrides output format/width/fps/
   budget/quality in one flag (github-readme: webp 640px 15fps 4MB; x-post:
   mp4 1080px 30fps; linkedin: mp4 1080px 24fps; product-hunt: gif 1200px
-  12fps 3MB). Overrides are printed and the preset name lands in report.json.
+  12fps 3MB). --for accepts a comma list and writes suffixed outputs.
+  Overrides are printed and preset names land in report.json. --asset-out copies
+  the primary rendered asset(s).
 - `demoframe preview <config> [-o dir]`: stills only, no encode. Writes
-  per-scene stills (scene_<i>_<type>.png), final_readme_size.png, and
+  semantic per-scene stills (scene_<i>_<slug>.png), key moments
+  (moment_<i>_tap/cta/celebrate.png), final_readme_size.png, and
   final_github_dark/light.png composites. Faster iteration than render.
 - `demoframe doctor`: environment report. `demoframe install-browser`: explicit
   Chromium download (otherwise automatic on first render).
@@ -47,9 +51,9 @@ skills/demoframe/SKILL.md in the package.
 
 ## report.json shape
 
-{ "title", "config", "preset"?, "budgetBytes",
-  "attempts": [{format,fps,width,sizeBytes}],
-  "warnings": [...], "previews": ["preview/scene_0_typing.png", ...],
+{ "title", "config", "presets"?, "budgetBytes",
+  "attempts": [{preset?,format,fps,width,sizeBytes}],
+  "warnings": [...], "layout": [...], "previews": ["preview/scene_0_typing.png", ...],
   "outputs": [{ "file", "format": "gif"|"webp"|"mp4"|"webm", "sizeBytes",
   "width", "height", "durationS", "fps", "frameCount", "loopsForever",
   "hasAudio", "encoder", "withinBudget" }] }
@@ -147,6 +151,12 @@ scene or a trailing hold so it lands on the closing frame):
   suffix?<=12, decimals: 0-2 (0)}, chart?: {kind: bar|line, series: 2-16
   numbers >=0, labels?: same length as series, each<=12, color?: hex},
   caption?<=120 }  Counters tick up, bars/line reveal, labels fade in last.
+- screen: { motion?: reveal|focus|scroll (reveal), focus?: block name,
+  blocks: 1-8 fixed product UI blocks } Blocks use `block` as the discriminator:
+  app-header, stat-strip, chart-card (bar|line|area), card-grid, list, progress,
+  heatmap, callout. Blocks are asset-free: icons are built-in keys and avatars
+  are initials/color objects. `focus` must name a unique block when motion is
+  focus, and is invalid for reveal/scroll.
 - hold: {} freezes the previous scene's final state (cannot be first).
 
 ## Authoring guidance
@@ -161,11 +171,13 @@ scene or a trailing hold so it lands on the closing frame):
   (the result) -> hold 1-1.5s so the ending reads before the loop.
 - More arcs: terminal-playback alone sells a CLI; chat (the ask) ->
   code with added/removed (the fix) -> status-card (the PR); metric-card
-  closes a launch-post demo with numbers. Match scene to frame:
+  closes a launch-post demo with numbers; screen reconstructs dense product
+  dashboards and no-screenshot category fallbacks. Match scene to frame:
   terminal-playback + terminal, chat + phone, code/metric-card + browser.
 - Rendering examples ship in the package under examples/ (one per scene
-  type, plus desktop-app and frameless for the v0.4 frames); copy one as a
-  starting point, or start from a gallery template via init --template.
+  type, plus desktop-app, frameless, and screen-dashboard/screen-focus/
+  screen-scroll for product reconstruction); copy one as a starting point,
+  or start from a gallery template via init --template / init --category product.
 - A GitHub Action lives at bprateeek/demoframe/action for CI renders
   (README auto-refresh and PR preview recipes in action/README.md).
 - Keep total duration 8-15s for README heroes.

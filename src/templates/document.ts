@@ -3,19 +3,21 @@ import {
   frameViewport,
   normalizeLogo,
   type DemoConfig,
+  type Frame,
   type ChatScene,
   type AvatarSpec,
 } from '../config/schema.js';
 import { resolveTimeline, type Timeline } from '../render/timeline.js';
+import { sceneFrame } from '../render/chrome.js';
 import { normalizeImageToDataUrl } from '../assets/normalize.js';
 import { icons } from './icons.js';
 import { fontCss } from './fonts.js';
 import { resolveTheme, themeCss } from './theme.js';
 import { baseCss } from './base.js';
-import { phoneCss, phoneHtml } from './frames/phone.js';
-import { browserCss, browserHtml } from './frames/browser.js';
-import { terminalCss, terminalHtml } from './frames/terminal.js';
-import { desktopCss, desktopHtml } from './frames/desktop.js';
+import { phoneChromeHtml, phoneCss, phoneShellHtml } from './frames/phone.js';
+import { browserChromeHtml, browserCss, browserShellHtml } from './frames/browser.js';
+import { terminalChromeHtml, terminalCss, terminalShellHtml } from './frames/terminal.js';
+import { desktopChromeHtml, desktopCss, desktopShellHtml } from './frames/desktop.js';
 import { noneCss, noneHtml } from './frames/none.js';
 import { typingCss, typingHtml } from './scenes/typing.js';
 import { stepsCss, stepsHtml } from './scenes/steps.js';
@@ -25,6 +27,8 @@ import { terminalPlaybackCss, terminalPlaybackHtml } from './scenes/terminalPlay
 import { codeCss, codeHtml } from './scenes/code.js';
 import { chatCss, chatHtml, type ResolvedAvatar, type ResolvedAvatars } from './scenes/chat.js';
 import { metricCardCss, metricCardHtml } from './scenes/metricCard.js';
+import { screenCss, screenHtml } from './scenes/screen.js';
+import { blockCss } from './blocks/index.js';
 
 export interface BuiltDocument {
   html: string;
@@ -62,12 +66,14 @@ export async function buildDocument(
   const timeline = resolveTimeline(config, fpsOverride);
   const frameType = config.frame.type;
   const resolvedTheme = resolveTheme(config.theme);
+  const framesByScene = config.scenes.map((_, index) => sceneFrame(config, index));
 
   const sceneParts: string[] = [];
   for (const [index, scene] of config.scenes.entries()) {
+    const mergedFrame = framesByScene[index];
     switch (scene.type) {
       case 'typing': {
-        const prompt = frameType === 'terminal' ? config.frame.prompt : '$';
+        const prompt = mergedFrame.type === 'terminal' ? mergedFrame.prompt : '$';
         sceneParts.push(typingHtml(scene, index, frameType, prompt));
         break;
       }
@@ -83,7 +89,7 @@ export async function buildDocument(
         break;
       }
       case 'terminal-playback': {
-        const framePrompt = config.frame.type === 'terminal' ? config.frame.prompt : '$';
+        const framePrompt = mergedFrame.type === 'terminal' ? mergedFrame.prompt : '$';
         sceneParts.push(terminalPlaybackHtml(scene, index, frameType, framePrompt));
         break;
       }
@@ -98,24 +104,45 @@ export async function buildDocument(
       case 'metric-card':
         sceneParts.push(metricCardHtml(scene, index));
         break;
+      case 'screen':
+        sceneParts.push(screenHtml(scene, index));
+        break;
       case 'hold':
         break;
     }
   }
   const logo = normalizeLogo(config.theme.logo);
-  let headerLogoHtml = '';
-  let cornerLogoHtml = '';
+  let logoDataUrl = '';
   if (logo) {
-    const logoDataUrl = await normalizeImageToDataUrl(path.resolve(baseDir, logo.src), 256);
-    const noHeaderSlot =
-      config.frame.type === 'none' || (config.frame.type === 'phone' && !config.frame.title);
-    const placement = noHeaderSlot ? 'corner' : logo.placement;
-    if (placement === 'header') {
-      headerLogoHtml = `<img class="df-logo-header" src="${logoDataUrl}" alt="">`;
-    } else {
-      cornerLogoHtml = `<div class="df-logo-corner"><img src="${logoDataUrl}" alt=""></div>`;
-    }
+    logoDataUrl = await normalizeImageToDataUrl(path.resolve(baseDir, logo.src), 256);
   }
+
+  const chromeLayerFrames: Frame[] = [];
+  for (const ts of timeline.scenes) {
+    if (!chromeLayerFrames[ts.chromeLayer]) chromeLayerFrames[ts.chromeLayer] = framesByScene[ts.renderIndex];
+  }
+  const phoneReservesAppBar =
+    config.frame.type === 'phone' && chromeLayerFrames.some((frame) => frame.type === 'phone' && Boolean(frame.title));
+  const desktopReservesToolbar =
+    config.frame.type === 'desktop' &&
+    chromeLayerFrames.some((frame) => frame.type === 'desktop' && Boolean(frame.subtitle));
+  const hasHeaderLogoSlot = (frame: Frame): boolean => {
+    if (!logoDataUrl) return false;
+    if (frame.type === 'none') return false;
+    if (frame.type === 'phone') return Boolean(frame.title);
+    return true;
+  };
+  const headerLogoHtml = (frame: Frame): string =>
+    hasHeaderLogoSlot(frame) ? `<img class="df-logo-header" src="${logoDataUrl}" alt="">` : '';
+  const cornerLogoHtml = logoDataUrl
+    ? chromeLayerFrames
+        .map((frame, layerId) =>
+          hasHeaderLogoSlot(frame)
+            ? ''
+            : `<div class="df-logo-corner" data-chrome="${layerId}"><img src="${logoDataUrl}" alt=""></div>`,
+        )
+        .join('')
+    : '';
 
   const needsOverlay = timeline.scenes.some((s) => s.data.tap || s.data.celebrate);
   const overlayHtml = needsOverlay
@@ -130,16 +157,54 @@ export async function buildDocument(
   let frameHtml: string;
   switch (config.frame.type) {
     case 'phone':
-      frameHtml = phoneHtml(config.frame, scenesHtml, headerLogoHtml);
+      frameHtml = phoneShellHtml(
+        chromeLayerFrames
+          .map((frame, layerId) =>
+            phoneChromeHtml(
+              frame as Extract<Frame, { type: 'phone' }>,
+              layerId,
+              headerLogoHtml(frame),
+              phoneReservesAppBar,
+            ),
+          )
+          .join('\n'),
+        scenesHtml,
+      );
       break;
     case 'browser':
-      frameHtml = browserHtml(config.frame, scenesHtml, headerLogoHtml);
+      frameHtml = browserShellHtml(
+        chromeLayerFrames
+          .map((frame, layerId) =>
+            browserChromeHtml(frame as Extract<Frame, { type: 'browser' }>, layerId, headerLogoHtml(frame)),
+          )
+          .join('\n'),
+        scenesHtml,
+      );
       break;
     case 'terminal':
-      frameHtml = terminalHtml(config.frame, scenesHtml, headerLogoHtml);
+      frameHtml = terminalShellHtml(
+        chromeLayerFrames
+          .map((frame, layerId) =>
+            terminalChromeHtml(frame as Extract<Frame, { type: 'terminal' }>, layerId, headerLogoHtml(frame)),
+          )
+          .join('\n'),
+        scenesHtml,
+      );
       break;
     case 'desktop':
-      frameHtml = desktopHtml(config.frame, scenesHtml, headerLogoHtml);
+      frameHtml = desktopShellHtml(
+        chromeLayerFrames
+          .map((frame, layerId) =>
+            desktopChromeHtml(
+              frame as Extract<Frame, { type: 'desktop' }>,
+              layerId,
+              headerLogoHtml(frame),
+              desktopReservesToolbar,
+            ),
+          )
+          .join('\n'),
+        scenesHtml,
+      );
       break;
     case 'none':
       frameHtml = noneHtml(scenesHtml);
@@ -163,6 +228,8 @@ export async function buildDocument(
     codeCss,
     chatCss,
     metricCardCss,
+    screenCss,
+    blockCss,
   ].join('\n');
 
   const { runtimeJs } = await import('./runtime.js');

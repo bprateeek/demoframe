@@ -39,6 +39,20 @@ svg { display: block; width: 100%; height: 100%; }
   flex-direction: column;
   padding: var(--df-s5);
 }
+.df-chrome-stack {
+  position: relative;
+  flex: 0 0 auto;
+}
+.df-chrome-layer {
+  opacity: 0;
+}
+.df-chrome-layer:first-child {
+  position: relative;
+}
+.df-chrome-layer:not(:first-child) {
+  position: absolute;
+  inset: 0;
+}
 .df-logo-slot {
   justify-self: end;
   display: flex;
@@ -50,10 +64,10 @@ svg { display: block; width: 100%; height: 100%; }
   right: var(--df-s4);
   bottom: var(--df-s4);
   height: 28px;
-  opacity: 0.85;
+  opacity: 0;
   z-index: 1;
 }
-.df-logo-corner img { height: 100%; width: auto; display: block; }
+.df-logo-corner img { height: 100%; width: auto; display: block; opacity: 0.85; }
 .df-slot-header { flex: 0 0 auto; }
 .df-slot-body { flex: 1 1 auto; min-height: 0; }
 .df-slot-footer { flex: 0 0 auto; margin-top: auto; }

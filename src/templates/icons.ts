@@ -16,4 +16,7 @@ export const icons = {
   share: svg('0 0 24 24', '<path d="M12 14.5V3.5m0 0L7.5 8M12 3.5L16.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 11.5v7a2 2 0 002 2h10a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
   arrowLeft: svg('0 0 24 24', '<path d="M19 12H5m0 0l5.5-5.5M5 12l5.5 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
   cross: svg('0 0 24 24', '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>'),
+  spark: svg('0 0 24 24', '<path d="M12 3.5l1.8 5.2 5.2 1.8-5.2 1.8L12 17.5l-1.8-5.2L5 10.5l5.2-1.8L12 3.5z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z" fill="currentColor"/>'),
+  user: svg('0 0 24 24', '<circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="2"/><path d="M5.5 20a6.5 6.5 0 0113 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
+  bolt: svg('0 0 24 24', '<path d="M13 2.8L5.5 13h5.7L10.7 21 18.5 10h-5.8L13 2.8z" fill="currentColor"/>'),
 } as const;

@@ -256,6 +256,196 @@ describe('frames (v0.4)', () => {
   });
 });
 
+describe('frame overrides (v0.7)', () => {
+  it('accepts valid per-scene browser overrides', () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser', url: 'https://app.test', chrome: 'thin' },
+      scenes: [
+        {
+          type: 'typing',
+          duration: 3,
+          text: 'hello',
+          frame: { url: 'https://github.com/acme/repo', chrome: 'full', title: 'GitHub' },
+        },
+      ],
+    });
+    const scene = config.scenes[0];
+    expect(scene.frame).toEqual({
+      url: 'https://github.com/acme/repo',
+      chrome: 'full',
+      title: 'GitHub',
+    });
+  });
+
+  it('rejects overrides that do not belong to the global frame type', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'phone' },
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', frame: { url: 'https://app.test' } }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'terminal' },
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', frame: { statusBarTime: '10:30' } }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects frame overrides on none frames and hold scenes', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', frame: { title: 'Nope' } }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'browser' },
+        scenes: [
+          { type: 'typing', duration: 3, text: 'hi' },
+          { type: 'hold', duration: 1, frame: { url: 'https://app.test' } },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe('screen scenes (v0.8)', () => {
+  it('accepts a dashboard-style screen with bounded blocks', () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'none' },
+      scenes: [
+        {
+          type: 'screen',
+          duration: 5,
+          blocks: [
+            { block: 'app-header', title: 'Grind50', subtitle: 'Today', icon: 'bolt' },
+            {
+              block: 'stat-strip',
+              name: 'stats',
+              tiles: [
+                { label: 'Active', value: { value: 128 } },
+                { label: 'Delta', value: { value: 18, suffix: '%' }, delta: { value: 4, dir: 'up' } },
+              ],
+            },
+            { block: 'chart-card', name: 'chart', chart: { kind: 'area', series: [2, 4, 3] } },
+            {
+              block: 'card-grid',
+              cards: [
+                { title: 'Review', desc: '12 new cards', icon: 'check' },
+                { title: 'Plan', value: '3 days' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    expect(config.scenes[0].type).toBe('screen');
+  });
+
+  it('requires focus to name a unique block only when motion is focus', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [
+          {
+            type: 'screen',
+            duration: 5,
+            motion: 'focus',
+            focus: 'chart',
+            blocks: [{ block: 'chart-card', name: 'chart', chart: { kind: 'bar', series: [1, 2] } }],
+          },
+        ],
+      }).success,
+    ).toBe(true);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [
+          {
+            type: 'screen',
+            duration: 5,
+            motion: 'reveal',
+            focus: 'chart',
+            blocks: [{ block: 'chart-card', name: 'chart', chart: { kind: 'bar', series: [1, 2] } }],
+          },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [
+          {
+            type: 'screen',
+            duration: 5,
+            motion: 'focus',
+            focus: 'missing',
+            blocks: [{ block: 'chart-card', name: 'chart', chart: { kind: 'bar', series: [1, 2] } }],
+          },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [
+          {
+            type: 'screen',
+            duration: 5,
+            motion: 'focus',
+            focus: 'chart',
+            blocks: [
+              { block: 'chart-card', name: 'chart', chart: { kind: 'bar', series: [1, 2] } },
+              { block: 'callout', name: 'chart', variant: 'message', text: 'Duplicate' },
+            ],
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('validates screen chart labels and heatmap dimensions', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [
+          {
+            type: 'screen',
+            duration: 5,
+            blocks: [{ block: 'chart-card', chart: { kind: 'line', series: [1, 2, 3], labels: ['a'] } }],
+          },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [
+          {
+            type: 'screen',
+            duration: 5,
+            blocks: [{ block: 'heatmap', cols: 2, values: Array.from({ length: 14 }, () => 1) }],
+          },
+        ],
+      }).success,
+    ).toBe(true);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'none' },
+        scenes: [
+          {
+            type: 'screen',
+            duration: 5,
+            blocks: [{ block: 'heatmap', cols: 2, values: Array.from({ length: 13 }, () => 1) }],
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+});
+
 describe('theme (v0.4)', () => {
   it('accepts palette overrides in hex and rgb()/rgba(), rejects named colors', () => {
     const config = demoConfigSchema.parse({

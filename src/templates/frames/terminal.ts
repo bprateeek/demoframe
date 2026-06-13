@@ -44,21 +44,35 @@ export const terminalCss = `
 .df-frame-terminal .df-rail { padding: var(--df-s4) var(--df-s5); }
 `;
 
-export function terminalHtml(
+export function terminalChromeHtml(
   frame: Extract<Frame, { type: 'terminal' }>,
-  scenesHtml: string,
+  layerId: number,
   headerLogoHtml = '',
 ): string {
-  return `<div class="df-stage">
-  <div class="df-device-terminal">
+  return `<div class="df-chrome-layer" data-chrome="${layerId}">
     <div class="df-terminal-bar">
       <div class="df-traffic"><i></i><i></i><i></i></div>
       <div class="df-terminal-title">${escapeHtml(frame.title ?? 'demo')}</div>
       <div class="df-logo-slot">${headerLogoHtml}</div>
     </div>
+  </div>`;
+}
+
+export function terminalShellHtml(chromeLayersHtml: string, scenesHtml: string): string {
+  return `<div class="df-stage">
+  <div class="df-device-terminal">
+    <div class="df-chrome-stack">${chromeLayersHtml}</div>
     <div class="df-terminal-content">
       <div class="df-safe">${scenesHtml}</div>
     </div>
   </div>
 </div>`;
+}
+
+export function terminalHtml(
+  frame: Extract<Frame, { type: 'terminal' }>,
+  scenesHtml: string,
+  headerLogoHtml = '',
+): string {
+  return terminalShellHtml(terminalChromeHtml(frame, 0, headerLogoHtml), scenesHtml);
 }

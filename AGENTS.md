@@ -53,7 +53,7 @@ before the loop restarts.
    `npx demoframe schema` (JSON Schema on stdout); the schema is pre-1.0, so
    read it instead of relying on memorized field names.
 2. **Validate.** `npx demoframe check demo.yml` after every edit. It prints
-   errors (which block rendering) and warnings (missing assets, privacy
+   errors (which block rendering, including missing assets) and warnings (privacy
    findings, oversized screenshots, screenshot-dominant configs). Fix them all;
    `--strict` makes warnings fail too.
 3. **Render.** `npx demoframe render demo.yml -o dist` validates, renders,
@@ -73,7 +73,7 @@ the copy in `node_modules`. Paste this so it gets the rule:
 ```md
 ## Demos (demoframe)
 Screenshots are reference, not ingredients: reconstruct the flow as synthetic
-demoframe scenes (typing/steps/status-card/chat), never paste screenshots into a
+demoframe scenes (typing/steps/status-card/chat/screen), never paste screenshots into a
 frame. Interview first (narrative arc, climax, destination, brand, names, exact
 copy, what to keep vs simplify). `demoframe check`/`render` reject a frameless
 all-screenshot demo; `--allow-raw-screenshots` is only for an intentional raw

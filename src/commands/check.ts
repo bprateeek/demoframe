@@ -3,7 +3,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { loadConfig, type LoadedConfig } from '../config/load.js';
 import { scanForPrivateData } from '../config/privacy.js';
-import { budgetToBytes, normalizeLogo } from '../config/schema.js';
+import { budgetToBytes, frameViewport, normalizeLogo } from '../config/schema.js';
 import { resolveTimeline } from '../render/timeline.js';
 
 export interface CheckResult {
@@ -73,14 +73,28 @@ async function screenshotSizeWarnings(loaded: LoadedConfig): Promise<string[]> {
   return warnings;
 }
 
-export async function runCheck(file: string, opts: CheckOptions = {}): Promise<CheckResult> {
-  const loaded = loadConfig(file);
+function readmeLegibilityWarnings(loaded: LoadedConfig): string[] {
+  const viewport = frameViewport(loaded.config.frame);
+  const displayWidth = loaded.config.output.displayWidth ?? Math.round(loaded.config.output.width * 0.6);
+  const displayScale = displayWidth / viewport.width;
+  const estimatedBodyPx = 14 * displayScale;
+  if (estimatedBodyPx >= 5.25) return [];
+  return [
+    `README display width ${displayWidth}px makes small body text about ${estimatedBodyPx.toFixed(1)}px; ` +
+      'increase output.width or output.displayWidth for readable README embeds',
+  ];
+}
+
+export async function runCheckLoaded(
+  loaded: LoadedConfig,
+  opts: CheckOptions = {},
+): Promise<CheckResult> {
   const errors: string[] = [];
   const warnings: string[] = [];
 
   for (const ref of referencedAssets(loaded)) {
     if (!existsSync(ref.file)) {
-      warnings.push(`${ref.at}: asset not found at ${ref.file}`);
+      errors.push(`${ref.at}: asset not found at ${ref.file}`);
     }
   }
 
@@ -103,8 +117,12 @@ export async function runCheck(file: string, opts: CheckOptions = {}): Promise<C
       'chat scenes pair best with the phone or browser frame; bubbles read oddly inside a terminal window',
     );
   }
+  if (loaded.config.output.quality === 'draft' && loaded.config.scenes.some((s) => s.type === 'screen')) {
+    warnings.push('screen scenes contain dense product UI; use output.quality: standard or high for crisp text');
+  }
 
   warnings.push(...(await screenshotSizeWarnings(loaded)));
+  warnings.push(...readmeLegibilityWarnings(loaded));
 
   // Screenshot-dominant demos read as "screenshots pasted in a frame". Count a
   // hold against the scene it extends (renderIndex), so a screenshot -> hold ->
@@ -125,13 +143,13 @@ export async function runCheck(file: string, opts: CheckOptions = {}): Promise<C
       // content scene is a raw screenshot. This is a hard error so render refuses
       // it; --allow-raw-screenshots demotes it for intentional raw demos.
       (opts.allowRawScreenshots ? warnings : errors).push(
-        'every scene is a raw screenshot in a frameless demo; this reads as "screenshots pasted in a frame". ' +
-          'Rebuild the flow as synthetic scenes (typing/steps/status-card/chat) and use the screenshots only as reference. ' +
+          'every scene is a raw screenshot in a frameless demo; this reads as "screenshots pasted in a frame". ' +
+          'Rebuild the flow as synthetic scenes (typing/steps/status-card/chat/screen) and use the screenshots only as reference. ' +
           'If a raw-screenshot demo is intended (bug report, before/after proof), pass --allow-raw-screenshots.',
       );
     } else {
       warnings.push(
-        `screenshot scenes are ${Math.round((shotDuration / tl.duration) * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes and keep screenshot scenes for when the screenshot itself is the subject.`,
+        `screenshot scenes are ${Math.round((shotDuration / tl.duration) * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes such as screen, typing, steps, status-card, or chat, and keep screenshot scenes for when the screenshot itself is the subject.`,
       );
     }
   }
@@ -145,4 +163,8 @@ export async function runCheck(file: string, opts: CheckOptions = {}): Promise<C
   });
 
   return { loaded, errors, warnings };
+}
+
+export async function runCheck(file: string, opts: CheckOptions = {}): Promise<CheckResult> {
+  return runCheckLoaded(loadConfig(file), opts);
 }

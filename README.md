@@ -23,7 +23,7 @@ demoframe is designed to be written by coding agents.
 **The one rule: screenshots are reference, not ingredients.** Show your agent a
 screenshot of your product and ask for a demo, and it should interview you for
 the story, then rebuild the flow as clean synthetic scenes (`typing`, `steps`,
-`status-card`, `chat`) using the screenshots only as reference. A frameless
+`status-card`, `chat`, `screen`) using the screenshots only as reference. A frameless
 demo whose every scene is a raw screenshot is "screenshots pasted in a frame":
 `demoframe check` and `demoframe render` **reject it** (pass
 `--allow-raw-screenshots` only for an intentional raw demo, e.g. a bug report or
@@ -65,10 +65,12 @@ demoframe render demo.yml     # validate -> frames -> GIF/WebP/MP4 + stills + re
 ```
 
 Or start from the template gallery: `demoframe init --list` shows curated
-configs (CLI release, code walkthrough, assistant chat, launch metrics, and
-the three starters); `demoframe init my-demo --template cli-release` copies
-one. Community templates are welcome as PRs adding a `templates/<name>/`
-directory with `template.yml` and `meta.yml`.
+configs (CLI release, code walkthrough, assistant chat, launch metrics,
+product dashboard, and the three starters); `demoframe init my-demo --template
+cli-release` copies one. `demoframe init my-demo --category product` starts
+from the asset-free `product-dashboard` screen reconstruction template.
+Community templates are welcome as PRs adding a `templates/<name>/` directory
+with `template.yml` and `meta.yml`.
 
 One `render` does the whole pipeline: validation and privacy scan, frame
 rendering, encoding with the size-budget retry ladder, per-scene preview
@@ -130,10 +132,13 @@ done/active/pending states), `status-card` (PR-style result screen with checks
 and a CTA), `terminal-playback` (typed command, spinner, streamed output, exit
 status), `code` (syntax-highlighted reveal with optional diff marks), `chat`
 (conversation bubbles with a typing indicator and optional per-role avatars),
-`metric-card` (animated counters with a bar/line chart), `hold` (freeze the
+`metric-card` (animated counters with a bar/line chart), `screen` (stacked
+product UI blocks such as app headers, stats, charts, lists, progress, and
+callouts), `hold` (freeze the
 previous scene), and `screenshot` (a raw image with optional pan/zoom, a
 fallback for when the screenshot itself is the subject). One example config per
-scene type ships under `examples/`.
+scene type ships under `examples/`, including `examples/screen-dashboard`,
+`examples/screen-focus`, and `examples/screen-scroll`.
 
 **Delight primitives** (opt-in): `tap: true` on a `typing`/`steps`/`status-card`
 scene drops a touch cursor that taps the action; `celebrate: true` plays a
