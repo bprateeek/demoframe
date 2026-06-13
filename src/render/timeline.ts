@@ -72,7 +72,11 @@ export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timel
       duration: scene.duration,
       renderIndex: index,
       transition: scene.transition,
-      data: clientData(scene),
+      data: {
+        ...clientData(scene),
+        ...(scene.celebrate ? { celebrate: true } : {}),
+        ...('tap' in scene && scene.tap ? { tap: true } : {}),
+      },
     };
   });
   for (const ts of scenes) {

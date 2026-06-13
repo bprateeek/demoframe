@@ -3,6 +3,40 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
+## 0.5.0
+
+The reconstruct-first release: the authoring skill now interviews for the
+story and rebuilds flows from synthetic scenes (screenshots are reference,
+not output), plus three opt-in delight primitives. All config-facing changes
+are additive; every 0.4.0 config parses and renders identically.
+
+### Added
+
+- `tap: true` on `typing`, `steps`, and `status-card` scenes: a soft touch
+  cursor glides to the scene's action and taps it near the end (the send
+  button, the one linked step, the CTA). `typing.tap` needs `send: true` and
+  is rejected in a terminal frame; `steps.tap` needs exactly one linked item;
+  `status-card.tap` needs a cta.
+- `celebrate: true` on any scene: a restrained, deterministic success burst
+  (checkmark pop, ring pulse, six accent dots) anchored to the scene's
+  CTA/result, then a clean settle. Designed for the final scene or a trailing
+  `hold`; `check` warns if it fires earlier.
+- `chat.avatars: { user?, assistant? }`: per-role avatars, each an image path
+  or a `{ initials, color? }` monogram. Header app identity still comes from
+  `theme.logo`.
+- `examples/mobile-flow`: a reconstructed mobile PR flow showcasing all three
+  primitives, with golden coverage.
+
+### Changed
+
+- `demoframe check` adds a screenshot-dominant warning (when screenshot scenes
+  exceed half the runtime, counting holds that extend a screenshot) and a
+  celebrate-placement warning. The skill (`skills/demoframe/SKILL.md`) leads
+  with a visual reconstruction rule, a required interview, and a pre-render
+  quality gate; `screenshot` scenes are documented as a fallback.
+- A `hold` with `transition: crossfade` no longer fades its own held frame
+  back in (it shared a render scene with the previous frame).
+
 ## 0.4.0
 
 The make-it-yours release: custom frames and viewports, deep theming, a

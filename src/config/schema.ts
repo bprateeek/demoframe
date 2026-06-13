@@ -170,6 +170,7 @@ const sceneBase = {
   duration: z.number().positive().max(30),
   transition: z.enum(['cut', 'crossfade']).default('cut'),
   name: z.string().max(40).optional(),
+  celebrate: z.boolean().default(false),
 };
 
 const typingScene = z.object({
@@ -178,6 +179,7 @@ const typingScene = z.object({
   text: z.string().min(1).max(TEXT_LIMITS.typingText),
   placeholder: z.string().max(60).optional(),
   send: z.boolean().default(false),
+  tap: z.boolean().default(false),
 });
 
 const stepState = z.enum(['done', 'active', 'pending']);
@@ -202,6 +204,7 @@ const stepsScene = z.object({
     )
     .min(1)
     .max(6),
+  tap: z.boolean().default(false),
 });
 
 const statusCardScene = z.object({
@@ -223,6 +226,7 @@ const statusCardScene = z.object({
     })
     .optional(),
   caption: z.string().max(TEXT_LIMITS.caption).optional(),
+  tap: z.boolean().default(false),
 });
 
 const screenshotScene = z.object({
@@ -295,6 +299,16 @@ const codeScene = z.object({
   reveal: z.enum(['lines', 'fade', 'none']).default('lines'),
 });
 
+const avatarSpec = z.union([
+  z.string().min(1),
+  z
+    .object({
+      initials: z.string().min(1).max(3),
+      color: hexColor.optional(),
+    })
+    .strict(),
+]);
+
 const chatScene = z.object({
   type: z.literal('chat'),
   ...sceneBase,
@@ -308,6 +322,13 @@ const chatScene = z.object({
     .min(1)
     .max(6),
   typingIndicator: z.boolean().default(true),
+  avatars: z
+    .object({
+      user: avatarSpec.optional(),
+      assistant: avatarSpec.optional(),
+    })
+    .strict()
+    .optional(),
 });
 
 const metricCardScene = z.object({
@@ -410,6 +431,39 @@ export const demoConfigSchema = z
           });
         }
       }
+      if (scene.type === 'typing' && scene.tap) {
+        if (!scene.send) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'tap'],
+            message: 'typing.tap needs send: true so there is a send button to tap',
+          });
+        }
+        if (config.frame.type === 'terminal') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'tap'],
+            message: 'typing.tap is not supported in a terminal frame; no send button renders there',
+          });
+        }
+      }
+      if (scene.type === 'steps' && scene.tap) {
+        const links = scene.items.filter((it) => it.link).length;
+        if (links !== 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'tap'],
+            message: `steps.tap needs exactly one item with link: true to tap; found ${links}`,
+          });
+        }
+      }
+      if (scene.type === 'status-card' && scene.tap && !scene.cta) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['scenes', index, 'tap'],
+          message: 'status-card.tap needs a cta to tap',
+        });
+      }
       if (scene.type === 'metric-card' && scene.chart?.labels) {
         if (scene.chart.labels.length !== scene.chart.series.length) {
           ctx.addIssue({
@@ -437,6 +491,7 @@ export type ThemePresetName = (typeof THEME_PRESET_NAMES)[number];
 export type TerminalPlaybackScene = z.infer<typeof terminalPlaybackScene>;
 export type CodeScene = z.infer<typeof codeScene>;
 export type ChatScene = z.infer<typeof chatScene>;
+export type AvatarSpec = z.infer<typeof avatarSpec>;
 export type MetricCardScene = z.infer<typeof metricCardScene>;
 export type TermLineStyle = z.infer<typeof termLineStyle>;
 export type CodeLang = (typeof CODE_LANGS)[number];

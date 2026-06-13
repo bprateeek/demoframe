@@ -20,9 +20,11 @@ The hero above is demoframe's own output:
 
 demoframe is designed to be written by coding agents.
 
-Point your agent at a screenshot of your product and ask it to create a demo
-config. demoframe validates the YAML, renders the frames, encodes the GIF/MP4,
-and writes a machine-readable QA report.
+Show your agent a screenshot of your product and ask it to create a demo. The
+skill interviews you for the story, then rebuilds the flow as clean synthetic
+scenes (screenshots are reference, not output). demoframe validates the YAML,
+renders the frames, encodes the GIF/MP4, and writes a machine-readable QA
+report.
 
 Useful surfaces for agents:
 
@@ -115,12 +117,18 @@ window), and `none` (frameless, scenes fill the canvas). Every frame accepts
 
 **Scenes**: `typing` (animated typing with caret), `steps` (progress rows with
 done/active/pending states), `status-card` (PR-style result screen with checks
-and a CTA), `screenshot` (your image with optional pan/zoom),
-`terminal-playback` (typed command, spinner, streamed output, exit status),
-`code` (syntax-highlighted reveal with optional diff marks), `chat`
-(conversation bubbles with a typing indicator), `metric-card` (animated
-counters with a bar/line chart), `hold` (freeze the previous scene). One
-example config per scene type ships under `examples/`.
+and a CTA), `terminal-playback` (typed command, spinner, streamed output, exit
+status), `code` (syntax-highlighted reveal with optional diff marks), `chat`
+(conversation bubbles with a typing indicator and optional per-role avatars),
+`metric-card` (animated counters with a bar/line chart), `hold` (freeze the
+previous scene), and `screenshot` (a raw image with optional pan/zoom, a
+fallback for when the screenshot itself is the subject). One example config per
+scene type ships under `examples/`.
+
+**Delight primitives** (opt-in): `tap: true` on a `typing`/`steps`/`status-card`
+scene drops a touch cursor that taps the action; `celebrate: true` plays a
+restrained success burst at the climax; `chat.avatars` adds per-role avatars.
+See `examples/mobile-flow` for all three.
 
 **Transitions**: `cut` (default) and `crossfade`. Crossfades inflate GIF
 palettes; prefer cuts when size matters.

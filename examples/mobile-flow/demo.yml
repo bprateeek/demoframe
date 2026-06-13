@@ -1,0 +1,38 @@
+title: Fieldwork mobile pull request flow
+output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
+theme: { accent: "#e2603a", mode: light, font: inter }
+frame: { type: phone, title: vps-fieldwork-smoke, subtitle: "fieldwork-smoke · VPS" }
+scenes:
+  - type: typing
+    duration: 2.8
+    text: "Add a health probe section to the README"
+    send: true
+    tap: true
+  - type: chat
+    duration: 3.2
+    transition: crossfade
+    avatars:
+      assistant: { initials: CC, color: "#e2603a" }
+      user: { initials: PB, color: "#3b6cf2" }
+    messages:
+      - { role: assistant, text: "Verification passed. Opening a pull request." }
+      - { role: user, text: "Great, get it ready for review." }
+  - type: steps
+    duration: 3.0
+    header: { title: Workspace ready, detail: "VPS connected. Pull requests open for review." }
+    items:
+      - { label: Verification passed, detail: "Read a file, created a file +8 -0", state: done }
+      - { label: Prepare succeeded, detail: "Branch prepared for broker submission", state: done }
+      - { label: PR ready for review, detail: "fieldwork-smoke #18", state: done }
+  - type: status-card
+    duration: 2.8
+    transition: crossfade
+    title: "docs: add health probe section to README"
+    subtitle: "bprateeek / fieldwork-smoke #18"
+    branch: { from: fieldwork/add-health-probe, into: main }
+    checks: [Checks passed, Ready for review]
+    cta: { label: Merge pull request, style: success }
+    tap: true
+  - type: hold
+    duration: 1.2
+    celebrate: true

@@ -17,6 +17,7 @@ const MAX_DIFF_RATIO = process.platform === 'linux' ? 0.01 : 0.02;
 
 const EXAMPLES = [
   { dir: 'fieldwork-hero', prefix: 'hero', times: [2.5, 5.5, 11.0] },
+  { dir: 'mobile-flow', prefix: 'mobileflow', times: [2.4, 4.4, 12.5] },
   { dir: 'terminal-playback', prefix: 'playback', times: [2.0, 5.5, 7.5] },
   { dir: 'code-reveal', prefix: 'code', times: [1.8, 4.6, 6.4] },
   { dir: 'chat', prefix: 'chat', times: [2.2, 5.6, 7.8] },

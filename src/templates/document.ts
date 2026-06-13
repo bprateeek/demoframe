@@ -1,7 +1,14 @@
 import path from 'node:path';
-import { frameViewport, normalizeLogo, type DemoConfig } from '../config/schema.js';
+import {
+  frameViewport,
+  normalizeLogo,
+  type DemoConfig,
+  type ChatScene,
+  type AvatarSpec,
+} from '../config/schema.js';
 import { resolveTimeline, type Timeline } from '../render/timeline.js';
 import { normalizeImageToDataUrl } from '../assets/normalize.js';
+import { icons } from './icons.js';
 import { fontCss } from './fonts.js';
 import { resolveTheme, themeCss } from './theme.js';
 import { baseCss } from './base.js';
@@ -16,13 +23,35 @@ import { statusCardCss, statusCardHtml } from './scenes/statusCard.js';
 import { screenshotCss, screenshotHtml } from './scenes/screenshot.js';
 import { terminalPlaybackCss, terminalPlaybackHtml } from './scenes/terminalPlayback.js';
 import { codeCss, codeHtml } from './scenes/code.js';
-import { chatCss, chatHtml } from './scenes/chat.js';
+import { chatCss, chatHtml, type ResolvedAvatar, type ResolvedAvatars } from './scenes/chat.js';
 import { metricCardCss, metricCardHtml } from './scenes/metricCard.js';
 
 export interface BuiltDocument {
   html: string;
   viewport: { width: number; height: number };
   timeline: Timeline;
+}
+
+async function resolveAvatar(
+  spec: AvatarSpec | undefined,
+  baseDir: string,
+): Promise<ResolvedAvatar | undefined> {
+  if (!spec) return undefined;
+  if (typeof spec === 'string') {
+    return { img: await normalizeImageToDataUrl(path.resolve(baseDir, spec), 96) };
+  }
+  return { initials: spec.initials, color: spec.color };
+}
+
+async function resolveChatAvatars(
+  avatars: ChatScene['avatars'],
+  baseDir: string,
+): Promise<ResolvedAvatars | undefined> {
+  if (!avatars) return undefined;
+  return {
+    user: await resolveAvatar(avatars.user, baseDir),
+    assistant: await resolveAvatar(avatars.assistant, baseDir),
+  };
 }
 
 export async function buildDocument(
@@ -61,9 +90,11 @@ export async function buildDocument(
       case 'code':
         sceneParts.push(await codeHtml(scene, index, resolvedTheme.mode));
         break;
-      case 'chat':
-        sceneParts.push(chatHtml(scene, index));
+      case 'chat': {
+        const avatars = await resolveChatAvatars(scene.avatars, baseDir);
+        sceneParts.push(chatHtml(scene, index, avatars));
         break;
+      }
       case 'metric-card':
         sceneParts.push(metricCardHtml(scene, index));
         break;
@@ -86,7 +117,15 @@ export async function buildDocument(
     }
   }
 
-  const scenesHtml = `<div class="df-scenes" style="position:relative;flex:1;min-height:0;">${sceneParts.join('\n')}${cornerLogoHtml}</div>`;
+  const needsOverlay = timeline.scenes.some((s) => s.data.tap || s.data.celebrate);
+  const overlayHtml = needsOverlay
+    ? `<div class="df-cursor"><div class="df-cursor-ripple"></div></div>` +
+      `<div class="df-celebrate"><div class="df-celebrate-ring"></div>` +
+      [0, 1, 2, 3, 4, 5].map((k) => `<span class="df-celebrate-dot" data-dot="${k}"></span>`).join('') +
+      `<div class="df-celebrate-check">${icons.check}</div></div>`
+    : '';
+
+  const scenesHtml = `<div class="df-scenes" style="position:relative;flex:1;min-height:0;">${sceneParts.join('\n')}${cornerLogoHtml}${overlayHtml}</div>`;
 
   let frameHtml: string;
   switch (config.frame.type) {

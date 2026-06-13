@@ -57,4 +57,67 @@ svg { display: block; width: 100%; height: 100%; }
 .df-slot-header { flex: 0 0 auto; }
 .df-slot-body { flex: 1 1 auto; min-height: 0; }
 .df-slot-footer { flex: 0 0 auto; margin-top: auto; }
+.df-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2.5px solid rgba(28, 32, 40, 0.55);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+  opacity: 0;
+  display: none;
+  z-index: 5;
+}
+.df-cursor-ripple {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 2px solid rgba(28, 32, 40, 0.5);
+  opacity: 0;
+}
+.df-celebrate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  opacity: 0;
+  display: none;
+  z-index: 5;
+}
+.df-celebrate-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2.5px solid var(--df-accent);
+}
+.df-celebrate-check {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--df-success);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.df-celebrate-check svg { width: 18px; height: 18px; }
+.df-celebrate-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--df-accent);
+}
 `;

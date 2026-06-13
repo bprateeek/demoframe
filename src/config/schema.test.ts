@@ -319,3 +319,108 @@ describe('theme.logo (v0.4)', () => {
     ).toBe(false);
   });
 });
+
+describe('delight primitives (v0.5)', () => {
+  it('defaults tap and celebrate to false', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      scenes: [{ type: 'typing', duration: 3, text: 'hi', send: true }],
+    });
+    const scene = config.scenes[0];
+    if (scene.type !== 'typing') throw new Error('wrong type');
+    expect(scene.tap).toBe(false);
+    expect(scene.celebrate).toBe(false);
+  });
+
+  it('requires send:true and a non-terminal frame for typing.tap', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', tap: true }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'terminal' },
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', send: true, tap: true }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', send: true, tap: true }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it('requires exactly one linked item for steps.tap', () => {
+    const linkOne = { type: 'steps', duration: 3, tap: true, items: [{ label: 'a' }, { label: 'b', link: true }] };
+    const linkNone = { type: 'steps', duration: 3, tap: true, items: [{ label: 'a' }] };
+    const linkTwo = {
+      type: 'steps',
+      duration: 3,
+      tap: true,
+      items: [{ label: 'a', link: true }, { label: 'b', link: true }],
+    };
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [linkOne] }).success).toBe(true);
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [linkNone] }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [linkTwo] }).success).toBe(false);
+  });
+
+  it('requires a cta for status-card.tap', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'status-card', duration: 3, title: 'Done', tap: true }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'status-card', duration: 3, title: 'Done', tap: true, cta: { label: 'Merge' } }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it('accepts chat avatars as image paths or monograms and validates the monogram', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      scenes: [
+        {
+          type: 'chat',
+          duration: 5,
+          messages: [{ role: 'assistant', text: 'hi' }],
+          avatars: { assistant: { initials: 'CC', color: '#e2603a' }, user: 'me.png' },
+        },
+      ],
+    });
+    const scene = config.scenes[0];
+    if (scene.type !== 'chat') throw new Error('wrong type');
+    expect(scene.avatars?.user).toBe('me.png');
+    const badInitials = {
+      type: 'chat',
+      duration: 5,
+      messages: [{ role: 'user', text: 'x' }],
+      avatars: { user: { initials: 'TOOLONG' } },
+    };
+    const badColor = {
+      type: 'chat',
+      duration: 5,
+      messages: [{ role: 'user', text: 'x' }],
+      avatars: { user: { initials: 'A', color: 'red' } },
+    };
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [badInitials] }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [badColor] }).success).toBe(false);
+  });
+
+  it('allows celebrate on a trailing hold', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      scenes: [
+        { type: 'status-card', duration: 3, title: 'Done', cta: { label: 'Merge' } },
+        { type: 'hold', duration: 1.2, celebrate: true },
+      ],
+    });
+    expect(config.scenes[1].celebrate).toBe(true);
+  });
+});

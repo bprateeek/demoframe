@@ -9,6 +9,12 @@ export function runtimeJs(timelineJson: string): string {
   const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
   const ease = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
 
+  // Shared so the cursor tap and the button press land on the same frame.
+  const TAP_PRESS = 0.94;
+  const scenesEl = document.querySelector('.df-scenes');
+  const cursorEl = document.querySelector('.df-cursor');
+  const burstEl = document.querySelector('.df-celebrate');
+
   const updaters = {
     typing(el, s, lt) {
       const d = s.duration;
@@ -25,7 +31,7 @@ export function runtimeJs(timelineJson: string): string {
       const send = el.querySelector('.df-send');
       if (send) {
         send.classList.toggle('df-armed', n > 0);
-        send.classList.toggle('df-pressed', !!s.data.send && lt > d * 0.94);
+        send.classList.toggle('df-pressed', !!s.data.send && lt > d * TAP_PRESS);
       }
     },
     steps(el, s, lt) {
@@ -212,6 +218,89 @@ export function runtimeJs(timelineJson: string): string {
     if (fn) fn(el, s, lt);
   }
 
+  // Singleton overlays. Flags and timing come from the active scene 'act' (which
+  // may be a hold); the target DOM comes from the render scene 'rScene', so a
+  // trailing hold can celebrate the held scene's result.
+  function drawOverlays(act, rScene, curOpacity, t) {
+    if (!scenesEl) return;
+    const d = act.duration;
+    const tp = clamp((t - act.start) / d, 0, 1);
+    const renderEl = els[rScene.index];
+    const host = scenesEl.getBoundingClientRect();
+
+    if (cursorEl) {
+      const target = act.data.tap && renderEl ? renderEl.querySelector('[data-tap-target]') : null;
+      const r = target ? target.getBoundingClientRect() : null;
+      if (r && r.width > 0) {
+        const cx = r.left - host.left + r.width / 2;
+        const cy = r.top - host.top + r.height / 2;
+        const g = ease(clamp((tp - 0.45) / (TAP_PRESS - 0.45), 0, 1));
+        const px = cx + 40 * (1 - g);
+        const py = cy + 78 * (1 - g);
+        const appear = ease(clamp((tp - 0.45) / 0.1, 0, 1));
+        const dip = clamp((tp - (TAP_PRESS - 0.05)) / 0.1, 0, 1);
+        const scale = 1 - 0.18 * Math.sin(dip * Math.PI);
+        cursorEl.style.display = 'block';
+        cursorEl.style.opacity = String(curOpacity * appear);
+        cursorEl.style.transform =
+          'translate(' + px + 'px,' + py + 'px) translate(-50%,-50%) scale(' + scale + ')';
+        const ripple = cursorEl.querySelector('.df-cursor-ripple');
+        if (ripple) {
+          const rp = clamp((tp - TAP_PRESS) / 0.06, 0, 1);
+          ripple.style.opacity = String(tp >= TAP_PRESS ? 1 - rp : 0);
+          ripple.style.transform = 'scale(' + (0.5 + rp * 1.6) + ')';
+        }
+      } else {
+        cursorEl.style.display = 'none';
+      }
+    }
+
+    if (burstEl) {
+      if (act.data.celebrate) {
+        const anchor = renderEl
+          ? renderEl.querySelector('[data-tap-target]') || renderEl.querySelector('[data-celebrate-anchor]')
+          : null;
+        let cx = host.width / 2;
+        let cy = host.height / 2;
+        if (anchor) {
+          const r = anchor.getBoundingClientRect();
+          cx = r.left - host.left + r.width / 2;
+          // Sit just above the element so the burst never occludes its label.
+          cy = r.top - host.top - 18;
+        }
+        const bp = clamp((t - act.start) / 0.5, 0, 1);
+        const fadeIn = ease(clamp(bp / 0.12, 0, 1));
+        const fadeOut = 1 - ease(clamp((bp - 0.7) / 0.3, 0, 1));
+        burstEl.style.display = 'block';
+        burstEl.style.opacity = String(curOpacity * fadeIn * fadeOut);
+        burstEl.style.transform = 'translate(' + cx + 'px,' + cy + 'px)';
+        const ring = burstEl.querySelector('.df-celebrate-ring');
+        if (ring) ring.style.transform = 'translate(-50%,-50%) scale(' + (0.5 + bp * 1.7) + ')';
+        const check = burstEl.querySelector('.df-celebrate-check');
+        if (check) {
+          const cs = bp < 0.5 ? 0.8 + 0.4 * ease(bp / 0.5) : 1.2 - 0.2 * ease((bp - 0.5) / 0.5);
+          check.style.transform = 'translate(-50%,-50%) scale(' + cs + ')';
+        }
+        for (let k = 0; k < 6; k++) {
+          const dot = burstEl.querySelector('[data-dot="' + k + '"]');
+          if (!dot) continue;
+          const ang = ((k * 60 + 15) * Math.PI) / 180;
+          const rad = 56 * ease(bp);
+          dot.style.transform =
+            'translate(-50%,-50%) translate(' +
+            Math.cos(ang) * rad +
+            'px,' +
+            Math.sin(ang) * rad +
+            'px) scale(' +
+            (1 - bp) +
+            ')';
+        }
+      } else {
+        burstEl.style.display = 'none';
+      }
+    }
+  }
+
   window.__seek = (tMs) => {
     const t = clamp(tMs / 1000, 0, T.duration - 1e-4);
     let a = T.scenes.findIndex((s) => t < s.end - 1e-9);
@@ -229,11 +318,16 @@ export function runtimeJs(timelineJson: string): string {
       const fp = clamp((t - act.start) / fade, 0, 1);
       if (fp < 1) {
         const prev = T.scenes[T.scenes[a - 1].renderIndex];
-        if (prev.index !== rScene.index) apply(prev, prev.duration, 1);
-        curOpacity = fp;
+        // Only fade when the previous render scene differs; a hold (or any scene)
+        // that re-renders the same DOM must not fade its own held frame back in.
+        if (prev.index !== rScene.index) {
+          apply(prev, prev.duration, 1);
+          curOpacity = fp;
+        }
       }
     }
     apply(rScene, lt, curOpacity);
+    drawOverlays(act, rScene, curOpacity, t);
   };
   window.__seek(0);
 })();`;
