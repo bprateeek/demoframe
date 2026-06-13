@@ -3,4 +3,4 @@ description: Asset-free product dashboard built from screen blocks
 category: product
 frames: [browser, none]
 scenes: [screen, hold]
-demoframeVersion: "0.8.0"
+demoframeVersion: "0.7.0"
