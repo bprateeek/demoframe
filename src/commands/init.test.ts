@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoConfigSchema } from '../config/schema.js';
 import { listTemplates, runInit } from './init.js';
 
@@ -64,6 +64,22 @@ describe('runInit', () => {
     await runInit(dir, { frame: 'terminal' });
     const written = readFileSync(path.join(dir, 'demo.yml'), 'utf8');
     expect(written).toContain('type: terminal');
+  });
+
+  it('prints the reconstruct-first preamble and the interview questions', async () => {
+    const dir = makeTemp();
+    const lines: string[] = [];
+    const log = vi.spyOn(console, 'log').mockImplementation((...args) => {
+      lines.push(args.join(' '));
+    });
+    try {
+      await runInit(dir, {});
+    } finally {
+      log.mockRestore();
+    }
+    const out = lines.join('\n');
+    expect(out).toContain('reconstruct first');
+    expect(out).toContain('Narrative arc');
   });
 
   it('refuses to overwrite an existing demo.yml', async () => {

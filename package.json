@@ -1,6 +1,6 @@
 {
   "name": "demoframe",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Template-driven demo GIF/MP4 generator: compose scenes in device frames, render deterministically in Chromium, encode for READMEs.",
   "license": "MIT",
   "type": "module",
@@ -28,6 +28,8 @@
     "skills",
     "examples",
     "templates",
+    "README.md",
+    "AGENTS.md",
     "CHANGELOG.md",
     "THIRD_PARTY_LICENSES.md"
   ],

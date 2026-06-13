@@ -3,6 +3,37 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
+## 0.6.0
+
+Makes reconstruct-first portable to any agent, not just Claude Code. The CLI
+itself now carries the guidance and enforces the one case that always means
+"screenshots pasted in a frame", so a non-Claude agent (or a human) handed the
+package can no longer take the paste-job path of least resistance. No config
+schema changes; every 0.5.0 config still parses.
+
+### Changed
+
+- `demoframe check` and `demoframe render` now **error** (exit non-zero / refuse
+  to render) on a frameless demo whose every content scene is a raw screenshot,
+  instead of only warning. Pass `--allow-raw-screenshots` (on either command) to
+  demote it to a warning for an intentional raw demo (bug report, before/after
+  proof). The softer "screenshots are >50% of a framed/mixed demo" case stays a
+  warning. `--strict` still additionally fails on warnings.
+- `runCheck` now returns `{ loaded, errors, warnings }` (was `{ loaded,
+  warnings }`); the MCP `validate_config` tool reports `valid` from `errors` and
+  includes them.
+- `demoframe init` stdout now leads with the reconstruct-first rule and the
+  required interview questions instead of "screenshots go in assets/".
+
+### Added
+
+- `AGENTS.md` (shipped to npm) carries the reconstruct-first brief and interview
+  for any agent, with a snippet to paste into a consuming repo's own `AGENTS.md`.
+  `README.md` now also ships in the package.
+- `examples/expense-report`: a non-developer reconstruction (messy receipts to a
+  submitted expense report) showcasing `tap`, `chat.avatars`, and `celebrate`,
+  with golden coverage.
+
 ## 0.5.0
 
 The reconstruct-first release: the authoring skill now interviews for the

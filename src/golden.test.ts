@@ -24,6 +24,7 @@ const EXAMPLES = [
   { dir: 'metric-card', prefix: 'metric', times: [1.5, 4.2, 6.8] },
   { dir: 'desktop-app', prefix: 'desktop', times: [2.4, 6.2, 9.0] },
   { dir: 'frameless', prefix: 'frameless', times: [1.5, 4.6, 6.2] },
+  { dir: 'expense-report', prefix: 'expense', times: [2.5, 4.6, 11.8] },
 ];
 
 describe.skipIf(!chromiumInstalled())('golden frames', () => {
