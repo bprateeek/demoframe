@@ -1,34 +1,64 @@
 ---
 name: demoframe
-description: Create polished demo GIFs/WebP/MP4s for READMEs and launch posts with the demoframe CLI. Use when asked to make a product demo, README hero animation, or an animated walkthrough of a CLI, app, or agent flow. Authors a YAML config, renders deterministically, then self-corrects from report.json and preview stills.
+description: Create polished demo GIFs/WebP/MP4s for READMEs and launch posts with the demoframe CLI. Use when asked to make a product demo, README hero animation, or an animated walkthrough of a CLI, app, or agent flow. Interviews for the story, reconstructs the flow as clean synthetic scenes, renders deterministically, then self-corrects from report.json and preview stills.
 ---
 
 # Creating demos with demoframe
 
 demoframe turns a YAML config into a designed, deterministic demo animation. You author the story; the tool owns the pixels. No screen recording, no uploads, no AI calls inside the tool.
 
+## Visual reconstruction rule (the north star)
+
+**Screenshots are references, not ingredients. Rebuild the flow as a simplified, polished, animated product story.**
+
+- **Extraction:** when screenshots are provided, extract the intent, not the layout. Preserve the user journey, important labels, product names, and final outcome. Redraw the UI with fewer elements than the original screen.
+- **Taste boundary (cute but not childish):** the reconstructed UI should feel friendly and lightly cartooned, but not childish. Prefer soft rounded cards, simple icons, clean spacing, and crisp readable text over mascots, stickers, heavy gradients, or decorative clutter.
+
+A demo built from `type: screenshot` scenes is a last resort, never the goal. The synthetic scenes (`typing`, `steps`, `status-card`, `chat`, `code`, `metric-card`) already animate with charm: a typed caret, staggered step reveals, a rising result card, chat bubble pops, counters. That charm is the product; use it.
+
+## Interview first (required before authoring)
+
+Ask the user before writing any config:
+
+1. **Narrative arc:** the ask, the work, the result.
+2. **Climax / money shot:** which single moment to land and `hold` on.
+3. **Destination:** readme, x-post, linkedin, or product-hunt.
+4. **Brand:** accent color, frame type (phone/browser/terminal/desktop), light or dark.
+5. **Product and repo names.**
+6. **Copy to feature verbatim** (exact button labels, titles).
+7. **Screenshot extraction:** what should be preserved, and what should be simplified or removed?
+
+Then confirm the screen-to-scene mapping with the user before rendering. In autonomous or headless runs with no human, infer the screen-to-scene mapping, state the assumptions you made, then proceed (do not block).
+
+**Density rules:** one idea per scene, short labels, at most ~4 step items, generous whitespace, a single warm accent, 8 to 12s total, and a `hold` on the ending before the loop restarts.
+
 ## The loop
 
 1. **Scaffold or author.** `npx demoframe init --template <name>` writes a `demo.yml` from the gallery (`--list` shows the templates; `--frame phone|browser|terminal` picks the matching starter), or write the config from scratch. Get the authoritative schema with `npx demoframe schema` (JSON Schema on stdout); do not rely on memorized field names, the schema is pre-1.0 and changes between versions.
-2. **Validate fast.** `npx demoframe check demo.yml` after every edit. Errors print as `path: message` with hints. Warnings cover missing assets, privacy findings, and screenshots likely to blow the size budget. Fix every warning you can before rendering; with `--strict` warnings fail.
-3. **Render one-shot.** `npx demoframe render demo.yml -o dist` validates, renders, encodes, and writes. Rendering for a specific destination? Add `--for github-readme|x-post|linkedin|product-hunt` to set format, width, fps, budget, and quality in one flag (it overrides the config's `output` values and prints what it changed):
+2. **Validate fast.** `npx demoframe check demo.yml` after every edit. Errors print as `path: message` with hints. Warnings cover missing assets, privacy findings, screenshots likely to blow the size budget, and screenshot-dominant configs. Fix every warning you can before rendering; with `--strict` warnings fail.
+3. **Pre-render quality gate.** Before spending render time, self-check the draft against the reconstruction rule. **If the draft could be described as "screenshots inside a frame," reject it and rewrite it as synthetic scenes.** Exception: unless the user explicitly asked for an exact/raw screenshot demo (a bug report, before/after proof, a dashboard layout).
+4. **Render one-shot.** `npx demoframe render demo.yml -o dist` validates, renders, encodes, and writes. Rendering for a specific destination? Add `--for github-readme|x-post|linkedin|product-hunt` to set format, width, fps, budget, and quality in one flag (it overrides the config's `output` values and prints what it changed):
    - the outputs (`demo.gif`, `demo.webp`, and/or `demo.mp4` per `output.format`)
    - `dist/preview/` stills: one per scene plus `final_readme_size.png` and GitHub dark/light composites
    - `dist/report.json` with measured facts about every output
    Chromium (~150MB, one-time) and gifski download automatically on first use; pass `--no-download` to fail instead.
-4. **Verify from report.json.** Check every output: `withinBudget` true, `loopsForever` true, `durationS` close to the designed total, dimensions as expected. The `attempts` array shows the retry ladder; more than one attempt means the config is near the budget edge.
-5. **Look at the stills.** Read the `dist/preview/` PNGs. Check: text fully readable at README size, nothing clipped, the final frame tells the whole story on its own, dark composite looks intentional.
-6. **Self-correct and re-render.** Over budget: shorten scenes, replace `crossfade` with `cut`, avoid photographic screenshots, or switch to `webp`/`mp4`. Clipped or cramped text: shorten copy (limits are in the schema). Repeat until report and stills are clean.
+5. **Verify from report.json.** Check every output: `withinBudget` true, `loopsForever` true, `durationS` close to the designed total, dimensions as expected. The `attempts` array shows the retry ladder; more than one attempt means the config is near the budget edge.
+6. **Look at the stills.** Read the `dist/preview/` PNGs. Check: text fully readable at README size, nothing clipped, the final frame tells the whole story on its own, dark composite looks intentional.
+7. **Self-correct and re-render.** Over budget: shorten scenes, replace `crossfade` with `cut`, avoid photographic screenshots, or switch to `webp`/`mp4`. Clipped or cramped text: shorten copy (limits are in the schema). Repeat until report and stills are clean.
 
 ## Authoring guidance
 
-- Story arc that works: typing (the ask) then steps (the work) then status-card (the result) then `hold` 1 to 1.5s so the ending reads before the loop restarts.
-- Scene palette: `typing`, `steps`, `status-card`, `screenshot`, `terminal-playback` (typed command, streamed output, exit status), `code` (syntax-highlighted reveal, diff marks via `added`/`removed`), `chat` (conversation bubbles with typing indicator), `metric-card` (animated counters plus bar/line chart), `hold`. Match scene to frame: terminal-playback + terminal, chat + phone, code/metric-card + browser.
+- Story arc that works: typing (the ask) then steps (the work) then status-card (the result) then `hold` 1 to 1.5s so the ending reads before the loop.
+- Scene palette: `typing`, `steps`, `status-card`, `screenshot`, `terminal-playback` (typed command, streamed output, exit status), `code` (syntax-highlighted reveal, diff marks via `added`/`removed`), `chat` (conversation bubbles with typing indicator and optional avatars), `metric-card` (animated counters plus bar/line chart), `hold`. Match scene to frame: terminal-playback + terminal, chat + phone, code/metric-card + browser.
+- **Delight primitives (opt-in, keep them rare and intentional):**
+  - `tap: true` on a `typing`, `steps`, or `status-card` scene drops a soft touch cursor that glides to that scene's action and taps it near the scene's end (the send button, the one linked step, the CTA). `typing.tap` needs `send: true`; it is not available in a terminal frame.
+  - `celebrate: true` plays a restrained success burst (a checkmark pop, a ring pulse, a few accent dots) anchored to the scene's CTA or result. Put it on the final scene or a trailing `hold` so the burst lands on the closing frame.
+  - `chat.avatars: { assistant, user }` adds a per-role avatar to chat rows. Each is an image path or a `{ initials, color }` monogram (1 to 3 letters). App identity in the header still comes from `theme.logo`.
 - Keep total duration 8 to 15s for README heroes; the hard cap is 60s.
 - Prefer `webp` output for READMEs: same autoplay as GIF, much smaller, full color. Keep `gif` when the destination requires it. `webm` (VP9) beats `mp4` on size for destinations that accept it.
 - Default `transition: cut`; one crossfade into the final scene is usually affordable.
 - Never put real emails, tokens, internal URLs, or customer data in copy or screenshots. `check` warns; treat its privacy findings as blockers.
-- Screenshots: clean UI shots beat photos; photos explode GIF size.
+- **Screenshot fallback:** `screenshot` scenes are for when the screenshot itself is the subject (a bug report, a before/after proof, a dashboard layout), not for polished launch assets. Clean UI shots beat photos; photos explode GIF size.
 
 ## Reference
 
@@ -36,3 +66,4 @@ demoframe turns a YAML config into a designed, deterministic demo animation. You
 - JSON Schema: `npx demoframe schema` (or `node_modules/demoframe/schema/demoframe.schema.json`)
 - Environment report: `npx demoframe doctor`
 - Live preview for humans: `npx demoframe serve demo.yml`
+- Worked example using the delight primitives: `node_modules/demoframe/examples/mobile-flow/demo.yml`

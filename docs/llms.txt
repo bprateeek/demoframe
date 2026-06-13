@@ -95,19 +95,29 @@ canvas: phone 480x1040, browser 960x640, terminal 820x520, desktop 1024x640,
 none 960x640. output.width still controls the encoded pixel width; frame
 width/height set the canvas shape and aspect.
 
-scenes: 1-12 entries, each with duration (seconds, <=30, total <=60) and
-optional transition cut|crossfade (cut default; crossfade costs GIF size):
+scenes: 1-12 entries, each with duration (seconds, <=30, total <=60),
+optional transition cut|crossfade (cut default; crossfade costs GIF size),
+and optional celebrate?: bool (a restrained success burst, a checkmark pop +
+ring + accent dots, anchored to the scene's CTA/result; put it on the final
+scene or a trailing hold so it lands on the closing frame):
 
-- typing: { text (<=220 chars), placeholder?, send?: bool }
+- typing: { text (<=220 chars), placeholder?, send?: bool, tap?: bool }
   Phone/browser: chat composer with typing animation. Terminal: prompt line.
+  tap drops a touch cursor that taps the send button near the end (needs
+  send: true; not available in a terminal frame).
 - steps: { header?: {title<=40, detail<=100}, items: 1-6 of
-  { label<=60, detail?<=120, state: done|active|pending, link?: bool } }
-  Rows appear sequentially with staggered timing.
+  { label<=60, detail?<=120, state: done|active|pending, link?: bool },
+  tap?: bool }  Rows appear sequentially with staggered timing. tap taps the
+  single linked item (needs exactly one item with link: true).
 - status-card: { title<=80, subtitle?<=100, branch?: {from<=60, into<=40},
   checks: 0-4 strings<=60, cta?: {label<=40, style: success|primary|neutral},
-  caption?<=120 }  PR/deploy-style result screen.
+  caption?<=120, tap?: bool }  PR/deploy-style result screen. tap taps the
+  CTA (needs a cta).
 - screenshot: { src: path relative to config, fit: contain|cover,
   pan: none|up|down|left|right|zoom-in|zoom-out, caption?<=120 }
+  Fallback only: use when the screenshot itself is the subject (bug report,
+  before/after, dashboard layout), not for polished launch assets. Rebuild
+  product flows as synthetic scenes; check warns when screenshots dominate.
   Prefer clean UI screenshots; photographic images explode GIF size.
 - terminal-playback: { command<=150, output?: 0-10 lines (string or
   {text<=100, style: normal|dim|success|error|warn}), spinner?<=40,
@@ -122,9 +132,11 @@ optional transition cut|crossfade (cut default; crossfade costs GIF size):
   Syntax-highlighted panel (bundled shiki, github-light/dark per theme.mode).
   added/removed mark diff lines with +/- gutters and tinted backgrounds.
 - chat: { messages: 1-6 of {role: user|assistant, text<=200},
-  typingIndicator?: bool (true) }  Conversation bubbles; assistant replies
-  show a typing indicator first. Pairs best with the phone frame (check
-  warns in a terminal frame).
+  typingIndicator?: bool (true), avatars?: {user?, assistant?} each an image
+  path or {initials<=3, color?: hex} }  Conversation bubbles; assistant
+  replies show a typing indicator first. Avatars sit beside each row; header
+  app identity still comes from theme.logo. Pairs best with the phone frame
+  (check warns in a terminal frame).
 - metric-card: { title?<=80, metrics: 1-4 of {label<=40, value, prefix?<=8,
   suffix?<=12, decimals: 0-2 (0)}, chart?: {kind: bar|line, series: 2-16
   numbers >=0, labels?: same length as series, each<=12, color?: hex},
@@ -133,6 +145,12 @@ optional transition cut|crossfade (cut default; crossfade costs GIF size):
 
 ## Authoring guidance
 
+- Reconstruct, don't paste: when handed screenshots, extract the journey and
+  rebuild it from synthetic scenes; screenshots are reference, not output.
+  Aim for clean, subtly rounded, readable UI; cute but not childish.
+- Delight primitives (opt-in, keep them rare): tap taps an action, celebrate
+  fires a success burst at the climax, chat.avatars adds per-role avatars.
+  See examples/mobile-flow for all three.
 - Story arc that works: typing (the ask) -> steps (the work) -> status-card
   (the result) -> hold 1-1.5s so the ending reads before the loop.
 - More arcs: terminal-playback alone sells a CLI; chat (the ask) ->

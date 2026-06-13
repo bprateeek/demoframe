@@ -402,6 +402,10 @@
                     "type": "string",
                     "maxLength": 40
                   },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
+                  },
                   "text": {
                     "type": "string",
                     "minLength": 1,
@@ -412,6 +416,10 @@
                     "maxLength": 60
                   },
                   "send": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "tap": {
                     "type": "boolean",
                     "default": false
                   }
@@ -446,6 +454,10 @@
                   "name": {
                     "type": "string",
                     "maxLength": 40
+                  },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "header": {
                     "type": "object",
@@ -499,6 +511,10 @@
                     },
                     "minItems": 1,
                     "maxItems": 6
+                  },
+                  "tap": {
+                    "type": "boolean",
+                    "default": false
                   }
                 },
                 "required": [
@@ -531,6 +547,10 @@
                   "name": {
                     "type": "string",
                     "maxLength": 40
+                  },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "title": {
                     "type": "string",
@@ -595,6 +615,10 @@
                   "caption": {
                     "type": "string",
                     "maxLength": 120
+                  },
+                  "tap": {
+                    "type": "boolean",
+                    "default": false
                   }
                 },
                 "required": [
@@ -627,6 +651,10 @@
                   "name": {
                     "type": "string",
                     "maxLength": 40
+                  },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "src": {
                     "type": "string",
@@ -688,6 +716,10 @@
                   "name": {
                     "type": "string",
                     "maxLength": 40
+                  },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
                   }
                 },
                 "required": [
@@ -719,6 +751,10 @@
                   "name": {
                     "type": "string",
                     "maxLength": 40
+                  },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "command": {
                     "type": "string",
@@ -824,6 +860,10 @@
                     "type": "string",
                     "maxLength": 40
                   },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
+                  },
                   "lang": {
                     "type": "string",
                     "enum": [
@@ -916,6 +956,10 @@
                     "type": "string",
                     "maxLength": 40
                   },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
+                  },
                   "messages": {
                     "type": "array",
                     "items": {
@@ -946,6 +990,64 @@
                   "typingIndicator": {
                     "type": "boolean",
                     "default": true
+                  },
+                  "avatars": {
+                    "type": "object",
+                    "properties": {
+                      "user": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "initials": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 3
+                              },
+                              "color": {
+                                "type": "string",
+                                "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                              }
+                            },
+                            "required": [
+                              "initials"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "assistant": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "initials": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 3
+                              },
+                              "color": {
+                                "type": "string",
+                                "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                              }
+                            },
+                            "required": [
+                              "initials"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -978,6 +1080,10 @@
                   "name": {
                     "type": "string",
                     "maxLength": 40
+                  },
+                  "celebrate": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "title": {
                     "type": "string",

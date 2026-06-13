@@ -41,6 +41,24 @@ describe('resolveTimeline', () => {
     expect(timeline.scenes[1].data).toEqual({ count: 1 });
   });
 
+  it('carries tap and celebrate flags into scene data (v0.5)', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'phone' },
+        scenes: [
+          { type: 'typing', duration: 3, text: 'hi', send: true, tap: true },
+          { type: 'status-card', duration: 2.5, title: 'Done', cta: { label: 'Merge' } },
+          { type: 'hold', duration: 1.2, celebrate: true },
+        ],
+      }),
+    );
+    expect(timeline.scenes[0].data.tap).toBe(true);
+    expect(timeline.scenes[1].data.tap).toBeUndefined();
+    expect(timeline.scenes[1].data.celebrate).toBeUndefined();
+    expect(timeline.scenes[2].data.celebrate).toBe(true);
+    expect(timeline.scenes[2].renderIndex).toBe(1);
+  });
+
   it('carries client data for the v0.3 scene types', () => {
     const timeline = resolveTimeline(
       demoConfigSchema.parse({
