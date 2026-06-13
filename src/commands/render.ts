@@ -38,10 +38,19 @@ function ladderSteps(fps: number, width: number): LadderStep[] {
 
 export async function runRender(
   configFile: string,
-  opts: { out: string; keepFrames: boolean; download?: boolean; stills?: boolean; for?: string },
+  opts: { out: string; keepFrames: boolean; download?: boolean; stills?: boolean; for?: string; allowRawScreenshots?: boolean },
 ): Promise<void> {
-  const { loaded, warnings } = await runCheck(configFile);
+  const { loaded, errors, warnings } = await runCheck(configFile, {
+    allowRawScreenshots: opts.allowRawScreenshots,
+  });
+  for (const e of errors) console.log(`  x ${e}`);
   for (const w of warnings) console.log(`  ! ${w}`);
+  if (errors.length > 0) {
+    throw new Error(
+      `refusing to render: ${errors.length} blocking error${errors.length === 1 ? '' : 's'} above. ` +
+        'Reconstruct the flow as synthetic scenes, or pass --allow-raw-screenshots if a raw-screenshot demo is intended.',
+    );
+  }
   const { baseDir, configPath } = loaded;
   let config = loaded.config;
   if (opts.for) {

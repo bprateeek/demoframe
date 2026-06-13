@@ -12,7 +12,7 @@ function writeConfig(yaml: string): string {
 }
 
 describe('runCheck (v0.5 guardrails)', () => {
-  it('warns when screenshots dominate the runtime, counting a trailing hold', async () => {
+  it('errors when a frameless demo is all raw screenshots, counting a trailing hold', async () => {
     const file = writeConfig(`
 frame: { type: none }
 scenes:
@@ -20,8 +20,47 @@ scenes:
   - { type: screenshot, duration: 2, src: b.png }
   - { type: hold, duration: 4 }
 `);
-    const { warnings } = await runCheck(file);
+    const { errors, warnings } = await runCheck(file);
+    expect(errors.some((e) => e.includes('screenshots pasted in a frame'))).toBe(true);
+    expect(warnings.some((w) => w.includes('screenshots pasted in a frame'))).toBe(false);
+  });
+
+  it('demotes the frameless all-screenshot error to a warning with allowRawScreenshots', async () => {
+    const file = writeConfig(`
+frame: { type: none }
+scenes:
+  - { type: screenshot, duration: 2, src: a.png }
+  - { type: screenshot, duration: 2, src: b.png }
+  - { type: hold, duration: 4 }
+`);
+    const { errors, warnings } = await runCheck(file, { allowRawScreenshots: true });
+    expect(errors.some((e) => e.includes('screenshots pasted in a frame'))).toBe(false);
     expect(warnings.some((w) => w.includes('screenshots pasted in a frame'))).toBe(true);
+  });
+
+  it('only warns when a frameless demo mixes a synthetic scene with dominant screenshots', async () => {
+    const file = writeConfig(`
+frame: { type: none }
+scenes:
+  - { type: typing, duration: 1, text: hi }
+  - { type: screenshot, duration: 3, src: a.png }
+  - { type: screenshot, duration: 3, src: b.png }
+`);
+    const { errors, warnings } = await runCheck(file);
+    expect(errors).toHaveLength(0);
+    expect(warnings.some((w) => w.includes('of the runtime'))).toBe(true);
+  });
+
+  it('only warns when screenshots dominate a framed demo', async () => {
+    const file = writeConfig(`
+frame: { type: browser }
+scenes:
+  - { type: screenshot, duration: 3, src: a.png }
+  - { type: screenshot, duration: 3, src: b.png }
+`);
+    const { errors, warnings } = await runCheck(file);
+    expect(errors).toHaveLength(0);
+    expect(warnings.some((w) => w.includes('of the runtime'))).toBe(true);
   });
 
   it('does not flag a single screenshot among synthetic scenes', async () => {
@@ -32,7 +71,8 @@ scenes:
   - { type: screenshot, duration: 2, src: a.png }
   - { type: steps, duration: 4, items: [{ label: done }] }
 `);
-    const { warnings } = await runCheck(file);
+    const { errors, warnings } = await runCheck(file);
+    expect(errors).toHaveLength(0);
     expect(warnings.some((w) => w.includes('of the runtime') || w.includes('pasted'))).toBe(false);
   });
 

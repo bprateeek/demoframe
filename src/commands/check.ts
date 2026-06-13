@@ -8,7 +8,12 @@ import { resolveTimeline } from '../render/timeline.js';
 
 export interface CheckResult {
   loaded: LoadedConfig;
+  errors: string[];
   warnings: string[];
+}
+
+export interface CheckOptions {
+  allowRawScreenshots?: boolean;
 }
 
 type AssetKind = 'screenshot' | 'logo' | 'font' | 'avatar';
@@ -68,8 +73,9 @@ async function screenshotSizeWarnings(loaded: LoadedConfig): Promise<string[]> {
   return warnings;
 }
 
-export async function runCheck(file: string): Promise<CheckResult> {
+export async function runCheck(file: string, opts: CheckOptions = {}): Promise<CheckResult> {
   const loaded = loadConfig(file);
+  const errors: string[] = [];
   const warnings: string[] = [];
 
   for (const ref of referencedAssets(loaded)) {
@@ -114,11 +120,20 @@ export async function runCheck(file: string): Promise<CheckResult> {
       loaded.config.frame.type === 'none' &&
       content.length > 0 &&
       content.every((s) => s.type === 'screenshot');
-    warnings.push(
-      framelessGallery
-        ? 'every scene is a raw screenshot in a frameless demo; this reads as "screenshots pasted in a frame". Rebuild the flow as synthetic scenes (typing/steps/status-card/chat) and use the screenshots only as reference.'
-        : `screenshot scenes are ${Math.round((shotDuration / tl.duration) * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes and keep screenshot scenes for when the screenshot itself is the subject.`,
-    );
+    if (framelessGallery) {
+      // The unambiguous "pasted screenshots" case: a frameless demo whose every
+      // content scene is a raw screenshot. This is a hard error so render refuses
+      // it; --allow-raw-screenshots demotes it for intentional raw demos.
+      (opts.allowRawScreenshots ? warnings : errors).push(
+        'every scene is a raw screenshot in a frameless demo; this reads as "screenshots pasted in a frame". ' +
+          'Rebuild the flow as synthetic scenes (typing/steps/status-card/chat) and use the screenshots only as reference. ' +
+          'If a raw-screenshot demo is intended (bug report, before/after proof), pass --allow-raw-screenshots.',
+      );
+    } else {
+      warnings.push(
+        `screenshot scenes are ${Math.round((shotDuration / tl.duration) * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes and keep screenshot scenes for when the screenshot itself is the subject.`,
+      );
+    }
   }
 
   loaded.config.scenes.forEach((scene, i) => {
@@ -129,5 +144,5 @@ export async function runCheck(file: string): Promise<CheckResult> {
     }
   });
 
-  return { loaded, warnings };
+  return { loaded, errors, warnings };
 }

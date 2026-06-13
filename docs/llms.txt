@@ -19,12 +19,16 @@ skills/demoframe/SKILL.md in the package.
   targets.
 - `demoframe schema`: print the JSON Schema for configs. The schema is pre-1.0
   and changes between versions; read it instead of relying on memorized fields.
-- `demoframe check <config> [--strict]`: validate without rendering. Exit 0 = valid.
-  Errors are printed as `path: message` with hints. Warnings cover missing
-  assets, privacy findings (emails/tokens/URLs in copy), and screenshots
-  likely to blow the GIF size budget. Fast (<1s without screenshot assets); run after every config edit.
+- `demoframe check <config> [--strict] [--allow-raw-screenshots]`: validate without
+  rendering. Exit 0 = valid; exit 1 if there are errors. Errors and warnings print
+  as `path: message` with hints. A frameless demo whose every content scene is a raw
+  screenshot is a hard error ("screenshots pasted in a frame") that also makes render
+  refuse; pass --allow-raw-screenshots to demote it to a warning for an intentional
+  raw demo. Warnings also cover missing assets, privacy findings (emails/tokens/URLs
+  in copy), and screenshots likely to blow the GIF size budget. Fast (<1s without
+  screenshot assets); run after every config edit.
 - `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]
-  [--for github-readme|x-post|linkedin|product-hunt]`:
+  [--allow-raw-screenshots] [--for github-readme|x-post|linkedin|product-hunt]`:
   the full pipeline. Validates, renders frames, encodes every format in
   output.format, writes preview stills to <dir>/preview/, and writes
   report.json. Missing Chromium/gifski are downloaded automatically
@@ -117,7 +121,9 @@ scene or a trailing hold so it lands on the closing frame):
   pan: none|up|down|left|right|zoom-in|zoom-out, caption?<=120 }
   Fallback only: use when the screenshot itself is the subject (bug report,
   before/after, dashboard layout), not for polished launch assets. Rebuild
-  product flows as synthetic scenes; check warns when screenshots dominate.
+  product flows as synthetic scenes; check warns when screenshots dominate a
+  framed demo, and errors (render refuses) when a frameless demo is all raw
+  screenshots unless --allow-raw-screenshots is passed.
   Prefer clean UI screenshots; photographic images explode GIF size.
 - terminal-playback: { command<=150, output?: 0-10 lines (string or
   {text<=100, style: normal|dim|success|error|warn}), spinner?<=40,

@@ -28,20 +28,31 @@ program
   .description('validate a demo config (schema, assets, privacy scan) without rendering')
   .argument('<config>', 'path to demo config (.yml, .yaml, or .json)')
   .option('--strict', 'treat warnings as errors (for CI)', false)
-  .action(async (config: string, opts: { strict: boolean }) => {
+  .option(
+    '--allow-raw-screenshots',
+    'permit a frameless all-screenshot demo (bug report, before/after); demotes that error to a warning',
+    false,
+  )
+  .action(async (config: string, opts: { strict: boolean; allowRawScreenshots: boolean }) => {
     try {
       const { runCheck } = await import('./commands/check.js');
-      const result = await runCheck(config);
+      const result = await runCheck(config, { allowRawScreenshots: opts.allowRawScreenshots });
       const scenes = result.loaded.config.scenes;
       const total = scenes.reduce((sum, s) => sum + s.duration, 0);
       console.log(
-        `ok: ${scenes.length} scene${scenes.length === 1 ? '' : 's'}, ${total.toFixed(1)}s ` +
+        `${result.errors.length > 0 ? 'fail' : 'ok'}: ${scenes.length} scene${scenes.length === 1 ? '' : 's'}, ${total.toFixed(1)}s ` +
           `at ${result.loaded.config.output.fps}fps (${result.loaded.config.frame.type} frame)`,
       );
+      if (result.errors.length > 0) {
+        console.log(`\n${result.errors.length} error${result.errors.length === 1 ? '' : 's'}:`);
+        for (const e of result.errors) console.log(`  x ${e}`);
+      }
       if (result.warnings.length > 0) {
         console.log(`\n${result.warnings.length} warning${result.warnings.length === 1 ? '' : 's'}:`);
         for (const w of result.warnings) console.log(`  ! ${w}`);
-        if (opts.strict) process.exit(1);
+      }
+      if (result.errors.length > 0 || (opts.strict && result.warnings.length > 0)) {
+        process.exit(1);
       }
     } catch (err) {
       fail(err);
@@ -91,10 +102,15 @@ program
   .option('--no-download', 'fail if Chromium or gifski is missing instead of downloading it')
   .option('--no-stills', 'skip writing per-scene preview stills next to the output')
   .option(
+    '--allow-raw-screenshots',
+    'permit a frameless all-screenshot demo (bug report, before/after) instead of aborting',
+    false,
+  )
+  .option(
     '--for <destination>',
     'destination preset overriding output settings: github-readme, x-post, linkedin, or product-hunt',
   )
-  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string }) => {
+  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string; allowRawScreenshots: boolean }) => {
     try {
       const { runRender } = await import('./commands/render.js');
       await runRender(config, opts);

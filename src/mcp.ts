@@ -40,18 +40,19 @@ server.registerTool(
   'validate_config',
   {
     description:
-      'Validate a demo config (schema, referenced assets, privacy scan) without rendering. Returns structured errors with paths and hints, or warnings to fix before rendering.',
+      'Validate a demo config (schema, referenced assets, privacy scan) without rendering. Returns structured errors (which block rendering, e.g. a frameless all-screenshot "pasted screenshots" demo) plus warnings to fix before rendering.',
     inputSchema: { config: z.string().describe('path to the demo config (.yml, .yaml, or .json)') },
   },
   async ({ config }) => {
     try {
-      const { loaded, warnings } = await runCheck(config);
+      const { loaded, errors, warnings } = await runCheck(config);
       const scenes = loaded.config.scenes;
       return json({
-        valid: true,
+        valid: errors.length === 0,
         scenes: scenes.length,
         totalDurationS: scenes.reduce((sum, s) => sum + s.duration, 0),
         frame: loaded.config.frame.type,
+        errors,
         warnings,
       });
     } catch (err) {
@@ -67,7 +68,7 @@ server.registerTool(
   'render_demo',
   {
     description:
-      'Render a demo config to its configured outputs (gif/webp/mp4) plus preview stills and report.json. Validates first; downloads Chromium and gifski automatically on first use. Returns report.json with measured size, duration, loop and budget facts, plus preview still paths for visual inspection.',
+      'Render a demo config to its configured outputs (gif/webp/mp4) plus preview stills and report.json. Validates first and refuses to render a frameless all-screenshot "pasted screenshots" demo: reconstruct the flow as synthetic scenes (typing/steps/status-card/chat) and use screenshots only as reference. Downloads Chromium and gifski automatically on first use. Returns report.json with measured size, duration, loop and budget facts, plus preview still paths for visual inspection.',
     inputSchema: {
       config: z.string().describe('path to the demo config'),
       out: z.string().optional().describe('output directory (default "dist")'),

@@ -20,18 +20,28 @@ The hero above is demoframe's own output:
 
 demoframe is designed to be written by coding agents.
 
-Show your agent a screenshot of your product and ask it to create a demo. The
-skill interviews you for the story, then rebuilds the flow as clean synthetic
-scenes (screenshots are reference, not output). demoframe validates the YAML,
-renders the frames, encodes the GIF/MP4, and writes a machine-readable QA
-report.
+**The one rule: screenshots are reference, not ingredients.** Show your agent a
+screenshot of your product and ask for a demo, and it should interview you for
+the story, then rebuild the flow as clean synthetic scenes (`typing`, `steps`,
+`status-card`, `chat`) using the screenshots only as reference. A frameless
+demo whose every scene is a raw screenshot is "screenshots pasted in a frame":
+`demoframe check` and `demoframe render` **reject it** (pass
+`--allow-raw-screenshots` only for an intentional raw demo, e.g. a bug report or
+before/after proof). demoframe then validates the YAML, renders the frames,
+encodes the GIF/WebP/MP4, and writes a machine-readable QA report.
+
+This guidance is portable, not Claude-specific. `AGENTS.md` (shipped in the
+package) carries the reconstruct-first brief and the required interview for any
+agent; copy its snippet into your own repo's `AGENTS.md` so the agent working in
+your repo sees it (it won't read `node_modules/demoframe/`).
 
 Useful surfaces for agents:
 
+- `AGENTS.md` is the reconstruct-first brief + interview, for any agent
 - `demoframe schema` prints the JSON Schema for configs; `docs/llms.txt` explains the full contract
 - `npx demoframe-mcp` is an MCP server exposing `get_schema`, `validate_config`, `render_demo`, and `get_report`
 - `skills/demoframe/SKILL.md` (shipped in the package) teaches Claude Code the full authoring loop
-- `demoframe check` catches privacy, asset, and config issues before rendering
+- `demoframe check` catches privacy, asset, and config issues before rendering; it errors on a pasted-screenshot demo
 - `report.json` and the preview stills written by every render close the feedback loop
 
 ## Install

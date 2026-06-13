@@ -1,0 +1,37 @@
+title: Expense report from messy receipts
+output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
+theme: { accent: "#10b981", mode: light, font: inter }
+frame: { type: phone, title: Tally, subtitle: "Expenses · March" }
+scenes:
+  - type: typing
+    duration: 2.8
+    text: "Turn these receipts into my March expense report"
+    send: true
+    tap: true
+  - type: chat
+    duration: 3.0
+    transition: crossfade
+    avatars:
+      assistant: { initials: TL, color: "#10b981" }
+      user: { initials: AM, color: "#3b6cf2" }
+    messages:
+      - { role: assistant, text: "Found 6 receipts. Reading amounts and merchants." }
+      - { role: user, text: "Flag anything over the $75 meal limit." }
+  - type: steps
+    duration: 3.0
+    header: { title: Building your report, detail: "6 receipts · $1,284.50 total" }
+    items:
+      - { label: Receipts read, detail: "Amounts and merchants extracted", state: done }
+      - { label: Categorized, detail: "Meals, travel, software", state: done }
+      - { label: Policy check, detail: "1 meal over the $75 limit, flagged", state: done }
+  - type: status-card
+    duration: 2.8
+    transition: crossfade
+    title: "March expenses: $1,284.50"
+    subtitle: "6 receipts · 1 flagged for review"
+    checks: [Receipts matched, 1 flagged for review]
+    cta: { label: Submit report, style: success }
+    tap: true
+  - type: hold
+    duration: 1.4
+    celebrate: true

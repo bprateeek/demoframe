@@ -67,7 +67,8 @@ export async function runPreview(
   configFile: string,
   opts: { out: string; download?: boolean },
 ): Promise<void> {
-  const { loaded, warnings } = await runCheck(configFile);
+  const { loaded, errors, warnings } = await runCheck(configFile);
+  for (const e of errors) console.log(`  x ${e}`);
   for (const w of warnings) console.log(`  ! ${w}`);
   await ensureChromium(opts.download !== false);
 
