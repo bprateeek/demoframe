@@ -1,0 +1,25 @@
+title: Product dashboard demo
+output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#2f7de1", mode: light, font: inter }
+frame: { type: browser, chrome: thin, title: Product dashboard }
+scenes:
+  - type: screen
+    duration: 5.5
+    blocks:
+      - { block: app-header, title: Your Product, subtitle: "A clean product moment", icon: bolt }
+      - block: stat-strip
+        tiles:
+          - { label: Active users, value: { value: 1240 } }
+          - { label: Activation, value: { value: 42, suffix: "%" }, delta: { value: 6, dir: up } }
+          - { label: Time saved, value: { value: 18, suffix: h } }
+      - block: chart-card
+        title: Momentum
+        chart: { kind: area, series: [4, 6, 5, 9, 12, 14, 18], labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun] }
+      - block: card-grid
+        cards:
+          - { title: Import, desc: "Source data connected", icon: paperclip }
+          - { title: Analyze, value: "3.2s", desc: "Median run" }
+          - { title: Share, desc: "Ready for the team", badge: New }
+          - { title: Outcome, value: "98%", desc: "Within target" }
+  - type: hold
+    duration: 1.2

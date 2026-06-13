@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoConfigSchema } from '../config/schema.js';
+import { runCheck } from './check.js';
 import { listTemplates, runInit } from './init.js';
 
 const templatesRoot = fileURLToPath(new URL('../../templates', import.meta.url));
@@ -21,6 +22,7 @@ describe('template gallery', () => {
     const meta = parseYaml(readFileSync(path.join(templatesRoot, name, 'meta.yml'), 'utf8'));
     expect(meta.name).toBe(name);
     expect(typeof meta.description).toBe('string');
+    expect(typeof meta.category).toBe('string');
     expect(Array.isArray(meta.frames)).toBe(true);
     expect(Array.isArray(meta.scenes)).toBe(true);
     expect(meta.demoframeVersion).toMatch(/^\d+\.\d+\.\d+$/);
@@ -35,6 +37,11 @@ describe('template gallery', () => {
   it('lists every template with metadata', () => {
     const metas = listTemplates();
     expect(metas.map((m) => m.name).sort()).toEqual([...templateNames].sort());
+  });
+
+  it.each(templateNames)('%s checks without blocking errors', async (name) => {
+    const result = await runCheck(path.join(templatesRoot, name, 'template.yml'));
+    expect(result.errors).toEqual([]);
   });
 });
 
@@ -66,6 +73,14 @@ describe('runInit', () => {
     expect(written).toContain('type: terminal');
   });
 
+  it('maps --category onto the category default template', async () => {
+    const dir = makeTemp();
+    await runInit(dir, { category: 'product' });
+    const written = readFileSync(path.join(dir, 'demo.yml'), 'utf8');
+    expect(written).toContain('type: screen');
+    expect(written).toContain('Product dashboard demo');
+  });
+
   it('prints the reconstruct-first preamble and the interview questions', async () => {
     const dir = makeTemp();
     const lines: string[] = [];
@@ -92,6 +107,16 @@ describe('runInit', () => {
     const dir = makeTemp();
     await expect(runInit(dir, { template: 'nope' })).rejects.toThrow(
       /unknown template "nope"; available: .*starter-phone/,
+    );
+  });
+
+  it('rejects unknown categories and template/category mismatches', async () => {
+    const dir = makeTemp();
+    await expect(runInit(dir, { category: 'hardware' })).rejects.toThrow(
+      /unknown category "hardware"; available:/,
+    );
+    await expect(runInit(dir, { template: 'starter-phone', category: 'product' })).rejects.toThrow(
+      /not "product"/,
     );
   });
 });

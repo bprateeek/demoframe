@@ -68,7 +68,7 @@ server.registerTool(
   'render_demo',
   {
     description:
-      'Render a demo config to its configured outputs (gif/webp/mp4) plus preview stills and report.json. Validates first and refuses to render a frameless all-screenshot "pasted screenshots" demo: reconstruct the flow as synthetic scenes (typing/steps/status-card/chat) and use screenshots only as reference. Downloads Chromium and gifski automatically on first use. Returns report.json with measured size, duration, loop and budget facts, plus preview still paths for visual inspection.',
+      'Render a demo config to its configured outputs (gif/webp/mp4) plus preview stills and report.json. Validates first and refuses to render a frameless all-screenshot "pasted screenshots" demo: reconstruct the flow as synthetic scenes (typing/steps/status-card/chat/screen) and use screenshots only as reference. Downloads Chromium and gifski automatically on first use. Returns report.json with measured size, duration, loop and budget facts, layout findings, plus preview still paths for visual inspection.',
     inputSchema: {
       config: z.string().describe('path to the demo config'),
       out: z.string().optional().describe('output directory (default "dist")'),

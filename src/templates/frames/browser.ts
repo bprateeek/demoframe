@@ -21,6 +21,8 @@ export const browserCss = `
   padding: var(--df-s3) var(--df-s4);
   border-bottom: 1px solid var(--df-border);
 }
+.df-browser-bar-thin { grid-template-columns: 96px 1fr; }
+.df-browser-bar-thin .df-logo-slot { justify-self: end; }
 .df-traffic { display: flex; gap: 8px; }
 .df-traffic i { width: 13px; height: 13px; border-radius: 50%; }
 .df-traffic i:nth-child(1) { background: #f25f57; }
@@ -50,22 +52,38 @@ export const browserCss = `
 }
 `;
 
-export function browserHtml(
+export function browserChromeHtml(
   frame: Extract<Frame, { type: 'browser' }>,
-  scenesHtml: string,
+  layerId: number,
   headerLogoHtml = '',
 ): string {
   const label = frame.url ?? frame.title ?? 'localhost:3000';
-  return `<div class="df-stage">
-  <div class="df-device-browser">
-    <div class="df-browser-bar">
+  const urlbar = frame.chrome === 'thin' ? '' : `<div class="df-urlbar">${escapeHtml(label)}</div>`;
+  const barClass = frame.chrome === 'thin' ? 'df-browser-bar df-browser-bar-thin' : 'df-browser-bar';
+  return `<div class="df-chrome-layer" data-chrome="${layerId}">
+    <div class="${barClass}">
       <div class="df-traffic"><i></i><i></i><i></i></div>
-      <div class="df-urlbar">${escapeHtml(label)}</div>
+      ${urlbar}
       <div class="df-logo-slot">${headerLogoHtml}</div>
     </div>
+  </div>`;
+}
+
+export function browserShellHtml(chromeLayersHtml: string, scenesHtml: string): string {
+  return `<div class="df-stage">
+  <div class="df-device-browser">
+    <div class="df-chrome-stack">${chromeLayersHtml}</div>
     <div class="df-browser-content">
       <div class="df-safe">${scenesHtml}</div>
     </div>
   </div>
 </div>`;
+}
+
+export function browserHtml(
+  frame: Extract<Frame, { type: 'browser' }>,
+  scenesHtml: string,
+  headerLogoHtml = '',
+): string {
+  return browserShellHtml(browserChromeHtml(frame, 0, headerLogoHtml), scenesHtml);
 }

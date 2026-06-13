@@ -17,6 +17,8 @@ export const TEXT_LIMITS = {
   metricLabel: 40,
   codeTitle: 60,
   chartLabel: 12,
+  blockName: 32,
+  calloutText: 120,
 } as const;
 
 export const CODE_MAX_LINES = 24;
@@ -137,6 +139,7 @@ const browserFrame = z.object({
   ...frameBase,
   url: z.string().max(80).optional(),
   title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
+  chrome: z.enum(['full', 'thin']).default('full'),
 });
 
 const terminalFrame = z.object({
@@ -166,11 +169,23 @@ const frameSchema = z.discriminatedUnion('type', [
   noneFrame,
 ]);
 
+const sceneFrameOverride = z
+  .object({
+    title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
+    subtitle: z.string().max(TEXT_LIMITS.headerDetail).optional(),
+    url: z.string().max(80).optional(),
+    chrome: z.enum(['full', 'thin']).optional(),
+    prompt: z.string().max(16).optional(),
+    statusBarTime: z.string().max(8).optional(),
+  })
+  .strict();
+
 const sceneBase = {
   duration: z.number().positive().max(30),
   transition: z.enum(['cut', 'crossfade']).default('cut'),
   name: z.string().max(40).optional(),
   celebrate: z.boolean().default(false),
+  frame: sceneFrameOverride.optional(),
 };
 
 const typingScene = z.object({
@@ -358,6 +373,189 @@ const metricCardScene = z.object({
   caption: z.string().max(TEXT_LIMITS.caption).optional(),
 });
 
+const metricValue = z
+  .object({
+    value: z.number().finite().min(-1e9).max(1e9),
+    prefix: z.string().max(8).optional(),
+    suffix: z.string().max(12).optional(),
+    decimals: z.number().int().min(0).max(2).default(0),
+  })
+  .strict();
+
+const screenBlockBase = {
+  name: z.string().min(1).max(TEXT_LIMITS.blockName).optional(),
+};
+
+const builtInIcon = z.enum([
+  'check',
+  'code',
+  'share',
+  'paperclip',
+  'mic',
+  'arrow-up',
+  'spark',
+  'user',
+  'bolt',
+]);
+
+const screenAvatar = z
+  .object({
+    initials: z.string().min(1).max(3),
+    color: hexColor.optional(),
+  })
+  .strict();
+
+const screenChart = z
+  .object({
+    kind: z.enum(['bar', 'line', 'area']),
+    series: z.array(z.number().finite().min(0)).min(2).max(16),
+    labels: z.array(z.string().min(1).max(TEXT_LIMITS.chartLabel)).optional(),
+    color: hexColor.optional(),
+  })
+  .strict();
+
+const appHeaderBlock = z
+  .object({
+    block: z.literal('app-header'),
+    ...screenBlockBase,
+    title: z.string().min(1).max(TEXT_LIMITS.cardTitle),
+    subtitle: z.string().max(TEXT_LIMITS.cardSubtitle).optional(),
+    icon: builtInIcon.optional(),
+  })
+  .strict();
+
+const statStripBlock = z
+  .object({
+    block: z.literal('stat-strip'),
+    ...screenBlockBase,
+    tiles: z
+      .array(
+        z
+          .object({
+            value: metricValue,
+            label: z.string().min(1).max(TEXT_LIMITS.metricLabel),
+            delta: z
+              .object({
+                value: z.number().finite().min(-1e6).max(1e6),
+                dir: z.enum(['up', 'down']),
+              })
+              .strict()
+              .optional(),
+          })
+          .strict(),
+      )
+      .min(2)
+      .max(4),
+  })
+  .strict();
+
+const chartCardBlock = z
+  .object({
+    block: z.literal('chart-card'),
+    ...screenBlockBase,
+    title: z.string().max(TEXT_LIMITS.cardTitle).optional(),
+    chart: screenChart,
+  })
+  .strict();
+
+const cardGridBlock = z
+  .object({
+    block: z.literal('card-grid'),
+    ...screenBlockBase,
+    cards: z
+      .array(
+        z
+          .object({
+            title: z.string().min(1).max(TEXT_LIMITS.cardTitle),
+            value: z.string().max(40).optional(),
+            desc: z.string().max(TEXT_LIMITS.cardSubtitle).optional(),
+            badge: z.string().max(24).optional(),
+            icon: builtInIcon.optional(),
+          })
+          .strict(),
+      )
+      .min(2)
+      .max(6),
+  })
+  .strict();
+
+const listBlock = z
+  .object({
+    block: z.literal('list'),
+    ...screenBlockBase,
+    rows: z
+      .array(
+        z
+          .object({
+            icon: builtInIcon.optional(),
+            avatar: screenAvatar.optional(),
+            label: z.string().min(1).max(TEXT_LIMITS.stepLabel),
+            trailing: z.string().max(40).optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(8),
+  })
+  .strict();
+
+const progressBlock = z
+  .object({
+    block: z.literal('progress'),
+    ...screenBlockBase,
+    items: z
+      .array(
+        z
+          .object({
+            label: z.string().min(1).max(TEXT_LIMITS.stepLabel),
+            value: z.number().finite().min(0).max(100),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(6),
+  })
+  .strict();
+
+const heatmapBlock = z
+  .object({
+    block: z.literal('heatmap'),
+    ...screenBlockBase,
+    cols: z.number().int().min(1).max(26).default(7),
+    values: z.array(z.number().int().min(0).max(4)).min(7).max(182),
+  })
+  .strict();
+
+const calloutBlock = z
+  .object({
+    block: z.literal('callout'),
+    ...screenBlockBase,
+    variant: z.enum(['hero-stat', 'message']),
+    value: metricValue.optional(),
+    label: z.string().max(TEXT_LIMITS.metricLabel).optional(),
+    text: z.string().max(TEXT_LIMITS.calloutText).optional(),
+  })
+  .strict();
+
+const screenBlock = z.discriminatedUnion('block', [
+  appHeaderBlock,
+  statStripBlock,
+  chartCardBlock,
+  cardGridBlock,
+  listBlock,
+  progressBlock,
+  heatmapBlock,
+  calloutBlock,
+]);
+
+const screenScene = z.object({
+  type: z.literal('screen'),
+  ...sceneBase,
+  motion: z.enum(['reveal', 'focus', 'scroll']).default('reveal'),
+  focus: z.string().min(1).max(TEXT_LIMITS.blockName).optional(),
+  blocks: z.array(screenBlock).min(1).max(8),
+});
+
 export const sceneSchema = z.discriminatedUnion('type', [
   typingScene,
   stepsScene,
@@ -368,6 +566,7 @@ export const sceneSchema = z.discriminatedUnion('type', [
   codeScene,
   chatScene,
   metricCardScene,
+  screenScene,
 ]);
 
 export const demoConfigSchema = z
@@ -395,6 +594,39 @@ export const demoConfigSchema = z
       });
     }
     for (const [index, scene] of config.scenes.entries()) {
+      if (scene.frame) {
+        if (scene.type === 'hold') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'frame'],
+            message: 'a "hold" scene extends the previous scene, so it cannot carry a frame override',
+          });
+        }
+        if (config.frame.type === 'none') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'frame'],
+            message: 'frame overrides are not supported when the global frame type is "none"',
+          });
+        }
+        const allowedByFrame: Record<Frame['type'], ReadonlySet<string>> = {
+          phone: new Set(['title', 'subtitle', 'statusBarTime']),
+          browser: new Set(['title', 'url', 'chrome']),
+          terminal: new Set(['title', 'prompt']),
+          desktop: new Set(['title', 'subtitle']),
+          none: new Set(),
+        };
+        const allowed = allowedByFrame[config.frame.type];
+        for (const key of Object.keys(scene.frame)) {
+          if (!allowed.has(key)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['scenes', index, 'frame', key],
+              message: `${key} cannot override a ${config.frame.type} frame`,
+            });
+          }
+        }
+      }
       if (scene.type === 'code') {
         const lines = scene.code.split('\n');
         if (lines.length > CODE_MAX_LINES) {
@@ -473,12 +705,79 @@ export const demoConfigSchema = z
           });
         }
       }
+      if (scene.type === 'screen') {
+        const names = scene.blocks.flatMap((block) => (block.name ? [block.name] : []));
+        const duplicate = names.find((name, nameIndex) => names.indexOf(name) !== nameIndex);
+        if (duplicate) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'blocks'],
+            message: `screen block name "${duplicate}" is used more than once`,
+          });
+        }
+        if (scene.motion === 'focus') {
+          if (!scene.focus) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['scenes', index, 'focus'],
+              message: 'screen motion "focus" needs focus to name a block',
+            });
+          } else if (!names.includes(scene.focus)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['scenes', index, 'focus'],
+              message: `focus "${scene.focus}" does not match a named block`,
+            });
+          }
+        } else if (scene.focus) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'focus'],
+            message: 'focus is only used when screen motion is "focus"',
+          });
+        }
+        for (const [blockIndex, block] of scene.blocks.entries()) {
+          if (block.block === 'chart-card' && block.chart.labels) {
+            if (block.chart.labels.length !== block.chart.series.length) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['scenes', index, 'blocks', blockIndex, 'chart', 'labels'],
+                message: `labels has ${block.chart.labels.length} entries but series has ${block.chart.series.length}; they must match`,
+              });
+            }
+          }
+          if (block.block === 'heatmap' && block.values.length !== block.cols * 7) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ['scenes', index, 'blocks', blockIndex, 'values'],
+              message: `heatmap values has ${block.values.length} cells but cols requires ${block.cols * 7}`,
+            });
+          }
+          if (block.block === 'callout') {
+            if (block.variant === 'hero-stat' && !block.value) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['scenes', index, 'blocks', blockIndex, 'value'],
+                message: 'callout hero-stat needs value',
+              });
+            }
+            if (block.variant === 'message' && !block.text) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['scenes', index, 'blocks', blockIndex, 'text'],
+                message: 'callout message needs text',
+              });
+            }
+          }
+        }
+      }
     }
   });
 
 export type DemoConfig = z.infer<typeof demoConfigSchema>;
 export type Frame = DemoConfig['frame'];
 export type Scene = DemoConfig['scenes'][number];
+export type SceneFrameOverride = NonNullable<Scene['frame']>;
 export type Theme = DemoConfig['theme'];
 export type Output = DemoConfig['output'];
 export type TypingScene = z.infer<typeof typingScene>;
@@ -493,6 +792,9 @@ export type CodeScene = z.infer<typeof codeScene>;
 export type ChatScene = z.infer<typeof chatScene>;
 export type AvatarSpec = z.infer<typeof avatarSpec>;
 export type MetricCardScene = z.infer<typeof metricCardScene>;
+export type MetricValue = z.infer<typeof metricValue>;
+export type ScreenScene = z.infer<typeof screenScene>;
+export type ScreenBlock = z.infer<typeof screenBlock>;
 export type TermLineStyle = z.infer<typeof termLineStyle>;
 export type CodeLang = (typeof CODE_LANGS)[number];
 

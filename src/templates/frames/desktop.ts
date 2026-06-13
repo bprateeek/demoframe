@@ -40,6 +40,7 @@ export const desktopCss = `
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.df-desktop-toolbar-empty { visibility: hidden; }
 .df-desktop-content {
   flex: 1;
   min-height: 0;
@@ -49,25 +50,42 @@ export const desktopCss = `
 }
 `;
 
-export function desktopHtml(
+export function desktopChromeHtml(
   frame: Extract<Frame, { type: 'desktop' }>,
-  scenesHtml: string,
+  layerId: number,
   headerLogoHtml = '',
+  reserveToolbar = Boolean(frame.subtitle),
 ): string {
   const toolbar = frame.subtitle
     ? `<div class="df-desktop-toolbar">${escapeHtml(frame.subtitle)}</div>`
-    : '';
-  return `<div class="df-stage">
-  <div class="df-device-desktop">
+    : reserveToolbar
+      ? `<div class="df-desktop-toolbar df-desktop-toolbar-empty" aria-hidden="true">&nbsp;</div>`
+      : '';
+  return `<div class="df-chrome-layer" data-chrome="${layerId}">
     <div class="df-desktop-bar">
       <div class="df-traffic"><i></i><i></i><i></i></div>
       <div class="df-desktop-title">${escapeHtml(frame.title ?? 'My App')}</div>
       <div class="df-logo-slot">${headerLogoHtml}</div>
     </div>
     ${toolbar}
+  </div>`;
+}
+
+export function desktopShellHtml(chromeLayersHtml: string, scenesHtml: string): string {
+  return `<div class="df-stage">
+  <div class="df-device-desktop">
+    <div class="df-chrome-stack">${chromeLayersHtml}</div>
     <div class="df-desktop-content">
       <div class="df-safe">${scenesHtml}</div>
     </div>
   </div>
 </div>`;
+}
+
+export function desktopHtml(
+  frame: Extract<Frame, { type: 'desktop' }>,
+  scenesHtml: string,
+  headerLogoHtml = '',
+): string {
+  return desktopShellHtml(desktopChromeHtml(frame, 0, headerLogoHtml), scenesHtml);
 }

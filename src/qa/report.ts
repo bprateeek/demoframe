@@ -18,6 +18,7 @@ export interface OutputReport {
   hasAudio: boolean | null;
   encoder?: string;
   withinBudget?: boolean;
+  preset?: string;
 }
 
 export function inspectGif(

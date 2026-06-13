@@ -118,9 +118,11 @@ export function statusCardHtml(scene: StatusCardScene, index: number): string {
     )
     .join('\n');
   const cta = scene.cta
-    ? `<div class="df-cta df-cta-${scene.cta.style}"${scene.tap ? ' data-tap-target' : ''} data-celebrate-anchor>${escapeHtml(scene.cta.label)}</div>`
+    ? `<div class="df-cta df-cta-${scene.cta.style}" data-qa-key="cta"${scene.tap ? ' data-tap-target' : ''} data-celebrate-anchor>${escapeHtml(scene.cta.label)}</div>`
     : '';
-  const caption = scene.caption ? `<div class="df-card-caption">${escapeHtml(scene.caption)}</div>` : '';
+  const caption = scene.caption
+    ? `<div class="df-card-caption" data-qa-key="caption">${escapeHtml(scene.caption)}</div>`
+    : '';
   return `<div class="df-scene" data-scene="${index}">
   <div class="df-rail">
     <div class="df-slot-body df-card-body">

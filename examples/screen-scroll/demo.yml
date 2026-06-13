@@ -1,0 +1,30 @@
+title: Screen scroll long page
+output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#8a63d2", mode: light, font: inter }
+frame: { type: browser, chrome: thin, title: Roadmap }
+scenes:
+  - type: screen
+    duration: 6
+    motion: scroll
+    blocks:
+      - { block: app-header, title: Release center, subtitle: "June launch checklist", icon: share }
+      - block: progress
+        items:
+          - { label: Design QA, value: 100 }
+          - { label: Docs update, value: 84 }
+          - { label: Partner review, value: 68 }
+      - block: list
+        rows:
+          - { icon: check, label: Pricing copy approved, trailing: Done }
+          - { icon: code, label: API examples refreshed, trailing: Today }
+          - { icon: paperclip, label: Launch assets exported, trailing: 12 files }
+          - { icon: user, label: Customer quotes cleared, trailing: Legal }
+      - block: chart-card
+        title: Signups by cohort
+        chart: { kind: bar, series: [3, 4, 7, 6, 9, 12, 14, 18] }
+      - block: heatmap
+        cols: 4
+        values: [0, 1, 2, 1, 3, 2, 0, 1, 2, 3, 4, 3, 1, 2, 3, 2, 0, 1, 1, 2, 3, 4, 4, 2, 1, 0, 2, 3]
+      - { block: callout, variant: message, text: "Launch package is ready for Product Hunt and the README hero." }
+  - type: hold
+    duration: 1

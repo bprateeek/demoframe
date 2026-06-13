@@ -44,6 +44,9 @@ export const metricCardCss = `
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
 }
+.df-chart-area {
+  opacity: 0;
+}
 .df-chart-labels {
   display: grid;
   margin-top: var(--df-s2);
@@ -59,7 +62,14 @@ export const metricCardCss = `
 const VIEW_W = 100;
 const VIEW_H = 48;
 
-function chartSvg(chart: NonNullable<MetricCardScene['chart']>): string {
+export interface ChartSvgSpec {
+  kind: 'bar' | 'line' | 'area';
+  series: number[];
+  labels?: string[];
+  color?: string;
+}
+
+export function chartSvg(chart: ChartSvgSpec): string {
   const color = chart.color ?? 'var(--df-accent)';
   const max = Math.max(...chart.series, 1e-9);
   if (chart.kind === 'bar') {
@@ -81,6 +91,15 @@ function chartSvg(chart: NonNullable<MetricCardScene['chart']>): string {
       return `${x.toFixed(2)},${y.toFixed(2)}`;
     })
     .join(' ');
+  if (chart.kind === 'area') {
+    const firstX = 3;
+    const lastX = VIEW_W - 3;
+    const baseline = VIEW_H - 3;
+    return `<svg viewBox="0 0 ${VIEW_W} ${VIEW_H}" preserveAspectRatio="none">
+      <polygon class="df-chart-area" points="${firstX},${baseline} ${points} ${lastX},${baseline}" fill="${color}" fill-opacity="0.18"/>
+      <polyline class="df-chart-line" points="${points}" pathLength="100" stroke="${color}"/>
+    </svg>`;
+  }
   return `<svg viewBox="0 0 ${VIEW_W} ${VIEW_H}" preserveAspectRatio="none"><polyline class="df-chart-line" points="${points}" pathLength="100" stroke="${color}"/></svg>`;
 }
 

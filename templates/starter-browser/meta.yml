@@ -1,5 +1,6 @@
 name: starter-browser
 description: Browser-framed deploy story with steps and a status card
+category: web-app
 frames: [browser]
 scenes: [steps, status-card, hold]
 demoframeVersion: "0.4.0"

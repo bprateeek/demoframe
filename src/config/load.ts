@@ -17,7 +17,7 @@ export class ConfigError extends Error {
 const HINTS: Array<{ match: RegExp; hint: string }> = [
   {
     match: /scenes\[\d+\]\.type/,
-    hint: 'valid scene types: typing, steps, status-card, screenshot, terminal-playback, code, chat, metric-card, hold',
+    hint: 'valid scene types: typing, steps, status-card, screenshot, terminal-playback, code, chat, metric-card, screen, hold',
   },
   { match: /^frame\.type/, hint: 'valid frame types: phone, browser, terminal, desktop, none' },
   { match: /duration/, hint: 'durations are seconds per scene, e.g. duration: 3.8' },

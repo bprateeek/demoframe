@@ -1,5 +1,6 @@
 name: code-walkthrough
 description: Desktop-framed code reveal on the paper preset
+category: developer-tool
 frames: [desktop]
 scenes: [code, hold]
 demoframeVersion: "0.4.0"
