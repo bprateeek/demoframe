@@ -27,8 +27,10 @@ the story, then rebuild the flow as clean synthetic scenes (`typing`, `steps`,
 demo whose every scene is a raw screenshot is "screenshots pasted in a frame":
 `demoframe check` and `demoframe render` **reject it** (pass
 `--allow-raw-screenshots` only for an intentional raw demo, e.g. a bug report or
-before/after proof). demoframe then validates the YAML, renders the frames,
-encodes the GIF/WebP/MP4, and writes a machine-readable QA report.
+before/after proof). The interview is recorded in a top-level `brief:` block;
+`check` warns when it is missing or still TODO-filled, and `--strict` fails.
+demoframe then validates the YAML, renders the frames, encodes the GIF/WebP/MP4,
+and writes a machine-readable QA report.
 
 This guidance is portable, not Claude-specific. `AGENTS.md` (shipped in the
 package) carries the reconstruct-first brief and the required interview for any
@@ -102,6 +104,17 @@ title: Fieldwork mobile to pull request demo
 output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: vps-fieldwork-smoke, subtitle: "fieldwork-smoke · VPS" }
+brief:
+  audience: README visitors evaluating a mobile-to-PR agent story
+  source: Synthetic flow reconstructed from fieldwork and GitHub handoff screens
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask for a helper, verify the workspace, then open the pull request
+  climax: The release-notes helper PR is ready for review
+  brand: { accent: "#e2603a", frame: phone, mode: light }
+  product: fieldwork
+  repo: fieldwork-smoke
+  verbatimCopy: ["Merge pull request", "Ready for review"]
 scenes:
   - type: typing
     duration: 3.8
@@ -171,6 +184,10 @@ overlays a badge over the scenes).
 JSON configs are accepted too. Validate anything against
 `schema/demoframe.schema.json`.
 
+`brief` is authoring metadata, not render input. It records the audience,
+source material, screenshot policy, placement, story arc, climax, brand, product
+names, and exact copy so agents can verify they reconstructed the intended demo.
+
 ## Render in CI
 
 A composite GitHub Action ships in this repo. Linux runners are the
@@ -220,7 +237,8 @@ poorly past that). If an encode exceeds the budget, demoframe automatically
 retries down a ladder (15fps to 12fps, then 480px to 400px) and reports what
 it did. Every render ends with a QA report (dimensions, duration, fps, frame
 count, size, loop marker, audio absence, transparency mode), printed and
-written to `report.json`. Transparent renders also write
+written to `report.json`. The report also includes `brief.present`,
+`brief.requiredComplete`, and `brief.recommendedComplete`. Transparent renders also write
 `preview/final_transparent_checkerboard.png` so the cutout can be inspected.
 
 ## Privacy

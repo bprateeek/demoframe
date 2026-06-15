@@ -2,6 +2,17 @@ title: Fieldwork mobile pull request flow
 output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: vps-fieldwork-smoke, subtitle: "fieldwork-smoke · VPS" }
+brief:
+  audience: README visitors evaluating a mobile agent workflow
+  source: Synthetic pull-request flow reconstructed from fieldwork status screens
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask for a README change, verify the work, then open a reviewed PR
+  climax: The health probe PR is ready with passing checks
+  brand: { accent: "#e2603a", frame: phone, mode: light }
+  product: fieldwork
+  repo: fieldwork-smoke
+  verbatimCopy: ["Merge pull request", "docs: add health probe section to README"]
 scenes:
   - type: typing
     duration: 2.8

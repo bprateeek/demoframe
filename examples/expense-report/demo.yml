@@ -2,6 +2,17 @@ title: Expense report from messy receipts
 output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
 theme: { accent: "#10b981", mode: light, font: inter }
 frame: { type: phone, title: Tally, subtitle: "Expenses · March" }
+brief:
+  audience: Product teams showing an assistant workflow in a README
+  source: Synthetic mobile flow reconstructed from receipt-processing screenshots
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask for a report, extract receipt data, run policy checks, then submit
+  climax: March expense report is ready with one flagged item
+  brand: { accent: "#10b981", frame: phone, mode: light }
+  product: Tally
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Submit report", "March expenses: $1,284.50"]
 scenes:
   - type: typing
     duration: 2.8

@@ -2,6 +2,17 @@ title: Metric card demo
 output: { format: gif, width: 600, fps: 15, displayWidth: 420 }
 theme: { accent: "#1f9d55", mode: light, font: inter }
 frame: { type: browser, title: Weekly report }
+brief:
+  audience: README visitors checking metric-card animation
+  source: Synthetic report.json metrics reconstructed as a browser card
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Reveal the 30-day render metrics, animate the chart, then hold on the report
+  climax: Renders, encode time, and budget rate are readable together
+  brand: { accent: "#1f9d55", frame: browser, mode: light }
+  product: demoframe
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Last 30 days", "Numbers from report.json"]
 scenes:
   - type: metric-card
     duration: 6

@@ -24,6 +24,45 @@ describe('demoConfigSchema', () => {
     expect(config.scenes[0].transition).toBe('cut');
   });
 
+  it('accepts full and partial brief blocks while rejecting brief typos', () => {
+    const full = demoConfigSchema.parse({
+      ...minimal,
+      brief: {
+        audience: 'Maintainers evaluating the README demo',
+        source: 'Synthetic story from product screenshots',
+        screenshotPolicy: 'reconstruct',
+        placement: ['github-readme', 'x-post'],
+        arc: 'Ask, work, result',
+        climax: 'Final green publish card',
+        brand: { accent: '#e2603a', frame: 'phone', mode: 'light', notes: 'warm accent' },
+        product: 'demoframe',
+        repo: 'bprateeek/demoframe',
+        verbatimCopy: ['Render demo'],
+      },
+    });
+    expect(full.brief?.placement).toEqual(['github-readme', 'x-post']);
+
+    const partial = demoConfigSchema.parse({ ...minimal, brief: { audience: 'Agents' } });
+    expect(partial.brief?.audience).toBe('Agents');
+
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, brief: { audience: 'Agents', audence: 'typo' } }).success,
+    ).toBe(false);
+  });
+
+  it('validates brief enums and accepts a single placement', () => {
+    expect(
+      demoConfigSchema.parse({
+        ...minimal,
+        brief: { screenshotPolicy: 'simplify', placement: 'product-hunt', brand: { frame: 'browser', mode: 'dark' } },
+      }).brief?.placement,
+    ).toBe('product-hunt');
+    expect(demoConfigSchema.safeParse({ ...minimal, brief: { screenshotPolicy: 'raw' } }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, brief: { placement: 'website-hero' } }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, brief: { brand: { frame: 'tablet' } } }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, brief: { brand: { mode: 'sepia' } } }).success).toBe(false);
+  });
+
   it('rejects a hold scene in first position', () => {
     const result = demoConfigSchema.safeParse({
       ...minimal,

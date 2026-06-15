@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DESTINATION_NAMES } from './destinations.js';
 
 export const TEXT_LIMITS = {
   typingText: 220,
@@ -101,11 +102,13 @@ const fontValue = z.union([
   z.object({ sans: fontFile.optional(), mono: fontFile.optional() }).strict(),
 ]);
 
+const themeMode = z.enum(['light', 'dark']);
+
 const themeSchema = z
   .object({
     preset: z.enum(THEME_PRESET_NAMES).optional(),
     accent: hexColor.optional(),
-    mode: z.enum(['light', 'dark']).optional(),
+    mode: themeMode.optional(),
     font: fontValue.default('inter'),
     logo: z
       .union([
@@ -184,6 +187,33 @@ const frameSchema = z.discriminatedUnion('type', [
   desktopFrame,
   noneFrame,
 ]);
+
+export const FRAME_TYPE_NAMES = ['phone', 'browser', 'terminal', 'desktop', 'none'] as const;
+
+const placementValue = z.enum(DESTINATION_NAMES);
+
+const briefSchema = z
+  .object({
+    audience: z.string().optional(),
+    source: z.string().optional(),
+    screenshotPolicy: z.enum(['reconstruct', 'simplify', 'raw-intentional']).optional(),
+    placement: z.union([placementValue, z.array(placementValue).min(1)]).optional(),
+    arc: z.string().optional(),
+    climax: z.string().optional(),
+    brand: z
+      .object({
+        accent: hexColor.optional(),
+        frame: z.enum(FRAME_TYPE_NAMES).optional(),
+        mode: themeMode.optional(),
+        notes: z.string().optional(),
+      })
+      .strict()
+      .optional(),
+    product: z.string().optional(),
+    repo: z.string().optional(),
+    verbatimCopy: z.array(z.string()).optional(),
+  })
+  .strict();
 
 const sceneFrameOverride = z
   .object({
@@ -591,6 +621,7 @@ export const demoConfigSchema = z
     output: outputSchema,
     theme: themeSchema,
     frame: frameSchema,
+    brief: briefSchema.optional(),
     scenes: z.array(sceneSchema).min(1).max(12),
   })
   .superRefine((config, ctx) => {
@@ -791,6 +822,7 @@ export const demoConfigSchema = z
   });
 
 export type DemoConfig = z.infer<typeof demoConfigSchema>;
+export type Brief = NonNullable<DemoConfig['brief']>;
 export type Frame = DemoConfig['frame'];
 export type Scene = DemoConfig['scenes'][number];
 export type SceneFrameOverride = NonNullable<Scene['frame']>;

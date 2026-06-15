@@ -1,5 +1,6 @@
 import { budgetToBytes, type DemoConfig, type OutputFormat } from './schema.js';
 import { ConfigError } from './load.js';
+import { DESTINATION_NAMES, type DestinationName } from './destinations.js';
 
 export interface DestinationPreset {
   format: OutputFormat;
@@ -18,11 +19,11 @@ export const PRESETS = {
   'x-post': { format: 'mp4', width: 1080, fps: 30, budget: '15MB', quality: 'high' },
   linkedin: { format: 'mp4', width: 1080, fps: 24, budget: '10MB', quality: 'high' },
   'product-hunt': { format: 'gif', width: 1200, fps: 12, budget: '3MB', quality: 'standard' },
-} as const satisfies Record<string, DestinationPreset>;
+} as const satisfies Record<DestinationName, DestinationPreset>;
 
 export type PresetName = keyof typeof PRESETS;
 
-export const PRESET_NAMES = Object.keys(PRESETS) as PresetName[];
+export const PRESET_NAMES = [...DESTINATION_NAMES];
 
 export interface AppliedPreset {
   config: DemoConfig;

@@ -2,6 +2,17 @@ title: Screen scroll long page
 output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
 theme: { accent: "#8a63d2", mode: light, font: inter }
 frame: { type: browser, chrome: thin, title: Roadmap }
+brief:
+  audience: Launch teams evaluating a scrolling screen-scene example
+  source: Synthetic launch checklist rebuilt from roadmap page references
+  screenshotPolicy: reconstruct
+  placement: [github-readme, product-hunt]
+  arc: Scroll from launch checklist progress through assets and cohort signals
+  climax: The launch package is ready for Product Hunt and the README hero
+  brand: { accent: "#8a63d2", frame: browser, mode: light }
+  product: Release center
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Launch package is ready for Product Hunt and the README hero."]
 scenes:
   - type: screen
     duration: 6

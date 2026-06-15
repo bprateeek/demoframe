@@ -28,21 +28,42 @@ Ask the user before writing any config:
 6. **Copy to feature verbatim** (exact button labels, titles).
 7. **Screenshot extraction:** what should be preserved, and what should be simplified or removed?
 
+Write those answers into a top-level `brief:` block before authoring scenes.
+Required fields are `audience`, `source`, `screenshotPolicy`, and `placement`;
+recommended fields are `arc` and `climax`; optional fields include `brand`,
+`product`, `repo`, and `verbatimCopy`. Missing, empty, or placeholder brief
+fields are `demoframe check` warnings and become errors under `--strict`.
+
+```yaml
+brief:
+  audience: README visitors evaluating an agent workflow
+  source: Screenshots of the mobile ask, VPS work screen, and GitHub PR result
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask for a helper, watch the workspace verify it, then land on the PR
+  climax: The pull request is ready with passing checks
+  brand: { accent: "#e2603a", frame: phone, mode: light }
+  product: Fieldwork
+  repo: fieldwork-smoke
+  verbatimCopy: ["Merge pull request", "Ready for review"]
+```
+
 Then confirm the screen-to-scene mapping with the user before rendering. In autonomous or headless runs with no human, infer the screen-to-scene mapping, state the assumptions you made, then proceed (do not block).
 
 **Density rules:** one idea per scene, short labels, at most ~4 step items, generous whitespace, a single warm accent, 8 to 12s total, and a `hold` on the ending before the loop restarts.
 
 ## The loop
 
+0. **Author the brief.** Capture the interview in `brief:` first, then write the scene config from it. `init` scaffolds a TODO stub; fill it before rendering.
 1. **Scaffold or author.** `npx demoframe init --template <name>` writes a `demo.yml` from the gallery (`--list` shows the templates; `--frame phone|browser|terminal` picks the matching starter), or write the config from scratch. Get the authoritative schema with `npx demoframe schema` (JSON Schema on stdout); do not rely on memorized field names, the schema is pre-1.0 and changes between versions.
-2. **Validate fast.** `npx demoframe check demo.yml` after every edit. Errors print as `path: message` with hints and block rendering; warnings cover privacy findings, screenshots likely to blow the size budget, and screenshot-dominant configs. Missing referenced assets are hard errors. A frameless demo whose every content scene is a raw screenshot is a hard **error** (`check` exits non-zero, `render` refuses) so the "screenshots pasted in a frame" output cannot ship by default. Fix every warning you can before rendering; with `--strict` warnings fail too.
+2. **Validate fast.** `npx demoframe check demo.yml` after every edit. Errors print as `path: message` with hints and block rendering; warnings cover privacy findings, incomplete briefs, screenshots likely to blow the size budget, and screenshot-dominant configs. `render --for` also warns when its target does not overlap `brief.placement`. Missing referenced assets are hard errors. A frameless demo whose every content scene is a raw screenshot is a hard **error** (`check` exits non-zero, `render` refuses) so the "screenshots pasted in a frame" output cannot ship by default. Fix every warning you can before rendering; with `--strict` warnings fail too.
 3. **Pre-render quality gate.** Before spending render time, self-check the draft against the reconstruction rule. **If the draft could be described as "screenshots inside a frame," reject it and rewrite it as synthetic scenes.** Exception: unless the user explicitly asked for an exact/raw screenshot demo (a bug report, before/after proof, a dashboard layout), in which case pass `--allow-raw-screenshots` to `check`/`render` to demote the error to a warning.
 4. **Render one-shot.** `npx demoframe render demo.yml -o dist` validates, renders, encodes, and writes. Rendering for a specific destination? Add `--for github-readme|x-post|linkedin|product-hunt` to set format, width, fps, budget, and quality in one flag (it overrides the config's `output` values and prints what it changed):
    - the outputs (`demo.gif`, `demo.webp`, and/or `demo.mp4` per `output.format`)
    - `dist/preview/` stills: one per scene plus `final_readme_size.png`, GitHub dark/light composites, and `final_transparent_checkerboard.png` for transparent cutouts
    - `dist/report.json` with measured facts about every output, including transparency mode
    Chromium (~150MB, one-time) and gifski download automatically on first use; pass `--no-download` to fail instead.
-5. **Verify from report.json.** Check every output: `withinBudget` true, `loopsForever` true, `durationS` close to the designed total, dimensions as expected. The `attempts` array shows the retry ladder; more than one attempt means the config is near the budget edge.
+5. **Verify from report.json.** Check `brief.requiredComplete` and `brief.recommendedComplete`, then every output: `withinBudget` true, `loopsForever` true, `durationS` close to the designed total, dimensions as expected. The `attempts` array shows the retry ladder; more than one attempt means the config is near the budget edge.
 6. **Look at the stills.** Read the `dist/preview/` PNGs. Check: text fully readable at README size, nothing clipped, the final frame tells the whole story on its own, dark composite looks intentional.
 7. **Self-correct and re-render.** Over budget: shorten scenes, replace `crossfade` with `cut`, avoid photographic screenshots, or switch to `webp`/`mp4`. Clipped or cramped text: shorten copy (limits are in the schema). Repeat until report and stills are clean.
 

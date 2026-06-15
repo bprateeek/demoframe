@@ -2,6 +2,17 @@ title: Desktop app demo
 output: { format: gif, width: 720, fps: 15, displayWidth: 560 }
 theme: { preset: github-dark }
 frame: { type: desktop, title: demoframe Studio, subtitle: "workspace: release-notes" }
+brief:
+  audience: Developers evaluating a desktop-frame product demo
+  source: Synthetic workspace reconstructed from a release-notes coding flow
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Edit the helper, generate release notes, then publish the draft
+  climax: Release notes generated with passing checks
+  brand: { accent: "#3fb950", frame: desktop, mode: dark }
+  product: demoframe Studio
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Release notes generated", "Publish draft"]
 scenes:
   - type: code
     duration: 5.0

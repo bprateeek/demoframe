@@ -6,6 +6,17 @@ theme:
   palette: { screen: "#fbf6ee", border: "#e3d9c8" }
   logo: { src: assets/logo.png, placement: corner }
 frame: { type: none, width: 600, height: 600 }
+brief:
+  audience: README visitors comparing frameless metric-card output
+  source: Synthetic launch-week metric card with local numbers
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Reveal launch-week installs and stars, then hold on the trend
+  climax: Launch week metrics are visible in one compact card
+  brand: { accent: "#e2603a", frame: none, mode: light }
+  product: demoframe
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Launch week", "All numbers local"]
 scenes:
   - type: metric-card
     duration: 5.4

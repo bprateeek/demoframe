@@ -25,7 +25,7 @@ skills/demoframe/SKILL.md in the package.
   screenshot is a hard error ("screenshots pasted in a frame") that also makes render
   refuse; pass --allow-raw-screenshots to demote it to a warning for an intentional
   raw demo. Missing referenced assets are hard errors. Warnings cover privacy findings (emails/tokens/URLs
-  in copy), README legibility, and screenshots likely to blow the GIF size budget. Fast (<1s without
+  in copy), README legibility, incomplete briefs, and screenshots likely to blow the GIF size budget. Fast (<1s without
   screenshot assets); run after every config edit.
 - `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]
   [--allow-raw-screenshots] [--strict] [--asset-out path]
@@ -39,7 +39,8 @@ skills/demoframe/SKILL.md in the package.
   budget/quality in one flag (github-readme: webp 640px 15fps 4MB; x-post:
   mp4 1080px 30fps; linkedin: mp4 1080px 24fps; product-hunt: gif 1200px
   12fps 3MB). --for accepts a comma list and writes suffixed outputs.
-  Overrides are printed and preset names land in report.json. --asset-out copies
+  Overrides are printed and preset names land in report.json. render warns when
+  the requested --for targets do not overlap brief.placement. --asset-out copies
   the primary rendered asset(s); when it covers the embeddable GIF/WebP, the
   printed README snippet points at the copied destination.
 - `demoframe preview <config> [-o dir]`: stills only, no encode. Writes
@@ -54,6 +55,8 @@ skills/demoframe/SKILL.md in the package.
 ## report.json shape
 
 { "title", "config", "presets"?, "budgetBytes",
+  "brief": { "present", "requiredComplete", "recommendedComplete",
+    "missingRequired": [], "missingRecommended": [] },
   "attempts": [{preset?,format,fps,width,sizeBytes}],
   "warnings": [...], "layout": [...], "previews": ["preview/scene_0_typing.png", ...],
   "outputs": [{ "file", "format": "gif"|"webp"|"mp4"|"webm",
@@ -61,15 +64,40 @@ skills/demoframe/SKILL.md in the package.
   "width", "height", "durationS", "fps", "frameCount", "loopsForever",
   "hasAudio", "encoder", "withinBudget" }] }
 
-Verify after render: withinBudget true, loopsForever true, durationS as
-designed. Then read the preview stills to verify layout: text readable at
-README size, nothing clipped, final frame tells the story alone.
+Verify after render: brief.requiredComplete true, brief.recommendedComplete
+true, withinBudget true, loopsForever true, durationS as designed. Then read
+the preview stills to verify layout: text readable at README size, nothing
+clipped, final frame tells the story alone.
 
 ## Config schema
 
 Full JSON Schema: `demoframe schema` or schema/demoframe.schema.json (npm package root).
 
-Top level: { title?, output?, theme?, frame, scenes }
+Top level: { title?, output?, theme?, frame, brief?, scenes }
+
+brief is authoring metadata only; it does not affect rendering. It records the
+interview that produced the demo. All fields are optional in the parser so
+partial briefs can be checked, but check warns when required/recommended fields
+are missing, empty, or placeholders like "TODO: ..." or "<target audience>".
+Under --strict, those warnings fail.
+
+brief fields:
+- audience string: required by check.
+- source string: required by check; record source material/provenance such as
+  screenshots, app screens, or the product flow being reconstructed.
+- screenshotPolicy reconstruct|simplify|raw-intentional: required by check.
+  reconstruct/simplify warn when screenshot scenes exceed 50% of runtime;
+  raw-intentional warns when there are no screenshot scenes. This does not
+  authorize raw screenshot output; --allow-raw-screenshots is still required to
+  demote the frameless all-screenshot hard error.
+- placement github-readme|x-post|linkedin|product-hunt, or a non-empty list of
+  those values: required by check. render --for warns when its requested
+  destination set is disjoint from placement; --for still drives output presets.
+- arc string and climax string: recommended by check, required under --strict.
+- brand?: { accent?: hex, frame?: phone|browser|terminal|desktop|none,
+  mode?: light|dark, notes?: string }. check compares accent/mode with the
+  resolved theme and frame with config.frame.type.
+- product?: string, repo?: string, verbatimCopy?: string[].
 
 output (all optional): format gif|webp|mp4|webm or a list like [webp, mp4]
 (gif), width 200-1200 (480), fps 5-30 (15), budget e.g. "5MB" (applies to gif

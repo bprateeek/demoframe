@@ -3,6 +3,32 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
+## 0.9.0
+
+Brief and interview governance. This release makes the authoring interview a
+first-class config artifact so agents can validate the story they reconstructed,
+not just the pixels they rendered.
+
+### Added
+
+- Top-level `brief:` metadata with required-by-check `audience`, `source`,
+  `screenshotPolicy`, and `placement`; recommended `arc` and `climax`; and
+  optional `brand`, `product`, `repo`, and `verbatimCopy`.
+- Brief QA warnings for missing, empty, or placeholder fields; screenshot policy
+  contradictions; brand/theme/frame mismatches; and `render --for` destination
+  mismatches against `brief.placement`. Existing `--strict` promotes these
+  warnings to errors.
+- `brief` summary metadata in `report.json`: `present`, `requiredComplete`,
+  `recommendedComplete`, `missingRequired`, and `missingRecommended`.
+- `demoframe init` now prepends a TODO `brief:` stub to scaffolded configs.
+
+### Changed
+
+- Bundled examples now include filled briefs and are covered by a strict-clean
+  regression test. Gallery templates remain brief-free and receive the stub only
+  when scaffolded by `init`.
+- Destination names are shared between schema validation and render presets.
+
 ## 0.8.0
 
 Transparent embeds and frame polish. This release keeps opaque renders stable

@@ -21,6 +21,14 @@ const CATEGORY_DEFAULTS: Record<string, string> = {
   'web-app': 'starter-browser',
 };
 
+const BRIEF_STUB = `brief:
+  audience: "TODO: who is this for"
+  source: "TODO: screenshots / app under demo"
+  # screenshotPolicy: reconstruct   # reconstruct | simplify | raw-intentional
+  # placement: github-readme        # github-readme | x-post | linkedin | product-hunt
+  # recommended: arc, climax        # optional: brand, product, repo, verbatimCopy
+`;
+
 function templatesDir(): string {
   return fileURLToPath(new URL('../../templates', import.meta.url));
 }
@@ -93,7 +101,8 @@ export async function runInit(dir: string, opts: InitOptions = {}): Promise<void
     throw new Error(`${configFile} already exists; refusing to overwrite`);
   }
   mkdirSync(path.join(target, 'assets'), { recursive: true });
-  writeFileSync(configFile, readFileSync(templateFile));
+  const template = readFileSync(templateFile, 'utf8');
+  writeFileSync(configFile, `${BRIEF_STUB}\n${template}`);
   console.log(`created ${configFile} (${name} template) and assets/`);
   console.log('\nreconstruct first: screenshots are reference, not ingredients. Rebuild the flow as');
   console.log('synthetic scenes (typing/steps/status-card/chat/screen); a frameless all-screenshot demo is');
@@ -101,15 +110,11 @@ export async function runInit(dir: string, opts: InitOptions = {}): Promise<void
   console.log('Asset paths resolve relative to the demo.yml file; screen blocks use built-in icons/avatars.');
   console.log('For product/category mapping guidance, see docs/categories/ in the package.');
   console.log('\ninterview before authoring:');
-  console.log('  1. Narrative arc: the ask, the work, the result.');
-  console.log('  2. Climax / money shot: which single moment to land and hold on.');
-  console.log('  3. Destination: readme, x-post, linkedin, or product-hunt.');
-  console.log('  4. Brand: accent color, frame type (phone/browser/terminal/desktop), light or dark.');
-  console.log('  5. Product and repo names.');
-  console.log('  6. Copy to feature verbatim (exact button labels, titles).');
-  console.log('  7. Screenshot extraction: what to preserve, what to simplify or remove.');
+  console.log('  fill the brief: block with audience/source/screenshotPolicy/placement, then arc and climax.');
+  console.log('  use brand/product/repo/verbatimCopy to capture exact names, labels, and style constraints.');
+  console.log('  record screenshot extraction choices in source and screenshotPolicy before writing scenes.');
   console.log('\nnext steps:');
-  console.log('  1. edit demo.yml (any reference screenshots go in assets/, as assets/name.png)');
+  console.log('  1. fill brief: in demo.yml (any reference screenshots go in assets/, as assets/name.png)');
   console.log('  2. demoframe check demo.yml');
   console.log('  3. demoframe preview demo.yml');
   console.log('  4. demoframe render demo.yml');

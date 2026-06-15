@@ -2,6 +2,17 @@ title: Chat conversation demo
 output: { format: gif, width: 480, fps: 15, displayWidth: 280 }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: Assistant, subtitle: working on fix-auth-test }
+brief:
+  audience: README visitors evaluating an agent chat demo
+  source: Synthetic conversation reconstructed from a bug-fix workflow
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: User asks for a failing test fix, the assistant investigates, then opens a green PR
+  climax: PR opened and checks are green
+  brand: { accent: "#e2603a", frame: phone, mode: light }
+  product: demoframe
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Can you fix the failing auth test?", "PR opened and checks are green. Ready for review."]
 scenes:
   - type: chat
     duration: 7

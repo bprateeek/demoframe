@@ -2,6 +2,17 @@ title: Screen dashboard reveal
 output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
 theme: { accent: "#2f7de1", mode: light, font: inter }
 frame: { type: browser, chrome: thin, title: Product dashboard }
+brief:
+  audience: Product teams evaluating screen-scene dashboard reconstruction
+  source: Synthetic dashboard rebuilt from product-health screen references
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Reveal live health, activation trends, and launch readiness
+  climax: The dashboard shows all launch gates clear
+  brand: { accent: "#2f7de1", frame: browser, mode: light }
+  product: Atlas Ops
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Product dashboard", "All gates clear"]
 scenes:
   - type: screen
     duration: 5.5

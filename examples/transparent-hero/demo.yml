@@ -8,6 +8,17 @@ frame:
   deviceColor: "#172033"
   title: DemoFlow
   subtitle: "transparent cutout"
+brief:
+  audience: README authors evaluating transparent WebP embeds
+  source: Synthetic phone flow rebuilt from support-inbox and changelog references
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask for a changelog, group support signals, then publish the update
+  climax: Changelog ready with publish action visible
+  brand: { accent: "#e2603a", frame: phone, mode: light }
+  product: DemoFlow
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Publish update", "Changelog ready"]
 scenes:
   - type: typing
     duration: 3.0

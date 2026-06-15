@@ -2,6 +2,17 @@ title: Code reveal demo
 output: { format: gif, width: 600, fps: 15, displayWidth: 420 }
 theme: { accent: "#2563eb", mode: dark, font: inter }
 frame: { type: browser, title: release.ts }
+brief:
+  audience: Developers scanning a README code-change animation
+  source: Synthetic code diff reconstructed from a release-notes helper
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Show a buggy helper, reveal the replacement line, then hold on the corrected code
+  climax: The helper now returns a titled changes section
+  brand: { accent: "#2563eb", frame: browser, mode: dark }
+  product: demoframe
+  repo: bprateeek/demoframe
+  verbatimCopy: ["src/release.ts", "## Changes"]
 scenes:
   - type: code
     duration: 5.5

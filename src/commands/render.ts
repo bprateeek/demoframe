@@ -30,6 +30,7 @@ import {
   type OutputReport,
 } from '../qa/report.js';
 import { measureLayout } from '../qa/layout.js';
+import { briefSummary } from '../qa/brief.js';
 
 interface LadderStep {
   fps: number;
@@ -154,11 +155,12 @@ export async function runRender(
     allowRawScreenshots?: boolean;
   },
 ): Promise<void> {
+  const presets = parsePresets(opts.for);
   const baseCheck = await runCheck(configFile, {
     allowRawScreenshots: opts.allowRawScreenshots,
+    forDestinations: presets,
   });
   const { loaded, errors: baseErrors } = baseCheck;
-  const presets = parsePresets(opts.for);
   const targets: RenderTarget[] =
     presets.length > 0
       ? presets.map((preset) => {
@@ -168,12 +170,12 @@ export async function runRender(
       : [{ config: loaded.config, changes: [] }];
 
   const errorSet = new Set<string>(baseErrors);
-  const warningSet = new Set<string>();
+  const warningSet = new Set<string>(baseCheck.warnings);
   for (const target of targets) {
     for (const change of target.changes) console.log(`  ! preset ${target.preset} overrides ${change}`);
     const checked = await runCheckLoaded(
       { ...loaded, config: target.config },
-      { allowRawScreenshots: opts.allowRawScreenshots },
+      { allowRawScreenshots: opts.allowRawScreenshots, skipBrief: true },
     );
     for (const error of checked.errors) {
       errorSet.add(target.preset ? `preset ${target.preset}: ${error}` : error);
@@ -334,6 +336,7 @@ export async function runRender(
     config: configPath,
     ...(presets.length > 0 ? { presets } : {}),
     budgetBytes: targets.length === 1 ? budgetToBytes(targets[0].config.output.budget) : undefined,
+    brief: briefSummary(loaded.config),
     attempts,
     warnings: allWarnings,
     layout,

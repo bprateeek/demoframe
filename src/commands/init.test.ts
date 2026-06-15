@@ -62,8 +62,21 @@ describe('runInit', () => {
     await runInit(dir, { template: 'cli-release' });
     const written = readFileSync(path.join(dir, 'demo.yml'), 'utf8');
     const original = readFileSync(path.join(templatesRoot, 'cli-release', 'template.yml'), 'utf8');
-    expect(written).toBe(original);
+    expect(written).toContain('brief:');
+    expect(written).toContain('audience: "TODO: who is this for"');
+    expect(written.endsWith(original)).toBe(true);
     expect(existsSync(path.join(dir, 'assets'))).toBe(true);
+  });
+
+  it('scaffolds an unfilled brief that check can flag', async () => {
+    const dir = makeTemp();
+    await runInit(dir, { template: 'cli-release' });
+    const result = await runCheck(path.join(dir, 'demo.yml'));
+    const required = result.warnings.find((warning) => warning.includes('unfilled required field'));
+    expect(required).toContain('audience');
+    expect(required).toContain('source');
+    expect(required).toContain('screenshotPolicy');
+    expect(required).toContain('placement');
   });
 
   it('maps --frame onto the starter templates', async () => {
@@ -94,7 +107,7 @@ describe('runInit', () => {
     }
     const out = lines.join('\n');
     expect(out).toContain('reconstruct first');
-    expect(out).toContain('Narrative arc');
+    expect(out).toContain('brief: block');
   });
 
   it('refuses to overwrite an existing demo.yml', async () => {

@@ -2,6 +2,17 @@ title: Terminal playback demo
 output: { format: gif, width: 480, fps: 15, displayWidth: 320 }
 theme: { accent: "#e2603a", mode: dark, font: inter }
 frame: { type: terminal, title: demoframe, prompt: "$" }
+brief:
+  audience: Developers evaluating terminal playback in a README
+  source: Synthetic CLI render log reconstructed from demoframe output
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Run render, show validation and frame progress, then finish within budget
+  climax: demo.gif is within budget
+  brand: { accent: "#e2603a", frame: terminal, mode: dark }
+  product: demoframe
+  repo: bprateeek/demoframe
+  verbatimCopy: ["npx demoframe render demo.yml", "demo.gif 1.9MB (within budget)"]
 scenes:
   - type: terminal-playback
     duration: 7

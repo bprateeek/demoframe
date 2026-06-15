@@ -11,7 +11,7 @@ import {
   outputFormats,
   type DemoConfig,
 } from '../config/schema.js';
-import { resolveTimeline } from '../render/timeline.js';
+import { briefWarnings, screenshotRuntimeShare } from '../qa/brief.js';
 
 export interface CheckResult {
   loaded: LoadedConfig;
@@ -21,6 +21,8 @@ export interface CheckResult {
 
 export interface CheckOptions {
   allowRawScreenshots?: boolean;
+  forDestinations?: string[];
+  skipBrief?: boolean;
 }
 
 type AssetKind = 'screenshot' | 'logo' | 'font' | 'avatar';
@@ -159,16 +161,15 @@ export async function runCheckLoaded(
 
   warnings.push(...(await screenshotSizeWarnings(loaded)));
   warnings.push(...readmeLegibilityWarnings(loaded));
+  if (!opts.skipBrief) {
+    warnings.push(...briefWarnings(loaded.config, { forDestinations: opts.forDestinations }));
+  }
 
   // Screenshot-dominant demos read as "screenshots pasted in a frame". Count a
   // hold against the scene it extends (renderIndex), so a screenshot -> hold ->
   // hold tail cannot dodge the warning.
-  const tl = resolveTimeline(loaded.config);
-  const shotDuration = tl.scenes.reduce(
-    (sum, ts) => sum + (loaded.config.scenes[ts.renderIndex].type === 'screenshot' ? ts.duration : 0),
-    0,
-  );
-  if (tl.duration > 0 && shotDuration / tl.duration > 0.5) {
+  const screenshotShare = screenshotRuntimeShare(loaded.config);
+  if (screenshotShare.totalDuration > 0 && screenshotShare.share > 0.5) {
     const content = loaded.config.scenes.filter((s) => s.type !== 'hold');
     const framelessGallery =
       loaded.config.frame.type === 'none' &&
@@ -185,7 +186,7 @@ export async function runCheckLoaded(
       );
     } else {
       warnings.push(
-        `screenshot scenes are ${Math.round((shotDuration / tl.duration) * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes such as screen, typing, steps, status-card, or chat, and keep screenshot scenes for when the screenshot itself is the subject.`,
+        `screenshot scenes are ${Math.round(screenshotShare.share * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes such as screen, typing, steps, status-card, or chat, and keep screenshot scenes for when the screenshot itself is the subject.`,
       );
     }
   }

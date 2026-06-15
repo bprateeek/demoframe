@@ -2,6 +2,17 @@ title: Fieldwork mobile to pull request demo
 output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: vps-fieldwork-smoke, subtitle: "fieldwork-smoke · VPS" }
+brief:
+  audience: README visitors evaluating a mobile-to-PR agent story
+  source: Synthetic flow reconstructed from fieldwork and GitHub handoff screens
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask for a helper, verify the VPS workspace, then open the pull request
+  climax: The release-notes helper PR is ready for review
+  brand: { accent: "#e2603a", frame: phone, mode: light }
+  product: fieldwork
+  repo: fieldwork-smoke
+  verbatimCopy: ["Merge pull request", "Awaiting human review"]
 scenes:
   - type: typing
     duration: 3.8

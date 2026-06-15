@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -34,6 +34,52 @@ scenes:
     await expect(
       runRender(file, { out: path.join(path.dirname(file), 'dist'), keepFrames: false, for: 'x-post' }),
     ).rejects.toThrow(/transparent output is a policy error/);
+  });
+
+  it('refuses an incomplete brief under --strict before touching Chromium', async () => {
+    const file = writeConfig(`
+brief:
+  audience: "TODO: who is this for"
+  source: "TODO: screenshots / app under demo"
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 2, text: hi }
+`);
+    await expect(
+      runRender(file, { out: path.join(path.dirname(file), 'dist'), keepFrames: false, strict: true }),
+    ).rejects.toThrow(/refusing to render under --strict/);
+  });
+
+  it('emits a placement mismatch warning exactly once for multi-preset renders', async () => {
+    const file = writeConfig(`
+brief:
+  audience: README visitors
+  source: Synthetic flow from screenshots
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask, work, result
+  climax: Final publish card
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 2, text: hi }
+`);
+    const lines: string[] = [];
+    const log = vi.spyOn(console, 'log').mockImplementation((...args) => {
+      lines.push(args.join(' '));
+    });
+    try {
+      await expect(
+        runRender(file, {
+          out: path.join(path.dirname(file), 'dist'),
+          keepFrames: false,
+          for: 'x-post,linkedin',
+          strict: true,
+        }),
+      ).rejects.toThrow(/refusing to render under --strict/);
+    } finally {
+      log.mockRestore();
+    }
+    expect(lines.filter((line) => line.includes('brief: placement')).length).toBe(1);
   });
 });
 

@@ -2,6 +2,17 @@ title: Screen focus zoom
 output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
 theme: { accent: "#1f9d55", mode: light, font: inter }
 frame: { type: none, width: 960, height: 640 }
+brief:
+  audience: Product teams evaluating a focused screen-scene moment
+  source: Synthetic study-plan dashboard rebuilt from product UI references
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Show the study plan, focus the score, then hold on readiness
+  climax: The readiness score becomes the money shot
+  brand: { accent: "#1f9d55", frame: none, mode: light }
+  product: Grind50
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Readiness score", "Adaptive study plan"]
 scenes:
   - type: screen
     duration: 5
