@@ -1,9 +1,6 @@
 name: Refresh README demo
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'examples/fieldwork-hero/**'
+  workflow_dispatch:
 permissions:
   contents: write
 jobs:
@@ -19,7 +16,7 @@ jobs:
         with:
           config: examples/fieldwork-hero/demo.yml
           out: /tmp/demo-out
-          version: 0.4.0
+          version: latest
       - run: cp /tmp/demo-out/demo.gif docs/assets/hero.gif
       - run: |
           git config user.name "github-actions[bot]"
