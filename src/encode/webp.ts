@@ -22,6 +22,7 @@ export async function encodeWebp(
   await sharp(resized, { join: { animated: true } })
     .webp({
       quality: 82,
+      alphaQuality: 100,
       effort: 4,
       loop: 0,
       // a scalar delay only applies to the first frame; every frame needs one

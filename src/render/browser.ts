@@ -45,7 +45,12 @@ export async function openRenderSession(
       await page.evaluate((t) => (window as unknown as { __seek(t: number): void }).__seek(t), tMs);
     },
     async screenshot(filePath?: string) {
-      return page.screenshot({ path: filePath, type: 'png', animations: 'disabled' });
+      return page.screenshot({
+        path: filePath,
+        type: 'png',
+        animations: 'disabled',
+        omitBackground: doc.transparent,
+      });
     },
     async close() {
       await browser.close();

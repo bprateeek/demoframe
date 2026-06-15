@@ -254,6 +254,42 @@ describe('frames (v0.4)', () => {
       demoConfigSchema.safeParse({ ...minimal, frame: { type: 'browser', height: 1921 } }).success,
     ).toBe(false);
   });
+
+  it('accepts transparent frame controls and phone device color', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      frame: {
+        type: 'phone',
+        outside: 'transparent',
+        shadow: false,
+        margin: 24,
+        deviceColor: '#0f172a',
+      },
+    });
+    expect(config.frame.outside).toBe('transparent');
+    expect(config.frame.shadow).toBe(false);
+    expect(config.frame.margin).toBe(24);
+    if (config.frame.type !== 'phone') throw new Error('wrong frame');
+    expect(config.frame.deviceColor).toBe('#0f172a');
+    expect(demoConfigSchema.parse({ ...minimal, frame: { type: 'browser', outside: '#fff' } }).frame.outside).toBe(
+      '#fff',
+    );
+    expect(demoConfigSchema.parse({ ...minimal, frame: { type: 'desktop', outside: 'page' } }).frame.outside).toBe(
+      'page',
+    );
+  });
+
+  it('rejects invalid outside values and frame typos under strict frame schemas', () => {
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, frame: { type: 'phone', outside: 'blue' } }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, frame: { type: 'browser', deviceColor: '#000' } }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({ ...minimal, frame: { type: 'terminal', shdaow: false } }).success,
+    ).toBe(false);
+  });
 });
 
 describe('frame overrides (v0.7)', () => {
@@ -288,6 +324,21 @@ describe('frame overrides (v0.7)', () => {
       demoConfigSchema.safeParse({
         frame: { type: 'terminal' },
         scenes: [{ type: 'typing', duration: 3, text: 'hi', frame: { statusBarTime: '10:30' } }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects global-only transparent controls in scene frame overrides', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'phone' },
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', frame: { outside: 'transparent' } }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        frame: { type: 'phone' },
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', frame: { deviceColor: '#000' } }],
       }).success,
     ).toBe(false);
   });

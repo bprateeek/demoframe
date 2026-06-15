@@ -12,7 +12,13 @@ import { encodeGif } from '../encode/gif.js';
 import { encodeMp4 } from '../encode/mp4.js';
 import { encodeWebp } from '../encode/webp.js';
 import { encodeWebm } from '../encode/webm.js';
-import { budgetToBytes, outputFormats, type DemoConfig, type OutputFormat } from '../config/schema.js';
+import {
+  budgetToBytes,
+  isTransparentFrame,
+  outputFormats,
+  type DemoConfig,
+  type OutputFormat,
+} from '../config/schema.js';
 import { applyPreset } from '../config/presets.js';
 import {
   inspectGif,
@@ -36,9 +42,15 @@ interface RenderTarget {
   changes: string[];
 }
 
-interface PrimaryOutput {
+export interface PrimaryOutput {
   preset?: string;
   file: string;
+  format: OutputFormat;
+}
+
+export interface AssetOutTarget {
+  source: string;
+  dest: string;
 }
 
 function ladderSteps(fps: number, width: number): LadderStep[] {
@@ -78,25 +90,48 @@ function primaryFormat(config: DemoConfig): OutputFormat {
   return outputFormats(config.output)[0];
 }
 
-function copyPrimaryOutputs(assetOut: string | undefined, outputs: PrimaryOutput[]): void {
-  if (!assetOut || outputs.length === 0) return;
+export function resolveAssetOutTargets(assetOut: string | undefined, outputs: PrimaryOutput[]): AssetOutTarget[] {
+  if (!assetOut || outputs.length === 0) return [];
   const target = path.resolve(assetOut);
   if (outputs.length > 1) {
     if (existsSync(target) && !statSync(target).isDirectory()) {
       throw new Error('--asset-out must be a directory when rendering multiple presets');
     }
-    mkdirSync(target, { recursive: true });
-    for (const output of outputs) {
-      copyFileSync(output.file, path.join(target, path.basename(output.file)));
-    }
-    return;
+    return outputs.map((output) => ({ source: output.file, dest: path.join(target, path.basename(output.file)) }));
   }
 
   const [output] = outputs;
   const isDir = existsSync(target) && statSync(target).isDirectory();
   const dest = isDir ? path.join(target, path.basename(output.file)) : target;
-  mkdirSync(path.dirname(dest), { recursive: true });
-  copyFileSync(output.file, dest);
+  return [{ source: output.file, dest }];
+}
+
+function copyPrimaryOutputs(targets: AssetOutTarget[]): void {
+  for (const target of targets) {
+    mkdirSync(path.dirname(target.dest), { recursive: true });
+    copyFileSync(target.source, target.dest);
+  }
+}
+
+function effectiveConfigForFormat(config: DemoConfig, format: OutputFormat): DemoConfig {
+  if (format !== 'gif' || !isTransparentFrame(config.frame) || !config.frame.shadow) return config;
+  return { ...config, frame: { ...config.frame, shadow: false } as DemoConfig['frame'] };
+}
+
+function annotateTransparency<T extends OutputReport>(
+  report: T,
+  config: DemoConfig,
+  format: OutputFormat,
+): T {
+  if (!isTransparentFrame(config.frame)) return report;
+  report.transparent = true;
+  report.transparencyMode = format === 'gif' ? '1-bit' : 'alpha';
+  return report;
+}
+
+function copiedAssetFor(file: string, targets: AssetOutTarget[]): string | undefined {
+  const source = path.resolve(file);
+  return targets.find((target) => path.resolve(target.source) === source)?.dest;
 }
 
 function canonicalPreviewTarget(targets: RenderTarget[]): RenderTarget {
@@ -122,7 +157,7 @@ export async function runRender(
   const baseCheck = await runCheck(configFile, {
     allowRawScreenshots: opts.allowRawScreenshots,
   });
-  const { loaded, errors } = baseCheck;
+  const { loaded, errors: baseErrors } = baseCheck;
   const presets = parsePresets(opts.for);
   const targets: RenderTarget[] =
     presets.length > 0
@@ -132,6 +167,7 @@ export async function runRender(
         })
       : [{ config: loaded.config, changes: [] }];
 
+  const errorSet = new Set<string>(baseErrors);
   const warningSet = new Set<string>();
   for (const target of targets) {
     for (const change of target.changes) console.log(`  ! preset ${target.preset} overrides ${change}`);
@@ -139,17 +175,22 @@ export async function runRender(
       { ...loaded, config: target.config },
       { allowRawScreenshots: opts.allowRawScreenshots },
     );
+    for (const error of checked.errors) {
+      errorSet.add(target.preset ? `preset ${target.preset}: ${error}` : error);
+    }
     for (const warning of checked.warnings) {
       warningSet.add(target.preset ? `preset ${target.preset}: ${warning}` : warning);
     }
   }
+  const errors = [...errorSet];
   const warnings = [...warningSet];
 
   for (const e of errors) console.log(`  x ${e}`);
   for (const w of warnings) console.log(`  ! ${w}`);
   if (errors.length > 0) {
+    const firstError = errors[0] ? ` First error: ${errors[0]}.` : '';
     throw new Error(
-      `refusing to render: ${errors.length} blocking error${errors.length === 1 ? '' : 's'} above. ` +
+      `refusing to render: ${errors.length} blocking error${errors.length === 1 ? '' : 's'} above.${firstError} ` +
         'Reconstruct the flow as synthetic scenes, or pass --allow-raw-screenshots if a raw-screenshot demo is intended.',
     );
   }
@@ -163,10 +204,10 @@ export async function runRender(
   mkdirSync(outDir, { recursive: true });
   const framesRoot = path.join(outDir, '.frames');
 
-  if (
-    targets.some((target) => outputFormats(target.config.output).includes('gif')) &&
-    !(await ensureGifski(opts.download !== false))
-  ) {
+  const needsGifski = targets.some(
+    (target) => outputFormats(target.config.output).includes('gif') && !isTransparentFrame(target.config.frame),
+  );
+  if (needsGifski && !(await ensureGifski(opts.download !== false))) {
     console.log('  hint: gifski unavailable; encoding GIF with ffmpeg (install gifski or allow downloads for best quality)');
   }
 
@@ -198,17 +239,20 @@ export async function runRender(
 
       for (const format of formats) {
         if (format === 'mp4' || format === 'webm') continue;
+        const renderConfig = effectiveConfigForFormat(config, format);
         const outPath = path.join(outDir, outputFileName(name, preset, format));
         let final: OutputReport | null = null;
         for (const step of ladderSteps(config.output.fps, config.output.width)) {
-          const frames = await getFrames(config, step.fps);
+          const frames = await getFrames(renderConfig, step.fps);
           console.log(`encoding ${format.toUpperCase()} at ${step.width}px / ${step.fps}fps...`);
           if (format === 'gif') {
-            const { encoder } = await encodeGif(frames, step.width, outPath);
-            final = inspectGif(outPath, encoder, budgetBytes, step.fps);
+            const { encoder } = await encodeGif(frames, step.width, outPath, {
+              transparent: isTransparentFrame(renderConfig.frame),
+            });
+            final = annotateTransparency(inspectGif(outPath, encoder, budgetBytes, step.fps), renderConfig, format);
           } else {
             await encodeWebp(frames, step.width, outPath);
-            final = await inspectWebp(outPath, budgetBytes, step.fps);
+            final = annotateTransparency(await inspectWebp(outPath, budgetBytes, step.fps), renderConfig, format);
           }
           if (preset) final.preset = preset;
           attempts.push({ preset, format, fps: step.fps, width: step.width, sizeBytes: final.sizeBytes });
@@ -219,7 +263,7 @@ export async function runRender(
         }
         if (final) {
           reports.push(final);
-          if (format === primary) primaryOutputs.push({ preset, file: final.file });
+          if (format === primary) primaryOutputs.push({ preset, file: final.file, format });
           if (!final.withinBudget) {
             console.log(
               `\n${format.toUpperCase()} is still over budget after the retry ladder. Suggestions: shorten scene durations, ` +
@@ -237,7 +281,7 @@ export async function runRender(
         const report = inspectMp4(mp4Path);
         if (preset) report.preset = preset;
         reports.push(report);
-        if (primary === 'mp4') primaryOutputs.push({ preset, file: report.file });
+        if (primary === 'mp4') primaryOutputs.push({ preset, file: report.file, format: 'mp4' });
       }
 
       if (formats.includes('webm')) {
@@ -248,7 +292,7 @@ export async function runRender(
         const report = inspectWebm(webmPath);
         if (preset) report.preset = preset;
         reports.push(report);
-        if (primary === 'webm') primaryOutputs.push({ preset, file: report.file });
+        if (primary === 'webm') primaryOutputs.push({ preset, file: report.file, format: 'webm' });
       }
     }
   } finally {
@@ -281,7 +325,8 @@ export async function runRender(
   const allWarnings = [...warnings, ...layoutWarnings];
   for (const w of layoutWarnings) console.log(`  ! ${w}`);
 
-  copyPrimaryOutputs(opts.assetOut, primaryOutputs);
+  const assetOutTargets = resolveAssetOutTargets(opts.assetOut, primaryOutputs);
+  copyPrimaryOutputs(assetOutTargets);
 
   for (const report of reports) printReport(report);
   const reportFile = writeReportJson(outDir, reports, {
@@ -306,10 +351,11 @@ export async function runRender(
   if (embeddable) {
     const embeddableTarget =
       targets.find((target) => target.preset === embeddable.preset) ?? targets[0];
-    const width =
-      embeddableTarget.config.output.displayWidth ?? Math.round(embeddableTarget.config.output.width * 0.6);
+    const exportedWidth = embeddable.width ?? embeddableTarget.config.output.width;
+    const width = embeddableTarget.config.output.displayWidth ?? Math.round(exportedWidth * 0.6);
+    const snippetFile = copiedAssetFor(embeddable.file, assetOutTargets) ?? embeddable.file;
     console.log(
-      `\nREADME snippet:\n  <img src="${path.relative(process.cwd(), embeddable.file)}" alt="${loaded.config.title ?? name}" width="${width}">`,
+      `\nREADME snippet:\n  <img src="${path.relative(process.cwd(), snippetFile)}" alt="${loaded.config.title ?? name}" width="${width}">`,
     );
   }
 }

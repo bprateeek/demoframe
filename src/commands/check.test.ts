@@ -171,4 +171,40 @@ scenes:
     const { warnings } = await runCheck(file);
     expect(warnings.some((w) => w.includes('small body text'))).toBe(false);
   });
+
+  it('errors when transparent output targets mp4 or webm', async () => {
+    const file = writeConfig(`
+output: { format: [webp, mp4] }
+frame: { type: phone, outside: transparent }
+scenes:
+  - { type: typing, duration: 3, text: hi }
+`);
+    const { errors } = await runCheck(file);
+    expect(errors.some((e) => e.includes('transparent output is a policy error for mp4/webm'))).toBe(true);
+  });
+
+  it('warns about transparent gif, frameless cutouts, and ignored margins', async () => {
+    const transparentGif = writeConfig(`
+output: { format: gif }
+frame: { type: none, outside: transparent }
+scenes:
+  - type: screen
+    duration: 3
+    blocks:
+      - { block: app-header, title: Product }
+`);
+    const gifResult = await runCheck(transparentGif);
+    expect(gifResult.warnings.some((w) => w.includes('transparent GIF uses hard 1-bit edges'))).toBe(true);
+    expect(gifResult.warnings.some((w) => w.includes('content edge becomes the cutout'))).toBe(true);
+
+    const ignoredMargin = writeConfig(`
+frame: { type: phone, margin: 24 }
+scenes:
+  - { type: typing, duration: 3, text: hi }
+`);
+    const marginResult = await runCheck(ignoredMargin);
+    expect(marginResult.warnings.some((w) => w.includes('frame.margin only affects transparent cutouts'))).toBe(
+      true,
+    );
+  });
 });

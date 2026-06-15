@@ -61,9 +61,25 @@ before the loop restarts.
    `--for github-readme|x-post|linkedin|product-hunt` to set
    format/width/fps/budget in one flag.
 4. **Verify from report.json.** `withinBudget` true, `loopsForever` true,
-   `durationS` close to the designed total, dimensions as expected.
+   `durationS` close to the designed total, dimensions as expected. For
+   transparent output, check `transparent` and `transparencyMode`.
 5. **Look at the stills.** Read the `dist/preview/` PNGs: text readable at
-   README size, nothing clipped, the final frame tells the whole story.
+   README size, nothing clipped, the final frame tells the whole story. For
+   `frame.outside: transparent`, inspect `final_transparent_checkerboard.png`.
+
+## Transparent embeds and frame polish
+
+- `frame.outside: transparent` creates a true alpha cutout; use WebP for clean
+  edges. Transparent GIF is a 1-bit fallback and drops the soft shadow.
+  Transparent MP4/WebM is rejected by policy; use `frame.outside: '<hex>'` for a
+  solid matte fallback.
+- `frame.shadow: false` makes a hard cutout, `frame.margin` adds transparent
+  padding after trim, and phone frames accept `deviceColor`.
+- Scene frame overrides are chrome-only: change browser `url`/`title`/`chrome`,
+  phone `title`/`subtitle`/`statusBarTime`, terminal `title`/`prompt`, or
+  desktop `title`/`subtitle`. Use this for handoffs like "VPS work screen" to
+  "GitHub PR screen"; do not put `outside`, `shadow`, `margin`, or
+  `deviceColor` on scenes.
 
 ## Drop this into your own repo's AGENTS.md
 

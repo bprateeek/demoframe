@@ -3,7 +3,14 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { loadConfig, type LoadedConfig } from '../config/load.js';
 import { scanForPrivateData } from '../config/privacy.js';
-import { budgetToBytes, frameViewport, normalizeLogo } from '../config/schema.js';
+import {
+  budgetToBytes,
+  frameViewport,
+  isTransparentFrame,
+  normalizeLogo,
+  outputFormats,
+  type DemoConfig,
+} from '../config/schema.js';
 import { resolveTimeline } from '../render/timeline.js';
 
 export interface CheckResult {
@@ -73,10 +80,18 @@ async function screenshotSizeWarnings(loaded: LoadedConfig): Promise<string[]> {
   return warnings;
 }
 
+function estimatedSourceWidth(config: DemoConfig): number {
+  const viewport = frameViewport(config.frame);
+  if (!isTransparentFrame(config.frame)) return viewport.width;
+  const deviceInset = config.frame.type === 'phone' ? 32 : config.frame.type === 'none' ? 0 : 48;
+  const shadowAllowance = config.frame.shadow && config.frame.type !== 'none' ? 120 : 0;
+  return Math.max(1, viewport.width - deviceInset + shadowAllowance + (config.frame.margin ?? 0) * 2);
+}
+
 function readmeLegibilityWarnings(loaded: LoadedConfig): string[] {
-  const viewport = frameViewport(loaded.config.frame);
+  const sourceWidth = estimatedSourceWidth(loaded.config);
   const displayWidth = loaded.config.output.displayWidth ?? Math.round(loaded.config.output.width * 0.6);
-  const displayScale = displayWidth / viewport.width;
+  const displayScale = displayWidth / sourceWidth;
   const estimatedBodyPx = 14 * displayScale;
   if (estimatedBodyPx >= 5.25) return [];
   return [
@@ -119,6 +134,27 @@ export async function runCheckLoaded(
   }
   if (loaded.config.output.quality === 'draft' && loaded.config.scenes.some((s) => s.type === 'screen')) {
     warnings.push('screen scenes contain dense product UI; use output.quality: standard or high for crisp text');
+  }
+
+  const formats = outputFormats(loaded.config.output);
+  if (isTransparentFrame(loaded.config.frame)) {
+    if (formats.some((format) => format === 'mp4' || format === 'webm')) {
+      errors.push(
+        'transparent output is a policy error for mp4/webm: alpha is not reliably useful for our target destinations; use webp.',
+      );
+    }
+    if (formats.includes('gif')) {
+      warnings.push(
+        'transparent GIF uses hard 1-bit edges and drops the soft shadow; use webp for clean transparent edges, or frame.outside: "#hex" for a solid fallback.',
+      );
+    }
+    if (loaded.config.frame.type === 'none') {
+      warnings.push(
+        'frame.outside: transparent with frame.type: none has no device bezel to mask; the content edge becomes the cutout.',
+      );
+    }
+  } else if (loaded.config.frame.margin !== undefined) {
+    warnings.push('frame.margin only affects transparent cutouts and is otherwise ignored.');
   }
 
   warnings.push(...(await screenshotSizeWarnings(loaded)));

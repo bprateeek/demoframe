@@ -40,11 +40,13 @@ skills/demoframe/SKILL.md in the package.
   mp4 1080px 30fps; linkedin: mp4 1080px 24fps; product-hunt: gif 1200px
   12fps 3MB). --for accepts a comma list and writes suffixed outputs.
   Overrides are printed and preset names land in report.json. --asset-out copies
-  the primary rendered asset(s).
+  the primary rendered asset(s); when it covers the embeddable GIF/WebP, the
+  printed README snippet points at the copied destination.
 - `demoframe preview <config> [-o dir]`: stills only, no encode. Writes
   semantic per-scene stills (scene_<i>_<slug>.png), key moments
   (moment_<i>_tap/cta/celebrate.png), final_readme_size.png, and
-  final_github_dark/light.png composites. Faster iteration than render.
+  final_github_dark/light.png composites. Transparent configs also write
+  final_transparent_checkerboard.png. Faster iteration than render.
 - `demoframe doctor`: environment report. `demoframe install-browser`: explicit
   Chromium download (otherwise automatic on first render).
 - `demoframe serve <config> [-p port]`: live preview server with a scrubber (for humans).
@@ -54,7 +56,8 @@ skills/demoframe/SKILL.md in the package.
 { "title", "config", "presets"?, "budgetBytes",
   "attempts": [{preset?,format,fps,width,sizeBytes}],
   "warnings": [...], "layout": [...], "previews": ["preview/scene_0_typing.png", ...],
-  "outputs": [{ "file", "format": "gif"|"webp"|"mp4"|"webm", "sizeBytes",
+  "outputs": [{ "file", "format": "gif"|"webp"|"mp4"|"webm",
+  "transparent", "transparencyMode": "alpha"|"1-bit"|"none", "sizeBytes",
   "width", "height", "durationS", "fps", "frameCount", "loopsForever",
   "hasAudio", "encoder", "withinBudget" }] }
 
@@ -101,7 +104,24 @@ frame: { type: phone, title?, subtitle?, statusBarTime? }
 Every frame also takes width? and height? (320-1920) overriding the default
 canvas: phone 480x1040, browser 960x640, terminal 820x520, desktop 1024x640,
 none 960x640. output.width still controls the encoded pixel width; frame
-width/height set the canvas shape and aspect.
+width/height set the canvas shape and aspect. Every frame also takes outside?
+("page" default, "transparent", or "#hex"), shadow? (true), and margin? (0-256,
+transparent-only padding after alpha trim). Phone alone also takes deviceColor?
+(hex) for the bezel.
+
+Transparent output is alpha-based, not chroma-keyed. Use WebP for clean 8-bit
+alpha. GIF uses 1-bit transparency, warns, and disables the soft shadow; MP4/WebM
+with outside: transparent is a policy error. Use outside: "#hex" when a video or
+GIF needs an opaque matte fallback. frame.type none + transparent is allowed but
+warns because the rectangular content edge becomes the cutout.
+
+Scenes can override frame chrome with scenes[].frame, but only for fields that
+belong to the global frame type: phone title/subtitle/statusBarTime, browser
+title/url/chrome, terminal title/prompt, desktop title/subtitle. Global-only
+controls such as outside, shadow, margin, and deviceColor are rejected in scene
+overrides. Example: browser scene 1 can show a VPS work URL/title, then scene 2
+can switch to a GitHub PR URL/title for the result while keeping one browser
+frame.
 
 scenes: 1-12 entries, each with duration (seconds, <=30, total <=60),
 optional transition cut|crossfade (cut default; crossfade costs GIF size),
@@ -176,8 +196,9 @@ scene or a trailing hold so it lands on the closing frame):
   terminal-playback + terminal, chat + phone, code/metric-card + browser.
 - Rendering examples ship in the package under examples/ (one per scene
   type, plus desktop-app, frameless, and screen-dashboard/screen-focus/
-  screen-scroll for product reconstruction); copy one as a starting point,
-  or start from a gallery template via init --template / init --category product.
+  screen-scroll for product reconstruction, plus transparent-hero for alpha
+  cutouts); copy one as a starting point, or start from a gallery template via
+  init --template / init --category product.
 - A GitHub Action lives at bprateeek/demoframe/action for CI renders
   (README auto-refresh and PR preview recipes in action/README.md).
 - Keep total duration 8-15s for README heroes.

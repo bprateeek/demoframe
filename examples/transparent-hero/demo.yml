@@ -1,0 +1,35 @@
+title: Transparent phone hero
+output: { format: webp, width: 640, fps: 15, budget: 4MB, displayWidth: 320 }
+theme: { accent: "#e2603a", mode: light, font: inter }
+frame:
+  type: phone
+  outside: transparent
+  margin: 24
+  deviceColor: "#172033"
+  title: DemoFlow
+  subtitle: "transparent cutout"
+scenes:
+  - type: typing
+    duration: 3.0
+    text: "Turn the support inbox into a launch-ready changelog"
+    send: true
+    tap: true
+  - type: steps
+    duration: 3.0
+    transition: crossfade
+    header: { title: Drafting update, detail: "Signals grouped by theme." }
+    items:
+      - { label: Summarized 18 requests, state: done }
+      - { label: Matched release notes, state: done }
+      - { label: Preparing PR, state: active, link: true }
+    tap: true
+  - type: status-card
+    duration: 2.8
+    transition: crossfade
+    title: Changelog ready
+    subtitle: "Support themes mapped to v0.8."
+    checks: [Copy reviewed, Links verified, Ready to publish]
+    cta: { label: Publish update, style: success }
+    celebrate: true
+  - type: hold
+    duration: 1.2

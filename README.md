@@ -14,7 +14,7 @@ looping GIF, animated WebP, or MP4 without screen recording.
 
 The hero above is demoframe's own output:
 [`examples/fieldwork-hero/demo.yml`](https://github.com/bprateeek/demoframe/blob/main/examples/fieldwork-hero/demo.yml),
-439KB, 480px, 15fps, loops forever.
+591KB, 480px, 15fps, loops forever.
 
 ## For coding agents
 
@@ -125,7 +125,16 @@ scenes:
 
 **Frames**: `phone`, `browser`, `terminal`, `desktop` (macOS-style app
 window), and `none` (frameless, scenes fill the canvas). Every frame accepts
-`width`/`height` (320-1920) to change the canvas size and aspect.
+`width`/`height` (320-1920) to change the canvas size and aspect. Use
+`frame.outside: transparent` for alpha cutouts, `frame.outside: "#hex"` for a
+solid matte, or the default `page`; `frame.margin` adds transparent padding
+after trim and `frame.shadow: false` makes a hard cutout. Phone frames also
+accept `deviceColor`.
+
+Scene-level frame overrides can change the visible chrome while preserving the
+global frame type: for example, a browser demo can show `frame.url:
+"https://vps.example/workspace"` on the work scene, then
+`"https://github.com/acme/repo/pull/42"` on the PR result scene.
 
 **Scenes**: `typing` (animated typing with caret), `steps` (progress rows with
 done/active/pending states), `status-card` (PR-style result screen with checks
@@ -138,7 +147,8 @@ callouts), `hold` (freeze the
 previous scene), and `screenshot` (a raw image with optional pan/zoom, a
 fallback for when the screenshot itself is the subject). One example config per
 scene type ships under `examples/`, including `examples/screen-dashboard`,
-`examples/screen-focus`, and `examples/screen-scroll`.
+`examples/screen-focus`, `examples/screen-scroll`, and
+`examples/transparent-hero`.
 
 **Delight primitives** (opt-in): `tap: true` on a `typing`/`steps`/`status-card`
 scene drops a touch cursor that taps the action; `celebrate: true` plays a
@@ -194,9 +204,12 @@ designed so your coding agent can write it for you (see `docs/llms.txt` and
 
 `output.format` takes `gif`, `webp`, `mp4`, `webm`, or a list like
 `[webp, mp4]`. Animated WebP is the recommended README format: it autoplays
-on GitHub like a GIF at a fraction of the size with full color. Keep `gif`
-for destinations that require it; `webm` (VP9) beats `mp4` on size where
-it's accepted.
+on GitHub like a GIF at a fraction of the size with full color, and it supports
+clean 8-bit alpha for `frame.outside: transparent`. Transparent GIF is
+supported as a degraded 1-bit fallback; demoframe drops the soft shadow and
+warns. Transparent MP4/WebM is a policy error because alpha is not reliably
+useful for the target destinations. Use `frame.outside: "#hex"` when you need a
+solid fallback for video.
 
 Rendering for a specific destination? `render --for github-readme | x-post |
 linkedin | product-hunt` sets format, width, fps, budget, and quality in one
@@ -206,8 +219,9 @@ GIF and WebP outputs default to a 5MB budget (GitHub renders README GIFs
 poorly past that). If an encode exceeds the budget, demoframe automatically
 retries down a ladder (15fps to 12fps, then 480px to 400px) and reports what
 it did. Every render ends with a QA report (dimensions, duration, fps, frame
-count, size, loop marker, audio absence), printed and written to
-`report.json`.
+count, size, loop marker, audio absence, transparency mode), printed and
+written to `report.json`. Transparent renders also write
+`preview/final_transparent_checkerboard.png` so the cutout can be inspected.
 
 ## Privacy
 

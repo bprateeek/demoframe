@@ -1,6 +1,7 @@
 import path from 'node:path';
 import {
-  frameViewport,
+  captureViewport,
+  isTransparentFrame,
   normalizeLogo,
   type DemoConfig,
   type Frame,
@@ -13,6 +14,7 @@ import { normalizeImageToDataUrl } from '../assets/normalize.js';
 import { icons } from './icons.js';
 import { fontCss } from './fonts.js';
 import { resolveTheme, themeCss } from './theme.js';
+import { frameCss } from './frame.js';
 import { baseCss } from './base.js';
 import { phoneChromeHtml, phoneCss, phoneShellHtml } from './frames/phone.js';
 import { browserChromeHtml, browserCss, browserShellHtml } from './frames/browser.js';
@@ -34,6 +36,8 @@ export interface BuiltDocument {
   html: string;
   viewport: { width: number; height: number };
   timeline: Timeline;
+  transparent: boolean;
+  frameMargin: number;
 }
 
 async function resolveAvatar(
@@ -220,6 +224,7 @@ export async function buildDocument(
     terminalCss,
     desktopCss,
     noneCss,
+    frameCss(config.frame),
     typingCss,
     stepsCss,
     statusCardCss,
@@ -233,17 +238,31 @@ export async function buildDocument(
   ].join('\n');
 
   const { runtimeJs } = await import('./runtime.js');
+  const bodyClasses = [
+    `df-frame-${frameType}`,
+    isTransparentFrame(config.frame) ? 'df-outside-transparent' : '',
+    config.frame.shadow ? '' : 'df-frame-shadow-off',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>${css}</style>
 </head>
-<body class="df-frame-${frameType}">
+<body class="${bodyClasses}">
 ${frameHtml}
 <script>${runtimeJs(JSON.stringify(timeline))}</script>
 </body>
 </html>`;
 
-  return { html, viewport: frameViewport(config.frame), timeline };
+  return {
+    html,
+    viewport: captureViewport(config.frame),
+    timeline,
+    transparent: isTransparentFrame(config.frame),
+    frameMargin: config.frame.margin ?? 0,
+  };
 }

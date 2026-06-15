@@ -65,6 +65,8 @@ const cssColor = z
     'expected hex like "#3b82f6" or rgb()/rgba()',
   );
 
+const frameOutside = z.union([z.enum(['transparent', 'page']), hexColor]);
+
 export const PALETTE_KEYS = [
   'page',
   'screen',
@@ -124,42 +126,56 @@ const themeSchema = z
 const frameBase = {
   width: z.number().int().min(320).max(1920).optional(),
   height: z.number().int().min(320).max(1920).optional(),
+  outside: frameOutside.default('page'),
+  shadow: z.boolean().default(true),
+  margin: z.number().int().min(0).max(256).optional(),
 };
 
-const phoneFrame = z.object({
-  type: z.literal('phone'),
-  ...frameBase,
-  title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
-  subtitle: z.string().max(TEXT_LIMITS.headerDetail).optional(),
-  statusBarTime: z.string().max(8).default('9:41'),
-});
+const phoneFrame = z
+  .object({
+    type: z.literal('phone'),
+    ...frameBase,
+    title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
+    subtitle: z.string().max(TEXT_LIMITS.headerDetail).optional(),
+    statusBarTime: z.string().max(8).default('9:41'),
+    deviceColor: hexColor.optional(),
+  })
+  .strict();
 
-const browserFrame = z.object({
-  type: z.literal('browser'),
-  ...frameBase,
-  url: z.string().max(80).optional(),
-  title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
-  chrome: z.enum(['full', 'thin']).default('full'),
-});
+const browserFrame = z
+  .object({
+    type: z.literal('browser'),
+    ...frameBase,
+    url: z.string().max(80).optional(),
+    title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
+    chrome: z.enum(['full', 'thin']).default('full'),
+  })
+  .strict();
 
-const terminalFrame = z.object({
-  type: z.literal('terminal'),
-  ...frameBase,
-  title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
-  prompt: z.string().max(16).default('$'),
-});
+const terminalFrame = z
+  .object({
+    type: z.literal('terminal'),
+    ...frameBase,
+    title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
+    prompt: z.string().max(16).default('$'),
+  })
+  .strict();
 
-const desktopFrame = z.object({
-  type: z.literal('desktop'),
-  ...frameBase,
-  title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
-  subtitle: z.string().max(TEXT_LIMITS.headerDetail).optional(),
-});
+const desktopFrame = z
+  .object({
+    type: z.literal('desktop'),
+    ...frameBase,
+    title: z.string().max(TEXT_LIMITS.headerTitle).optional(),
+    subtitle: z.string().max(TEXT_LIMITS.headerDetail).optional(),
+  })
+  .strict();
 
-const noneFrame = z.object({
-  type: z.literal('none'),
-  ...frameBase,
-});
+const noneFrame = z
+  .object({
+    type: z.literal('none'),
+    ...frameBase,
+  })
+  .strict();
 
 const frameSchema = z.discriminatedUnion('type', [
   phoneFrame,
@@ -837,7 +853,22 @@ export const FRAME_VIEWPORTS = {
   none: { width: 960, height: 640 },
 } as const;
 
+export const TRANSPARENT_GUTTER = 96;
+
 export function frameViewport(frame: Frame): { width: number; height: number } {
   const d = FRAME_VIEWPORTS[frame.type];
   return { width: frame.width ?? d.width, height: frame.height ?? d.height };
+}
+
+export function isTransparentFrame(frame: Frame): boolean {
+  return frame.outside === 'transparent';
+}
+
+export function captureViewport(frame: Frame): { width: number; height: number } {
+  const viewport = frameViewport(frame);
+  if (!isTransparentFrame(frame)) return viewport;
+  return {
+    width: viewport.width + TRANSPARENT_GUTTER * 2,
+    height: viewport.height + TRANSPARENT_GUTTER * 2,
+  };
 }

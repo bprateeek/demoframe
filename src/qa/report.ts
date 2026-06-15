@@ -8,6 +8,8 @@ import { ffmpegPath } from '../env/doctor.js';
 export interface OutputReport {
   file: string;
   format: 'gif' | 'webp' | 'mp4' | 'webm';
+  transparent: boolean;
+  transparencyMode: 'alpha' | '1-bit' | 'none';
   sizeBytes: number;
   width: number | null;
   height: number | null;
@@ -33,6 +35,8 @@ export function inspectGif(
   return {
     file,
     format: 'gif',
+    transparent: false,
+    transparencyMode: 'none',
     sizeBytes,
     width: info.width,
     height: info.height,
@@ -74,6 +78,8 @@ export function inspectMp4(file: string): OutputReport {
   return probeWithFfmpeg(file, {
     file,
     format: 'mp4',
+    transparent: false,
+    transparencyMode: 'none',
     sizeBytes: statSync(file).size,
     width: null,
     height: null,
@@ -89,6 +95,8 @@ export function inspectWebm(file: string): OutputReport {
   return probeWithFfmpeg(file, {
     file,
     format: 'webm',
+    transparent: false,
+    transparencyMode: 'none',
     sizeBytes: statSync(file).size,
     width: null,
     height: null,
@@ -109,6 +117,8 @@ export async function inspectWebp(
   const report: OutputReport = {
     file,
     format: 'webp',
+    transparent: false,
+    transparencyMode: 'none',
     sizeBytes,
     width: null,
     height: null,
@@ -142,6 +152,7 @@ export function printReport(report: OutputReport): void {
   if (report.loopsForever != null) console.log(`  loops: ${report.loopsForever ? 'forever' : 'NO (missing loop marker)'}`);
   if (report.hasAudio != null) console.log(`  audio: ${report.hasAudio ? 'PRESENT (unexpected)' : 'none'}`);
   if (report.encoder) console.log(`  encoder: ${report.encoder}`);
+  if (report.transparent) console.log(`  transparency: ${report.transparencyMode}`);
 }
 
 export function writeReportJson(outDir: string, reports: OutputReport[], extra: Record<string, unknown>): string {

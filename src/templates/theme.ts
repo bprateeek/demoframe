@@ -128,7 +128,6 @@ export function themeCss(theme: Theme): string {
   --df-success-bg: ${p.successBg};
   --df-info: ${p.info};
   --df-shadow: ${p.shadow};
-  --df-device: #18243a;
   --df-font-sans: ${sans};
   --df-font-mono: ${mono};
   --df-s1: 4px; --df-s2: 8px; --df-s3: 12px; --df-s4: 16px; --df-s5: 24px; --df-s6: 32px;

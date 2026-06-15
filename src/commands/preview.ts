@@ -5,7 +5,8 @@ import { runCheck } from './check.js';
 import { ensureChromium } from '../env/install.js';
 import type { LoadedConfig } from '../config/load.js';
 import { buildDocument } from '../templates/document.js';
-import { openRenderSession } from '../render/browser.js';
+import { openRenderSession, type RenderSession } from '../render/browser.js';
+import { applyCrop, computeAlphaBox, type AlphaBox } from '../render/crop.js';
 import { measureLayout, type LayoutFinding } from '../qa/layout.js';
 
 const GITHUB_DARK = '#0d1117';
@@ -28,12 +29,65 @@ async function compositeOn(stillPng: Buffer, background: string, outFile: string
     .toFile(outFile);
 }
 
+async function compositeOnCheckerboard(stillPng: Buffer, outFile: string): Promise<void> {
+  const meta = await sharp(stillPng).metadata();
+  const width = meta.width ?? 1;
+  const height = meta.height ?? 1;
+  const cell = 16;
+  const checkerboard = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+  <rect width="100%" height="100%" fill="#f8fafc"/>
+  <pattern id="c" width="${cell * 2}" height="${cell * 2}" patternUnits="userSpaceOnUse">
+    <rect width="${cell}" height="${cell}" fill="#d7dee8"/>
+    <rect x="${cell}" y="${cell}" width="${cell}" height="${cell}" fill="#d7dee8"/>
+  </pattern>
+  <rect width="100%" height="100%" fill="url(#c)"/>
+</svg>`);
+  await sharp(checkerboard).composite([{ input: stillPng, left: 0, top: 0 }]).png().toFile(outFile);
+}
+
 function slug(input: string): string {
   return input
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 48);
+}
+
+interface CropPlan {
+  box: AlphaBox;
+  marginPx: number;
+}
+
+function previewSampleTimes(doc: Awaited<ReturnType<typeof buildDocument>>): number[] {
+  const times: number[] = [];
+  for (const ts of doc.timeline.scenes) {
+    times.push(ts.start + ts.duration * 0.15, ts.start + ts.duration * 0.5, ts.start + ts.duration * 0.9);
+    if (ts.data.tap) times.push(ts.start + ts.duration * TAP_PRESS);
+    if (ts.data.celebrate) times.push(ts.start + Math.min(0.2, ts.duration * 0.25));
+  }
+  times.push(Math.max(0, doc.timeline.duration - 0.05));
+  return [...new Set(times.map((t) => Math.max(0, Math.min(doc.timeline.duration, t)).toFixed(3)))].map(Number);
+}
+
+async function transparentCropPlan(
+  session: RenderSession,
+  doc: Awaited<ReturnType<typeof buildDocument>>,
+): Promise<CropPlan | undefined> {
+  if (!doc.transparent) return undefined;
+  const samples: Buffer[] = [];
+  for (const t of previewSampleTimes(doc)) {
+    await session.seek(t * 1000);
+    samples.push(await session.screenshot());
+  }
+  return {
+    box: await computeAlphaBox(samples),
+    marginPx: Math.round(doc.frameMargin * session.scale),
+  };
+}
+
+async function captureStill(session: RenderSession, crop: CropPlan | undefined): Promise<Buffer> {
+  const still = await session.screenshot();
+  return crop ? applyCrop(still, crop.box, crop.marginPx).png().toBuffer() : still;
 }
 
 export interface PreviewArtifacts {
@@ -53,12 +107,13 @@ export async function writePreviewArtifacts(
   const written: string[] = [];
   let layout: LayoutFinding[] = [];
   try {
+    const crop = await transparentCropPlan(session, doc);
     for (const ts of doc.timeline.scenes) {
       if (ts.type === 'hold') continue;
       const t = ts.start + ts.duration * 0.65;
       await session.seek(t * 1000);
       const file = path.join(outDir, `scene_${ts.index}_${slug(ts.name ?? ts.type)}.png`);
-      await session.screenshot(file);
+      await sharp(await captureStill(session, crop)).png().toFile(file);
       written.push(file);
     }
 
@@ -68,19 +123,25 @@ export async function writePreviewArtifacts(
         await session.seek((ts.start + ts.duration * TAP_PRESS) * 1000);
         const label = rendered.type === 'status-card' ? 'cta' : 'tap';
         const file = path.join(outDir, `moment_${ts.index}_${label}.png`);
-        await session.screenshot(file);
+        await sharp(await captureStill(session, crop)).png().toFile(file);
         written.push(file);
       }
       if (ts.data.celebrate) {
         await session.seek((ts.start + Math.min(0.2, ts.duration * 0.25)) * 1000);
         const file = path.join(outDir, `moment_${ts.index}_celebrate.png`);
-        await session.screenshot(file);
+        await sharp(await captureStill(session, crop)).png().toFile(file);
         written.push(file);
       }
     }
 
     await session.seek((doc.timeline.duration - 0.05) * 1000);
-    const finalStill = await session.screenshot();
+    const finalStill = await captureStill(session, crop);
+
+    if (doc.transparent) {
+      const checkerFile = path.join(outDir, 'final_transparent_checkerboard.png');
+      await compositeOnCheckerboard(finalStill, checkerFile);
+      written.push(checkerFile);
+    }
 
     const displayWidth = config.output.displayWidth ?? Math.round(config.output.width * 0.6);
     const readmeSize = await sharp(finalStill).resize({ width: displayWidth }).png().toBuffer();

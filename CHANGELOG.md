@@ -3,6 +3,34 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
+## 0.8.0
+
+Transparent embeds and frame polish. This release keeps opaque renders stable
+while adding true alpha output for framed demos.
+
+### Added
+
+- `frame.outside`: `page` (default), `transparent` for alpha cutouts, or a hex
+  color for a solid matte fallback.
+- `frame.shadow`, `frame.margin`, and phone `frame.deviceColor` for cutout and
+  bezel control.
+- Transparent WebP output with 8-bit alpha, transparent GIF fallback with
+  1-bit alpha, and policy errors for transparent MP4/WebM.
+- Alpha trimming across full renders and preview stills, plus
+  `preview/final_transparent_checkerboard.png`.
+- Transparency metadata in `report.json`: `transparent` and
+  `transparencyMode`.
+- `examples/transparent-hero`.
+
+### Changed
+
+- Frame schemas are now strict, so typo fields and phone-only `deviceColor` on
+  other frames are rejected instead of silently ignored.
+- `render --for` now aggregates preset-adjusted check errors before rendering,
+  so a preset cannot accidentally convert a transparent WebP config into MP4.
+- The README snippet now points at `--asset-out` when that copied path covers
+  the embeddable GIF/WebP.
+
 ## 0.6.0
 
 Makes reconstruct-first portable to any agent, not just Claude Code. The CLI

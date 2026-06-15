@@ -39,8 +39,8 @@ Then confirm the screen-to-scene mapping with the user before rendering. In auto
 3. **Pre-render quality gate.** Before spending render time, self-check the draft against the reconstruction rule. **If the draft could be described as "screenshots inside a frame," reject it and rewrite it as synthetic scenes.** Exception: unless the user explicitly asked for an exact/raw screenshot demo (a bug report, before/after proof, a dashboard layout), in which case pass `--allow-raw-screenshots` to `check`/`render` to demote the error to a warning.
 4. **Render one-shot.** `npx demoframe render demo.yml -o dist` validates, renders, encodes, and writes. Rendering for a specific destination? Add `--for github-readme|x-post|linkedin|product-hunt` to set format, width, fps, budget, and quality in one flag (it overrides the config's `output` values and prints what it changed):
    - the outputs (`demo.gif`, `demo.webp`, and/or `demo.mp4` per `output.format`)
-   - `dist/preview/` stills: one per scene plus `final_readme_size.png` and GitHub dark/light composites
-   - `dist/report.json` with measured facts about every output
+   - `dist/preview/` stills: one per scene plus `final_readme_size.png`, GitHub dark/light composites, and `final_transparent_checkerboard.png` for transparent cutouts
+   - `dist/report.json` with measured facts about every output, including transparency mode
    Chromium (~150MB, one-time) and gifski download automatically on first use; pass `--no-download` to fail instead.
 5. **Verify from report.json.** Check every output: `withinBudget` true, `loopsForever` true, `durationS` close to the designed total, dimensions as expected. The `attempts` array shows the retry ladder; more than one attempt means the config is near the budget edge.
 6. **Look at the stills.** Read the `dist/preview/` PNGs. Check: text fully readable at README size, nothing clipped, the final frame tells the whole story on its own, dark composite looks intentional.
@@ -50,6 +50,8 @@ Then confirm the screen-to-scene mapping with the user before rendering. In auto
 
 - Story arc that works: typing (the ask) then steps (the work) then status-card (the result) then `hold` 1 to 1.5s so the ending reads before the loop.
 - Scene palette: `typing`, `steps`, `status-card`, `screenshot`, `terminal-playback` (typed command, streamed output, exit status), `code` (syntax-highlighted reveal, diff marks via `added`/`removed`), `chat` (conversation bubbles with typing indicator and optional avatars), `metric-card` (animated counters plus bar/line chart), `screen` (reconstructed product UI blocks), `hold`. Match scene to frame: terminal-playback + terminal, chat + phone, code/metric-card/screen + browser or none.
+- Frame polish: `frame.outside: transparent` makes a true alpha cutout (best with `output.format: webp`), `frame.outside: "#hex"` gives an opaque matte fallback, `frame.shadow: false` makes a hard cutout, `frame.margin` adds transparent padding after trim, and phone frames accept `deviceColor` for the bezel. Transparent GIF is 1-bit and drops the soft shadow; transparent MP4/WebM is rejected by check/render.
+- Scene-level frame overrides are for chrome copy only. Use `scenes[].frame.url/title/chrome` to hand off from a VPS work screen to a GitHub PR screen inside one browser demo, or phone title/subtitle/statusBarTime for mobile handoffs. Do not put global output controls (`outside`, `shadow`, `margin`, `deviceColor`) in scene overrides.
 - **Delight primitives (opt-in, keep them rare and intentional):**
   - `tap: true` on a `typing`, `steps`, or `status-card` scene drops a soft touch cursor that glides to that scene's action and taps it near the scene's end (the send button, the one linked step, the CTA). `typing.tap` needs `send: true`; it is not available in a terminal frame.
   - `celebrate: true` plays a restrained success burst (a checkmark pop, a ring pulse, a few accent dots) anchored to the scene's CTA or result. Put it on the final scene or a trailing `hold` so the burst lands on the closing frame.
@@ -68,3 +70,4 @@ Then confirm the screen-to-scene mapping with the user before rendering. In auto
 - Live preview for humans: `npx demoframe serve demo.yml`
 - Worked example using the delight primitives: `node_modules/demoframe/examples/mobile-flow/demo.yml`
 - Screen reconstruction examples: `node_modules/demoframe/examples/screen-dashboard/demo.yml`, `screen-focus/demo.yml`, and `screen-scroll/demo.yml`
+- Transparent cutout example: `node_modules/demoframe/examples/transparent-hero/demo.yml`
