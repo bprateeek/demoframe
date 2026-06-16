@@ -3,6 +3,7 @@ output: { format: gif, width: 600, fps: 15, displayWidth: 420 }
 theme: { accent: "#1f9d55", mode: light, font: inter }
 frame: { type: browser, title: Weekly report }
 brief:
+  mode: user-confirmed
   audience: README visitors checking metric-card animation
   source: Synthetic report.json metrics reconstructed as a browser card
   screenshotPolicy: reconstruct

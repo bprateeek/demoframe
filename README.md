@@ -28,7 +28,10 @@ demo whose every scene is a raw screenshot is "screenshots pasted in a frame":
 `demoframe check` and `demoframe render` **reject it** (pass
 `--allow-raw-screenshots` only for an intentional raw demo, e.g. a bug report or
 before/after proof). The interview is recorded in a top-level `brief:` block;
-`check` warns when it is missing or still TODO-filled, and `--strict` fails.
+`check`, `preview`, and `render` now refuse it when it is missing, still
+TODO-filled, or not marked `mode: user-confirmed`. Headless runs must pass
+`--autonomous`, which labels the report as `mode: inferred` and records
+assumptions.
 demoframe then validates the YAML, renders the frames, encodes the GIF/WebP/MP4,
 and writes a machine-readable QA report.
 
@@ -40,6 +43,7 @@ your repo sees it (it won't read `node_modules/demoframe/`).
 Useful surfaces for agents:
 
 - `AGENTS.md` is the reconstruct-first brief + interview, for any agent
+- `demoframe install-agent-instructions` writes that guidance into the nearest git-root `AGENTS.md`; `init` runs it by default
 - `demoframe schema` prints the JSON Schema for configs; `docs/llms.txt` explains the full contract
 - `npx demoframe-mcp` is an MCP server exposing `get_schema`, `validate_config`, `render_demo`, and `get_report`
 - `skills/demoframe/SKILL.md` (shipped in the package) teaches Claude Code the full authoring loop
@@ -63,6 +67,7 @@ environment explicitly.
 ```sh
 demoframe init my-demo --frame phone
 cd my-demo
+# answer the interview in brief:, then set mode: user-confirmed
 demoframe render demo.yml     # validate -> frames -> GIF/WebP/MP4 + stills + report.json
 ```
 
@@ -77,6 +82,8 @@ with `template.yml` and `meta.yml`.
 One `render` does the whole pipeline: validation and privacy scan, frame
 rendering, encoding with the size-budget retry ladder, per-scene preview
 stills in `dist/preview/`, and a machine-readable `dist/report.json`.
+It writes managed outputs atomically, so a failed strict render leaves the
+previous successful output in place.
 
 For faster iteration while authoring:
 
@@ -85,6 +92,11 @@ demoframe check demo.yml      # validate config, assets, privacy scan (<1s)
 demoframe preview demo.yml    # key stills only, no encode
 demoframe serve demo.yml      # live preview with a time scrubber
 ```
+
+Use `--autonomous` only when there is explicitly no human to interview, and add
+repeatable `--assumption "..."` entries on `preview`/`render` to record what
+was inferred. The brief gate becomes a notice; missing assets and other real
+errors still block the run.
 
 ## Use it for
 
@@ -105,6 +117,7 @@ output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: vps-fieldwork-smoke, subtitle: "fieldwork-smoke · VPS" }
 brief:
+  mode: user-confirmed
   audience: README visitors evaluating a mobile-to-PR agent story
   source: Synthetic flow reconstructed from fieldwork and GitHub handoff screens
   screenshotPolicy: reconstruct
@@ -184,9 +197,11 @@ overlays a badge over the scenes).
 JSON configs are accepted too. Validate anything against
 `schema/demoframe.schema.json`.
 
-`brief` is authoring metadata, not render input. It records the audience,
-source material, screenshot policy, placement, story arc, climax, brand, product
-names, and exact copy so agents can verify they reconstructed the intended demo.
+`brief` records the audience, source material, screenshot policy, placement,
+story arc, climax, brand, product names, and exact copy so agents can verify
+they reconstructed the intended demo. It gates execution: confirmed briefs use
+`mode: user-confirmed`; inferred/headless runs require `--autonomous` and are
+reported as `mode: inferred`.
 
 ## Render in CI
 
@@ -238,7 +253,9 @@ retries down a ladder (15fps to 12fps, then 480px to 400px) and reports what
 it did. Every render ends with a QA report (dimensions, duration, fps, frame
 count, size, loop marker, audio absence, transparency mode), printed and
 written to `report.json`. The report also includes `brief.present`,
-`brief.requiredComplete`, and `brief.recommendedComplete`. Transparent renders also write
+`brief.requiredComplete`, `brief.recommendedComplete`, `brief.mode`,
+`brief.confirmed`, structured `warnings`/`notices`, and inferred
+`brief.assumptions` when applicable. Transparent renders also write
 `preview/final_transparent_checkerboard.png` so the cutout can be inspected.
 
 ## Privacy

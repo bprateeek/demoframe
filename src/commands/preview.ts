@@ -8,6 +8,7 @@ import { buildDocument } from '../templates/document.js';
 import { openRenderSession, type RenderSession } from '../render/browser.js';
 import { applyCrop, computeAlphaBox, type AlphaBox } from '../render/crop.js';
 import { measureLayout, type LayoutFinding } from '../qa/layout.js';
+import { briefSummary, resolveInferredAssumptions } from '../qa/brief.js';
 
 const GITHUB_DARK = '#0d1117';
 const GITHUB_LIGHT = '#ffffff';
@@ -168,11 +169,29 @@ export async function writePreviewStills(loaded: LoadedConfig, outDir: string): 
 
 export async function runPreview(
   configFile: string,
-  opts: { out: string; download?: boolean },
+  opts: { out: string; download?: boolean; autonomous?: boolean; assumptions?: string[] },
 ): Promise<void> {
-  const { loaded, errors, warnings } = await runCheck(configFile);
-  for (const e of errors) console.log(`  x ${e}`);
-  for (const w of warnings) console.log(`  ! ${w}`);
+  const { loaded, errors, warnings, notices } = await runCheck(configFile, {
+    allowInferred: opts.autonomous,
+  });
+  for (const e of errors) console.log(`  x ${e.message}`);
+  for (const w of warnings) console.log(`  ! ${w.message}`);
+  for (const n of notices) console.log(`  i ${n.message}`);
+  const summary = briefSummary(loaded.config);
+  if (opts.autonomous && !summary.confirmed) {
+    const resolved = resolveInferredAssumptions(loaded.config, opts.assumptions);
+    for (const n of resolved.notices) console.log(`  i ${n.message}`);
+    if (resolved.assumptions.length > 0) {
+      console.log('\ninferred assumptions:');
+      for (const assumption of resolved.assumptions) console.log(`  - ${assumption}`);
+    }
+  }
+  if (errors.length > 0) {
+    const firstError = errors[0] ? ` First error: ${errors[0].message}.` : '';
+    throw new Error(
+      `refusing to preview: ${errors.length} blocking error${errors.length === 1 ? '' : 's'} above.${firstError}`,
+    );
+  }
   await ensureChromium(opts.download !== false);
 
   const outDir = path.resolve(opts.out);

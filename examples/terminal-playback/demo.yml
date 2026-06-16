@@ -3,6 +3,7 @@ output: { format: gif, width: 480, fps: 15, displayWidth: 320 }
 theme: { accent: "#e2603a", mode: dark, font: inter }
 frame: { type: terminal, title: demoframe, prompt: "$" }
 brief:
+  mode: user-confirmed
   audience: Developers evaluating terminal playback in a README
   source: Synthetic CLI render log reconstructed from demoframe output
   screenshotPolicy: reconstruct

@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
+import { installAgentInstructions } from './install-agent-instructions.js';
 
 export interface TemplateMeta {
   name: string;
@@ -22,6 +23,7 @@ const CATEGORY_DEFAULTS: Record<string, string> = {
 };
 
 const BRIEF_STUB = `brief:
+  # mode: user-confirmed   # set after interviewing; use --autonomous only for inferred/headless runs
   audience: "TODO: who is this for"
   source: "TODO: screenshots / app under demo"
   # screenshotPolicy: reconstruct   # reconstruct | simplify | raw-intentional
@@ -46,6 +48,7 @@ export interface InitOptions {
   template?: string;
   category?: string;
   list?: boolean;
+  agentInstructions?: boolean;
 }
 
 export async function runInit(dir: string, opts: InitOptions = {}): Promise<void> {
@@ -104,13 +107,19 @@ export async function runInit(dir: string, opts: InitOptions = {}): Promise<void
   const template = readFileSync(templateFile, 'utf8');
   writeFileSync(configFile, `${BRIEF_STUB}\n${template}`);
   console.log(`created ${configFile} (${name} template) and assets/`);
+  if (opts.agentInstructions !== false) {
+    const installed = installAgentInstructions(target);
+    console.log(`${installed.action} ${installed.file}`);
+  }
   console.log('\nreconstruct first: screenshots are reference, not ingredients. Rebuild the flow as');
   console.log('synthetic scenes (typing/steps/status-card/chat/screen); a frameless all-screenshot demo is');
   console.log('rejected by check/render. Pass --allow-raw-screenshots only for an intentional raw demo.');
   console.log('Asset paths resolve relative to the demo.yml file; screen blocks use built-in icons/avatars.');
   console.log('For product/category mapping guidance, see docs/categories/ in the package.');
   console.log('\ninterview before authoring:');
+  console.log('  ask the 7 interview questions, confirm the scene mapping, then set brief.mode: user-confirmed.');
   console.log('  fill the brief: block with audience/source/screenshotPolicy/placement, then arc and climax.');
+  console.log('  use --autonomous only for explicit inferred/headless runs; record assumptions when you do.');
   console.log('  use brand/product/repo/verbatimCopy to capture exact names, labels, and style constraints.');
   console.log('  record screenshot extraction choices in source and screenshotPolicy before writing scenes.');
   console.log('\nnext steps:');

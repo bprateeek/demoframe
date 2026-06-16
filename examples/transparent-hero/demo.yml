@@ -9,6 +9,7 @@ frame:
   title: DemoFlow
   subtitle: "transparent cutout"
 brief:
+  mode: user-confirmed
   audience: README authors evaluating transparent WebP embeds
   source: Synthetic phone flow rebuilt from support-inbox and changelog references
   screenshotPolicy: reconstruct

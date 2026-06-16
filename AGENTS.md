@@ -41,11 +41,15 @@ Ask the user before writing any config:
 Record the interview in a top-level `brief:` block before the scenes. Required
 fields are `audience`, `source`, `screenshotPolicy`, and `placement`;
 recommended fields are `arc` and `climax`; optional fields include `brand`,
-`product`, `repo`, and `verbatimCopy`. A missing, empty, or TODO-filled brief is
-a `demoframe check` warning and becomes an error under `--strict`.
+`product`, `repo`, and `verbatimCopy`. Set `mode: user-confirmed` only after
+the user has answered the interview and confirmed the scene mapping. A missing,
+empty, TODO-filled, inferred, or otherwise unconfirmed brief makes
+`demoframe check`, `preview`, and `render` fail unless the run explicitly passes
+`--autonomous` (or MCP `autonomous: true`), which labels the output as inferred.
 
 ```yaml
 brief:
+  mode: user-confirmed
   audience: README visitors evaluating an agent workflow
   source: Screenshots of the mobile ask, VPS work screen, and GitHub PR result
   screenshotPolicy: reconstruct
@@ -59,8 +63,9 @@ brief:
 ```
 
 Then confirm the screen-to-scene mapping before rendering. In an autonomous run
-with no human, infer the mapping, state your assumptions, and proceed (don't
-block).
+with no human, pass `--autonomous`, record assumptions with `--assumption` or
+`brief.assumptions`, and expect `report.json` to say `mode: inferred` and
+`confirmed: false`.
 
 Density rules: one idea per scene, short labels, at most ~4 step items, generous
 whitespace, a single warm accent, 8 to 12s total, and a `hold` on the ending
@@ -73,15 +78,17 @@ before the loop restarts.
    `npx demoframe schema` (JSON Schema on stdout); the schema is pre-1.0, so
    read it instead of relying on memorized field names.
 2. **Validate.** `npx demoframe check demo.yml` after every edit. It prints
-   errors (which block rendering, including missing assets) and warnings (privacy
-   findings, oversized screenshots, screenshot-dominant configs, brief gaps).
+   errors (which block rendering, including missing assets and an unconfirmed
+   brief), warnings (privacy findings, oversized screenshots,
+   screenshot-dominant configs), and notices (explicit autonomous brief gates).
    `render --for` warns when it does not overlap `brief.placement`. Fix them all;
    `--strict` makes warnings fail too.
 3. **Render.** `npx demoframe render demo.yml -o dist` validates, renders,
    encodes, writes `dist/preview/` stills and `dist/report.json`. Add
    `--for github-readme|x-post|linkedin|product-hunt` to set
    format/width/fps/budget in one flag.
-4. **Verify from report.json.** `brief.requiredComplete` true,
+4. **Verify from report.json.** `brief.mode` is `user-confirmed` and
+   `brief.confirmed` true for normal runs, `brief.requiredComplete` true,
    `brief.recommendedComplete` true, `withinBudget` true, `loopsForever` true,
    `durationS` close to the designed total, dimensions as expected. For
    transparent output, check `transparent` and `transparencyMode`.
@@ -114,8 +121,9 @@ Screenshots are reference, not ingredients: reconstruct the flow as synthetic
 demoframe scenes (typing/steps/status-card/chat/screen), never paste screenshots into a
 frame. Interview first (narrative arc, climax, destination, brand, names, exact
 copy, what to keep vs simplify) and record it in the top-level `brief:` block.
-`demoframe check` warns on a missing/unfilled brief and `--strict` fails.
-`demoframe check`/`render` reject a frameless all-screenshot demo;
+Set `brief.mode: user-confirmed` only after confirmation; otherwise check,
+preview, and render fail unless `--autonomous` is explicit, in which case the
+output is labeled inferred and assumptions should be recorded. `demoframe check`/`render` reject a frameless all-screenshot demo;
 `--allow-raw-screenshots` is only for an intentional raw demo. See
 node_modules/demoframe/AGENTS.md and docs/llms.txt.
 ```

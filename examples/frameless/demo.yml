@@ -7,6 +7,7 @@ theme:
   logo: { src: assets/logo.png, placement: corner }
 frame: { type: none, width: 600, height: 600 }
 brief:
+  mode: user-confirmed
   audience: README visitors comparing frameless metric-card output
   source: Synthetic launch-week metric card with local numbers
   screenshotPolicy: reconstruct

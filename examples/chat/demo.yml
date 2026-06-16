@@ -3,6 +3,7 @@ output: { format: gif, width: 480, fps: 15, displayWidth: 280 }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: Assistant, subtitle: working on fix-auth-test }
 brief:
+  mode: user-confirmed
   audience: README visitors evaluating an agent chat demo
   source: Synthetic conversation reconstructed from a bug-fix workflow
   screenshotPolicy: reconstruct

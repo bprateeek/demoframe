@@ -28,6 +28,7 @@ describe('demoConfigSchema', () => {
     const full = demoConfigSchema.parse({
       ...minimal,
       brief: {
+        mode: 'user-confirmed',
         audience: 'Maintainers evaluating the README demo',
         source: 'Synthetic story from product screenshots',
         screenshotPolicy: 'reconstruct',
@@ -38,12 +39,16 @@ describe('demoConfigSchema', () => {
         product: 'demoframe',
         repo: 'bprateeek/demoframe',
         verbatimCopy: ['Render demo'],
+        assumptions: ['Confirmed by maintainer'],
       },
     });
     expect(full.brief?.placement).toEqual(['github-readme', 'x-post']);
+    expect(full.brief?.assumptions).toEqual(['Confirmed by maintainer']);
 
     const partial = demoConfigSchema.parse({ ...minimal, brief: { audience: 'Agents' } });
     expect(partial.brief?.audience).toBe('Agents');
+    const trimmed = demoConfigSchema.parse({ ...minimal, brief: { assumptions: ['  inferred accent  '] } });
+    expect(trimmed.brief?.assumptions).toEqual(['inferred accent']);
 
     expect(
       demoConfigSchema.safeParse({ ...minimal, brief: { audience: 'Agents', audence: 'typo' } }).success,
@@ -54,13 +59,21 @@ describe('demoConfigSchema', () => {
     expect(
       demoConfigSchema.parse({
         ...minimal,
-        brief: { screenshotPolicy: 'simplify', placement: 'product-hunt', brand: { frame: 'browser', mode: 'dark' } },
+        brief: { mode: 'inferred', screenshotPolicy: 'simplify', placement: 'product-hunt', brand: { frame: 'browser', mode: 'dark' } },
       }).brief?.placement,
     ).toBe('product-hunt');
+    expect(demoConfigSchema.safeParse({ ...minimal, brief: { mode: 'confirmed' } }).success).toBe(false);
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { screenshotPolicy: 'raw' } }).success).toBe(false);
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { placement: 'website-hero' } }).success).toBe(false);
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { brand: { frame: 'tablet' } } }).success).toBe(false);
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { brand: { mode: 'sepia' } } }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, brief: { assumptions: ['x'.repeat(1), '   '] } }).success).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        brief: { assumptions: Array.from({ length: 11 }, (_, i) => `assumption ${i}`) },
+      }).success,
+    ).toBe(false);
   });
 
   it('rejects a hold scene in first position', () => {

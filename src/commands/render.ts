@@ -1,7 +1,7 @@
-import { copyFileSync, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, statSync } from 'node:fs';
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { runCheck, runCheckLoaded } from './check.js';
+import { runCheck, runCheckLoaded, type CheckFinding } from './check.js';
 import { ensureChromium } from '../env/install.js';
 import { ensureGifski } from '../env/gifski.js';
 import { writePreviewArtifacts } from './preview.js';
@@ -30,7 +30,7 @@ import {
   type OutputReport,
 } from '../qa/report.js';
 import { measureLayout } from '../qa/layout.js';
-import { briefSummary } from '../qa/brief.js';
+import { briefSummary, resolveInferredAssumptions } from '../qa/brief.js';
 
 interface LadderStep {
   fps: number;
@@ -52,6 +52,40 @@ export interface PrimaryOutput {
 export interface AssetOutTarget {
   source: string;
   dest: string;
+}
+
+interface ManagedMove {
+  stage: string;
+  final: string;
+}
+
+function finding(code: string, message: string, details?: Record<string, unknown>): CheckFinding {
+  return details ? { code, message, details } : { code, message };
+}
+
+function findingKey(item: CheckFinding): string {
+  return `${item.code}\0${item.message}`;
+}
+
+function addFinding(target: Map<string, CheckFinding>, item: CheckFinding): void {
+  target.set(findingKey(item), item);
+}
+
+function prefixFinding(item: CheckFinding, preset: string | undefined): CheckFinding {
+  if (!preset) return item;
+  return {
+    ...item,
+    message: `preset ${preset}: ${item.message}`,
+    details: { ...item.details, preset },
+  };
+}
+
+function reportFinding(item: CheckFinding): { code: string; message: string } {
+  return { code: item.code, message: item.message };
+}
+
+function printFindings(items: CheckFinding[], mark: 'x' | '!' | 'i'): void {
+  for (const item of items) console.log(`  ${mark} ${item.message}`);
 }
 
 function ladderSteps(fps: number, width: number): LadderStep[] {
@@ -142,6 +176,67 @@ function canonicalPreviewTarget(targets: RenderTarget[]): RenderTarget {
   );
 }
 
+function resolveBriefForReport(
+  config: DemoConfig,
+  suppliedAssumptions: string[] = [],
+  allowInferred = false,
+): { brief: object; notices: CheckFinding[] } {
+  const summary = briefSummary(config);
+  if (summary.confirmed) {
+    return { brief: { ...summary, mode: 'user-confirmed', confirmed: true }, notices: [] };
+  }
+  if (!allowInferred) {
+    return { brief: summary, notices: [] };
+  }
+
+  const { assumptions, notices } = resolveInferredAssumptions(config, suppliedAssumptions);
+  return {
+    brief: {
+      ...summary,
+      mode: 'inferred',
+      confirmed: false,
+      assumptions,
+    },
+    notices,
+  };
+}
+
+function promoteManagedOutputs(
+  outDir: string,
+  stageDir: string,
+  moves: ManagedMove[],
+  keepFrames: boolean,
+): void {
+  for (const move of moves) {
+    mkdirSync(path.dirname(move.final), { recursive: true });
+    rmSync(move.final, { force: true });
+    renameSync(move.stage, move.final);
+  }
+
+  const stagePreviewDir = path.join(stageDir, 'preview');
+  if (existsSync(stagePreviewDir)) {
+    const finalPreviewDir = path.join(outDir, 'preview');
+    rmSync(finalPreviewDir, { recursive: true, force: true });
+    renameSync(stagePreviewDir, finalPreviewDir);
+  }
+
+  const stageReport = path.join(stageDir, 'report.json');
+  if (existsSync(stageReport)) {
+    const finalReport = path.join(outDir, 'report.json');
+    rmSync(finalReport, { force: true });
+    renameSync(stageReport, finalReport);
+  }
+
+  const stageFrames = path.join(stageDir, '.frames');
+  const finalFrames = path.join(outDir, '.frames');
+  if (keepFrames && existsSync(stageFrames)) {
+    rmSync(finalFrames, { recursive: true, force: true });
+    renameSync(stageFrames, finalFrames);
+  } else if (!keepFrames) {
+    rmSync(finalFrames, { recursive: true, force: true });
+  }
+}
+
 export async function runRender(
   configFile: string,
   opts: {
@@ -153,14 +248,18 @@ export async function runRender(
     assetOut?: string;
     strict?: boolean;
     allowRawScreenshots?: boolean;
+    autonomous?: boolean;
+    assumptions?: string[];
   },
 ): Promise<void> {
   const presets = parsePresets(opts.for);
   const baseCheck = await runCheck(configFile, {
     allowRawScreenshots: opts.allowRawScreenshots,
+    allowInferred: opts.autonomous,
     forDestinations: presets,
   });
   const { loaded, errors: baseErrors } = baseCheck;
+  const reportBrief = resolveBriefForReport(loaded.config, opts.assumptions, opts.autonomous);
   const targets: RenderTarget[] =
     presets.length > 0
       ? presets.map((preset) => {
@@ -169,28 +268,46 @@ export async function runRender(
         })
       : [{ config: loaded.config, changes: [] }];
 
-  const errorSet = new Set<string>(baseErrors);
-  const warningSet = new Set<string>(baseCheck.warnings);
+  const errorSet = new Map<string, CheckFinding>();
+  const warningSet = new Map<string, CheckFinding>();
+  const noticeSet = new Map<string, CheckFinding>();
+  for (const error of baseErrors) addFinding(errorSet, error);
+  for (const warning of baseCheck.warnings) addFinding(warningSet, warning);
+  for (const notice of baseCheck.notices) addFinding(noticeSet, notice);
+  for (const notice of reportBrief.notices) addFinding(noticeSet, notice);
+
   for (const target of targets) {
     for (const change of target.changes) console.log(`  ! preset ${target.preset} overrides ${change}`);
     const checked = await runCheckLoaded(
       { ...loaded, config: target.config },
-      { allowRawScreenshots: opts.allowRawScreenshots, skipBrief: true },
+      { allowRawScreenshots: opts.allowRawScreenshots, allowInferred: opts.autonomous, skipBrief: true },
     );
     for (const error of checked.errors) {
-      errorSet.add(target.preset ? `preset ${target.preset}: ${error}` : error);
+      addFinding(errorSet, prefixFinding(error, target.preset));
     }
     for (const warning of checked.warnings) {
-      warningSet.add(target.preset ? `preset ${target.preset}: ${warning}` : warning);
+      addFinding(warningSet, prefixFinding(warning, target.preset));
+    }
+    for (const notice of checked.notices) {
+      addFinding(noticeSet, prefixFinding(notice, target.preset));
     }
   }
-  const errors = [...errorSet];
-  const warnings = [...warningSet];
+  const errors = [...errorSet.values()];
+  const warnings = [...warningSet.values()];
+  const notices = [...noticeSet.values()];
 
-  for (const e of errors) console.log(`  x ${e}`);
-  for (const w of warnings) console.log(`  ! ${w}`);
+  printFindings(errors, 'x');
+  printFindings(warnings, '!');
+  printFindings(notices, 'i');
   if (errors.length > 0) {
-    const firstError = errors[0] ? ` First error: ${errors[0]}.` : '';
+    const firstError = errors[0] ? ` First error: ${errors[0].message}.` : '';
+    const briefError = errors.find((error) => error.code === 'brief.unconfirmed' || error.code === 'brief.incomplete');
+    if (briefError) {
+      throw new Error(
+        `refusing to render: brief interview is not user-confirmed. ${briefError.message} ` +
+          'Use --autonomous only for an explicitly inferred/headless run.',
+      );
+    }
     throw new Error(
       `refusing to render: ${errors.length} blocking error${errors.length === 1 ? '' : 's'} above.${firstError} ` +
         'Reconstruct the flow as synthetic scenes, or pass --allow-raw-screenshots if a raw-screenshot demo is intended.',
@@ -204,7 +321,6 @@ export async function runRender(
   const name = path.basename(configPath).replace(/\.(ya?ml|json)$/i, '');
   const outDir = path.resolve(opts.out);
   mkdirSync(outDir, { recursive: true });
-  const framesRoot = path.join(outDir, '.frames');
 
   const needsGifski = targets.some(
     (target) => outputFormats(target.config.output).includes('gif') && !isTransparentFrame(target.config.frame),
@@ -212,6 +328,8 @@ export async function runRender(
   if (needsGifski && !(await ensureGifski(opts.download !== false))) {
     console.log('  hint: gifski unavailable; encoding GIF with ffmpeg (install gifski or allow downloads for best quality)');
   }
+  const stageDir = mkdtempSync(path.join(outDir, '.demoframe-stage-'));
+  const framesRoot = path.join(stageDir, '.frames');
 
   const frameCache = new Map<string, RenderedFrames>();
   const getFrames = async (config: DemoConfig, fps: number): Promise<RenderedFrames> => {
@@ -242,7 +360,7 @@ export async function runRender(
       for (const format of formats) {
         if (format === 'mp4' || format === 'webm') continue;
         const renderConfig = effectiveConfigForFormat(config, format);
-        const outPath = path.join(outDir, outputFileName(name, preset, format));
+        const outPath = path.join(stageDir, outputFileName(name, preset, format));
         let final: OutputReport | null = null;
         for (const step of ladderSteps(config.output.fps, config.output.width)) {
           const frames = await getFrames(renderConfig, step.fps);
@@ -276,7 +394,7 @@ export async function runRender(
       }
 
       if (formats.includes('mp4')) {
-        const mp4Path = path.join(outDir, outputFileName(name, preset, 'mp4'));
+        const mp4Path = path.join(stageDir, outputFileName(name, preset, 'mp4'));
         const frames = await getFrames(config, config.output.fps);
         console.log(`encoding MP4 at ${config.output.width}px / ${config.output.fps}fps...`);
         await encodeMp4(frames, config.output.width, mp4Path);
@@ -287,7 +405,7 @@ export async function runRender(
       }
 
       if (formats.includes('webm')) {
-        const webmPath = path.join(outDir, outputFileName(name, preset, 'webm'));
+        const webmPath = path.join(stageDir, outputFileName(name, preset, 'webm'));
         const frames = await getFrames(config, config.output.fps);
         console.log(`encoding WebM at ${config.output.width}px / ${config.output.fps}fps...`);
         await encodeWebm(frames, config.output.width, webmPath);
@@ -297,68 +415,94 @@ export async function runRender(
         if (primary === 'webm') primaryOutputs.push({ preset, file: report.file, format: 'webm' });
       }
     }
-  } finally {
-    if (!opts.keepFrames) rmSync(framesRoot, { recursive: true, force: true });
+  } catch (err) {
+    rmSync(stageDir, { recursive: true, force: true });
+    throw err;
   }
 
-  let previews: string[] = [];
-  let layout: Array<{ sceneIndex: number; sceneName: string; kind: string; detail: string }> = [];
-  if (opts.stills !== false) {
-    const previewDir = path.join(outDir, 'preview');
-    const previewTarget = canonicalPreviewTarget(targets);
-    console.log('writing preview stills...');
-    const artifacts = await writePreviewArtifacts({ ...loaded, config: previewTarget.config }, previewDir);
-    previews = artifacts.files;
-    layout = artifacts.layout;
-  } else {
-    const previewTarget = canonicalPreviewTarget(targets);
-    const doc = await buildDocument(previewTarget.config, baseDir);
-    const session = await openRenderSession(doc, previewTarget.config.output.quality);
-    try {
-      layout = await measureLayout(session, doc.timeline);
-    } finally {
-      await session.close();
+  try {
+    let previews: string[] = [];
+    let layout: Array<{ sceneIndex: number; sceneName: string; kind: string; detail: string }> = [];
+    if (opts.stills !== false) {
+      const previewDir = path.join(stageDir, 'preview');
+      const previewTarget = canonicalPreviewTarget(targets);
+      console.log('writing preview stills...');
+      const artifacts = await writePreviewArtifacts({ ...loaded, config: previewTarget.config }, previewDir);
+      previews = artifacts.files;
+      layout = artifacts.layout;
+    } else {
+      const previewTarget = canonicalPreviewTarget(targets);
+      const doc = await buildDocument(previewTarget.config, baseDir);
+      const session = await openRenderSession(doc, previewTarget.config.output.quality);
+      try {
+        layout = await measureLayout(session, doc.timeline);
+      } finally {
+        await session.close();
+      }
     }
-  }
 
-  const layoutWarnings = layout.map(
-    (finding) => `layout scenes[${finding.sceneIndex}] ${finding.kind}: ${finding.detail}`,
-  );
-  const allWarnings = [...warnings, ...layoutWarnings];
-  for (const w of layoutWarnings) console.log(`  ! ${w}`);
-
-  const assetOutTargets = resolveAssetOutTargets(opts.assetOut, primaryOutputs);
-  copyPrimaryOutputs(assetOutTargets);
-
-  for (const report of reports) printReport(report);
-  const reportFile = writeReportJson(outDir, reports, {
-    title: loaded.config.title ?? name,
-    config: configPath,
-    ...(presets.length > 0 ? { presets } : {}),
-    budgetBytes: targets.length === 1 ? budgetToBytes(targets[0].config.output.budget) : undefined,
-    brief: briefSummary(loaded.config),
-    attempts,
-    warnings: allWarnings,
-    layout,
-    previews: previews.map((f) => path.relative(outDir, f)),
-  });
-  console.log(`\nreport: ${reportFile}`);
-
-  if (opts.strict && layout.length > 0) {
-    throw new Error(
-      `render failed under --strict: ${layout.length} layout finding${layout.length === 1 ? '' : 's'} above`,
+    const layoutWarnings = layout.map((item) =>
+      finding('layout.finding', `layout scenes[${item.sceneIndex}] ${item.kind}: ${item.detail}`, {
+        sceneIndex: item.sceneIndex,
+        kind: item.kind,
+      }),
     );
-  }
+    const allWarnings = [...warnings, ...layoutWarnings];
+    printFindings(layoutWarnings, '!');
 
-  const embeddable = reports.find((r) => r.format === 'webp') ?? reports.find((r) => r.format === 'gif');
-  if (embeddable) {
-    const embeddableTarget =
-      targets.find((target) => target.preset === embeddable.preset) ?? targets[0];
-    const exportedWidth = embeddable.width ?? embeddableTarget.config.output.width;
-    const width = embeddableTarget.config.output.displayWidth ?? Math.round(exportedWidth * 0.6);
-    const snippetFile = copiedAssetFor(embeddable.file, assetOutTargets) ?? embeddable.file;
-    console.log(
-      `\nREADME snippet:\n  <img src="${path.relative(process.cwd(), snippetFile)}" alt="${loaded.config.title ?? name}" width="${width}">`,
-    );
+    const outputMoves: ManagedMove[] = reports.map((report) => ({
+      stage: report.file,
+      final: path.join(outDir, path.basename(report.file)),
+    }));
+    const finalByStage = new Map(outputMoves.map((move) => [path.resolve(move.stage), move.final]));
+    for (const report of reports) {
+      report.file = finalByStage.get(path.resolve(report.file)) ?? path.join(outDir, path.basename(report.file));
+    }
+    for (const output of primaryOutputs) {
+      output.file =
+        finalByStage.get(path.resolve(output.file)) ?? path.join(outDir, path.basename(output.file));
+    }
+
+    const assetOutTargets = resolveAssetOutTargets(opts.assetOut, primaryOutputs);
+    const previewEntries = previews.map((file) => path.join('preview', path.basename(file)));
+    writeReportJson(stageDir, reports, {
+      title: loaded.config.title ?? name,
+      config: configPath,
+      ...(presets.length > 0 ? { presets } : {}),
+      budgetBytes: targets.length === 1 ? budgetToBytes(targets[0].config.output.budget) : undefined,
+      brief: reportBrief.brief,
+      attempts,
+      errors: [],
+      warnings: allWarnings.map(reportFinding),
+      notices: notices.map(reportFinding),
+      layout,
+      previews: previewEntries,
+    });
+
+    if (opts.strict && layout.length > 0) {
+      throw new Error(
+        `render failed under --strict: ${layout.length} layout finding${layout.length === 1 ? '' : 's'} above`,
+      );
+    }
+
+    promoteManagedOutputs(outDir, stageDir, outputMoves, opts.keepFrames);
+
+    for (const report of reports) printReport(report);
+    console.log(`\nreport: ${path.join(outDir, 'report.json')}`);
+    copyPrimaryOutputs(assetOutTargets);
+
+    const embeddable = reports.find((r) => r.format === 'webp') ?? reports.find((r) => r.format === 'gif');
+    if (embeddable) {
+      const embeddableTarget =
+        targets.find((target) => target.preset === embeddable.preset) ?? targets[0];
+      const exportedWidth = embeddable.width ?? embeddableTarget.config.output.width;
+      const width = embeddableTarget.config.output.displayWidth ?? Math.round(exportedWidth * 0.6);
+      const snippetFile = copiedAssetFor(embeddable.file, assetOutTargets) ?? embeddable.file;
+      console.log(
+        `\nREADME snippet:\n  <img src="${path.relative(process.cwd(), snippetFile)}" alt="${loaded.config.title ?? name}" width="${width}">`,
+      );
+    }
+  } finally {
+    rmSync(stageDir, { recursive: true, force: true });
   }
 }

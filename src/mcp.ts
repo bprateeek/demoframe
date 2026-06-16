@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { runCheck } from './commands/check.js';
 import { ConfigError } from './config/load.js';
+import { briefSummary, INTERVIEW_QUESTIONS } from './qa/brief.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -21,6 +22,10 @@ function json(value: unknown) {
 
 function failure(message: string) {
   return { content: [{ type: 'text' as const, text: message }], isError: true };
+}
+
+function jsonFailure(value: unknown) {
+  return { content: [{ type: 'text' as const, text: JSON.stringify(value, null, 2) }], isError: true };
 }
 
 server.registerTool(
@@ -45,15 +50,19 @@ server.registerTool(
   },
   async ({ config }) => {
     try {
-      const { loaded, errors, warnings } = await runCheck(config);
+      const { loaded, errors, warnings, notices } = await runCheck(config);
       const scenes = loaded.config.scenes;
+      const summary = briefSummary(loaded.config);
       return json({
         valid: errors.length === 0,
         scenes: scenes.length,
         totalDurationS: scenes.reduce((sum, s) => sum + s.duration, 0),
         frame: loaded.config.frame.type,
+        briefMode: summary.mode,
+        confirmed: summary.confirmed,
         errors,
         warnings,
+        notices,
       });
     } catch (err) {
       if (err instanceof ConfigError) {
@@ -72,13 +81,50 @@ server.registerTool(
     inputSchema: {
       config: z.string().describe('path to the demo config'),
       out: z.string().optional().describe('output directory (default "dist")'),
+      autonomous: z.boolean().optional().describe('allow an unconfirmed brief and label the render as inferred'),
+      assumptions: z.array(z.string()).optional().describe('assumptions to record for an autonomous/inferred render'),
     },
   },
-  async ({ config, out }) => {
+  async ({ config, out, autonomous, assumptions }) => {
+    try {
+      const checked = await runCheck(config, { allowInferred: autonomous });
+      const summary = briefSummary(checked.loaded.config);
+      const briefErrors = checked.errors.filter((finding) => finding.code.startsWith('brief.'));
+      const otherErrors = checked.errors.filter((finding) => !finding.code.startsWith('brief.'));
+      if (!autonomous && checked.briefGate) {
+        return json({
+          status: 'needs_input',
+          questions: INTERVIEW_QUESTIONS,
+          missingBriefFields: {
+            required: summary.missingRequired,
+            recommended: summary.missingRecommended,
+          },
+          brief: summary,
+          otherErrors,
+        });
+      }
+      if (otherErrors.length > 0 || briefErrors.length > 0) {
+        return jsonFailure({
+          status: 'error',
+          errors: [...otherErrors, ...briefErrors],
+          warnings: checked.warnings,
+          notices: checked.notices,
+        });
+      }
+    } catch (err) {
+      if (err instanceof ConfigError) {
+        return json({ valid: false, message: err.message, errors: err.issues });
+      }
+      return failure((err as Error).message);
+    }
+
     const outDir = path.resolve(out ?? 'dist');
     const cli = fileURLToPath(new URL('./cli.js', import.meta.url));
+    const argv = [cli, 'render', config, '-o', outDir];
+    if (autonomous) argv.push('--autonomous');
+    for (const assumption of assumptions ?? []) argv.push('--assumption', assumption);
     const result = await new Promise<{ code: number; output: string }>((resolve) => {
-      const child = spawn(process.execPath, [cli, 'render', config, '-o', outDir], {
+      const child = spawn(process.execPath, argv, {
         env: process.env,
       });
       let output = '';

@@ -3,6 +3,7 @@ output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
 theme: { accent: "#2f7de1", mode: light, font: inter }
 frame: { type: browser, chrome: thin, title: Product dashboard }
 brief:
+  mode: user-confirmed
   audience: Product teams evaluating screen-scene dashboard reconstruction
   source: Synthetic dashboard rebuilt from product-health screen references
   screenshotPolicy: reconstruct

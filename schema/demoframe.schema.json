@@ -514,6 +514,13 @@
         "brief": {
           "type": "object",
           "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "user-confirmed",
+                "inferred"
+              ]
+            },
             "audience": {
               "type": "string"
             },
@@ -601,6 +608,14 @@
               "items": {
                 "type": "string"
               }
+            },
+            "assumptions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "maxItems": 10
             }
           },
           "additionalProperties": false

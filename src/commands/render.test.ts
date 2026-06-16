@@ -14,6 +14,14 @@ function writeConfig(yaml: string): string {
 describe('runRender guardrail', () => {
   it('refuses to render a frameless all-screenshot demo before touching Chromium', async () => {
     const file = writeConfig(`
+brief:
+  mode: user-confirmed
+  audience: README visitors
+  source: Raw screenshots used for a guardrail test
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Screenshot gallery
+  climax: Rejection
 frame: { type: none }
 scenes:
   - { type: screenshot, duration: 2, src: a.png }
@@ -26,6 +34,14 @@ scenes:
 
   it('refuses preset-adjusted transparent mp4 renders before touching Chromium', async () => {
     const file = writeConfig(`
+brief:
+  mode: user-confirmed
+  audience: README visitors
+  source: Synthetic transparent demo
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask, work, result
+  climax: Final card
 output: { format: webp }
 frame: { type: phone, outside: transparent }
 scenes:
@@ -36,9 +52,10 @@ scenes:
     ).rejects.toThrow(/transparent output is a policy error/);
   });
 
-  it('refuses an incomplete brief under --strict before touching Chromium', async () => {
+  it('refuses an incomplete brief before touching Chromium', async () => {
     const file = writeConfig(`
 brief:
+  mode: user-confirmed
   audience: "TODO: who is this for"
   source: "TODO: screenshots / app under demo"
 frame: { type: phone }
@@ -46,13 +63,14 @@ scenes:
   - { type: typing, duration: 2, text: hi }
 `);
     await expect(
-      runRender(file, { out: path.join(path.dirname(file), 'dist'), keepFrames: false, strict: true }),
-    ).rejects.toThrow(/refusing to render under --strict/);
+      runRender(file, { out: path.join(path.dirname(file), 'dist'), keepFrames: false }),
+    ).rejects.toThrow(/brief interview is not user-confirmed/);
   });
 
   it('emits a placement mismatch warning exactly once for multi-preset renders', async () => {
     const file = writeConfig(`
 brief:
+  mode: user-confirmed
   audience: README visitors
   source: Synthetic flow from screenshots
   screenshotPolicy: reconstruct

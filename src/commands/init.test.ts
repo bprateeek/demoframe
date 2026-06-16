@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,6 +6,7 @@ import { parse as parseYaml } from 'yaml';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoConfigSchema } from '../config/schema.js';
 import { runCheck } from './check.js';
+import { installAgentInstructions } from './install-agent-instructions.js';
 import { listTemplates, runInit } from './init.js';
 
 const templatesRoot = fileURLToPath(new URL('../../templates', import.meta.url));
@@ -40,7 +41,7 @@ describe('template gallery', () => {
   });
 
   it.each(templateNames)('%s checks without blocking errors', async (name) => {
-    const result = await runCheck(path.join(templatesRoot, name, 'template.yml'));
+    const result = await runCheck(path.join(templatesRoot, name, 'template.yml'), { skipBrief: true });
     expect(result.errors).toEqual([]);
   });
 });
@@ -63,20 +64,20 @@ describe('runInit', () => {
     const written = readFileSync(path.join(dir, 'demo.yml'), 'utf8');
     const original = readFileSync(path.join(templatesRoot, 'cli-release', 'template.yml'), 'utf8');
     expect(written).toContain('brief:');
+    expect(written).toContain('# mode: user-confirmed');
     expect(written).toContain('audience: "TODO: who is this for"');
     expect(written.endsWith(original)).toBe(true);
     expect(existsSync(path.join(dir, 'assets'))).toBe(true);
+    expect(existsSync(path.join(dir, 'AGENTS.md'))).toBe(true);
   });
 
   it('scaffolds an unfilled brief that check can flag', async () => {
     const dir = makeTemp();
     await runInit(dir, { template: 'cli-release' });
     const result = await runCheck(path.join(dir, 'demo.yml'));
-    const required = result.warnings.find((warning) => warning.includes('unfilled required field'));
-    expect(required).toContain('audience');
-    expect(required).toContain('source');
-    expect(required).toContain('screenshotPolicy');
-    expect(required).toContain('placement');
+    const gate = result.errors.find((finding) => finding.code === 'brief.unconfirmed');
+    expect(gate?.details?.missingRequired).toEqual(['audience', 'source', 'screenshotPolicy', 'placement']);
+    expect(gate?.details?.missingRecommended).toEqual(['arc', 'climax']);
   });
 
   it('maps --frame onto the starter templates', async () => {
@@ -108,6 +109,26 @@ describe('runInit', () => {
     const out = lines.join('\n');
     expect(out).toContain('reconstruct first');
     expect(out).toContain('brief: block');
+    expect(out).toContain('brief.mode: user-confirmed');
+  });
+
+  it('refreshes agent instructions in place and targets the git root', async () => {
+    const root = makeTemp();
+    mkdirSync(path.join(root, '.git'));
+    const nested = path.join(root, 'packages', 'demo');
+    mkdirSync(nested, { recursive: true });
+    const file = path.join(root, 'AGENTS.md');
+    const stale = '<!-- demoframe:start -->\nstale\n<!-- demoframe:end -->\n';
+    writeFileSync(file, `# Repo\n\n${stale}`);
+
+    installAgentInstructions(nested);
+    installAgentInstructions(nested);
+
+    const written = readFileSync(file, 'utf8');
+    expect((written.match(/<!-- demoframe:start -->/g) ?? []).length).toBe(1);
+    expect(written).toContain('brief.mode: user-confirmed');
+    expect(written).not.toContain('stale');
+    expect(existsSync(path.join(nested, 'AGENTS.md'))).toBe(false);
   });
 
   it('refuses to overwrite an existing demo.yml', async () => {

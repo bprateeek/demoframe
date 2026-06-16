@@ -11,21 +11,34 @@ import {
   outputFormats,
   type DemoConfig,
 } from '../config/schema.js';
-import { briefWarnings, screenshotRuntimeShare } from '../qa/brief.js';
+import { briefGateFinding, briefWarnings, screenshotRuntimeShare } from '../qa/brief.js';
+
+export interface CheckFinding {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
 
 export interface CheckResult {
   loaded: LoadedConfig;
-  errors: string[];
-  warnings: string[];
+  errors: CheckFinding[];
+  warnings: CheckFinding[];
+  notices: CheckFinding[];
+  briefGate?: CheckFinding;
 }
 
 export interface CheckOptions {
   allowRawScreenshots?: boolean;
+  allowInferred?: boolean;
   forDestinations?: string[];
   skipBrief?: boolean;
 }
 
 type AssetKind = 'screenshot' | 'logo' | 'font' | 'avatar';
+
+function finding(code: string, message: string, details?: Record<string, unknown>): CheckFinding {
+  return details ? { code, message, details } : { code, message };
+}
 
 function referencedAssets(loaded: LoadedConfig): Array<{ at: string; file: string; kind: AssetKind }> {
   const refs: Array<{ at: string; file: string; kind: AssetKind }> = [];
@@ -57,8 +70,8 @@ function referencedAssets(loaded: LoadedConfig): Array<{ at: string; file: strin
   return refs;
 }
 
-async function screenshotSizeWarnings(loaded: LoadedConfig): Promise<string[]> {
-  const warnings: string[] = [];
+async function screenshotSizeWarnings(loaded: LoadedConfig): Promise<CheckFinding[]> {
+  const warnings: CheckFinding[] = [];
   const budget = budgetToBytes(loaded.config.output.budget);
   for (const ref of referencedAssets(loaded)) {
     if (ref.kind !== 'screenshot' || !existsSync(ref.file)) continue;
@@ -70,13 +83,18 @@ async function screenshotSizeWarnings(loaded: LoadedConfig): Promise<string[]> {
         stats.channels.reduce((sum, c) => sum + c.stdev, 0) / Math.max(stats.channels.length, 1);
       if (noise > 70 || megapixels > 4) {
         warnings.push(
-          `${ref.at}: ${path.basename(ref.file)} looks ${noise > 70 ? 'photographic/high-noise' : 'very large'} ` +
-            `(${meta.width}x${meta.height}, noise ${noise.toFixed(0)}); it may blow the ` +
-            `${(budget / 1024 / 1024).toFixed(1)}MB GIF budget. Consider format: mp4, a UI-style screenshot, or pan: none.`,
+          finding(
+            'screenshot.size',
+            `${ref.at}: ${path.basename(ref.file)} looks ${noise > 70 ? 'photographic/high-noise' : 'very large'} ` +
+              `(${meta.width}x${meta.height}, noise ${noise.toFixed(0)}); it may blow the ` +
+              `${(budget / 1024 / 1024).toFixed(1)}MB GIF budget. Consider format: mp4, a UI-style screenshot, or pan: none.`,
+          ),
         );
       }
     } catch {
-      warnings.push(`${ref.at}: could not decode ${path.basename(ref.file)} as an image`);
+      warnings.push(
+        finding('screenshot.decode', `${ref.at}: could not decode ${path.basename(ref.file)} as an image`),
+      );
     }
   }
   return warnings;
@@ -90,15 +108,18 @@ function estimatedSourceWidth(config: DemoConfig): number {
   return Math.max(1, viewport.width - deviceInset + shadowAllowance + (config.frame.margin ?? 0) * 2);
 }
 
-function readmeLegibilityWarnings(loaded: LoadedConfig): string[] {
+function readmeLegibilityWarnings(loaded: LoadedConfig): CheckFinding[] {
   const sourceWidth = estimatedSourceWidth(loaded.config);
   const displayWidth = loaded.config.output.displayWidth ?? Math.round(loaded.config.output.width * 0.6);
   const displayScale = displayWidth / sourceWidth;
   const estimatedBodyPx = 14 * displayScale;
   if (estimatedBodyPx >= 5.25) return [];
   return [
-    `README display width ${displayWidth}px makes small body text about ${estimatedBodyPx.toFixed(1)}px; ` +
-      'increase output.width or output.displayWidth for readable README embeds',
+    finding(
+      'readme.legibility',
+      `README display width ${displayWidth}px makes small body text about ${estimatedBodyPx.toFixed(1)}px; ` +
+        'increase output.width or output.displayWidth for readable README embeds',
+    ),
   ];
 }
 
@@ -106,62 +127,103 @@ export async function runCheckLoaded(
   loaded: LoadedConfig,
   opts: CheckOptions = {},
 ): Promise<CheckResult> {
-  const errors: string[] = [];
-  const warnings: string[] = [];
+  const errors: CheckFinding[] = [];
+  const warnings: CheckFinding[] = [];
+  const notices: CheckFinding[] = [];
+  let briefGate: CheckFinding | undefined;
 
   for (const ref of referencedAssets(loaded)) {
     if (!existsSync(ref.file)) {
-      errors.push(`${ref.at}: asset not found at ${ref.file}`);
+      errors.push(
+        finding('asset.missing', `${ref.at}: asset not found at ${ref.file}`, {
+          at: ref.at,
+          file: ref.file,
+          kind: ref.kind,
+        }),
+      );
     }
   }
 
-  for (const finding of scanForPrivateData(loaded.config)) {
+  for (const privateFinding of scanForPrivateData(loaded.config)) {
     warnings.push(
-      `${finding.path}: contains what looks like a ${finding.kind} ("${finding.excerpt}"); ` +
-        `this will be baked into a published asset`,
+      finding(
+        'privacy.secret',
+        `${privateFinding.path}: contains what looks like a ${privateFinding.kind} ("${privateFinding.excerpt}"); ` +
+          `this will be baked into a published asset`,
+        { path: privateFinding.path, kind: privateFinding.kind },
+      ),
     );
   }
   for (const ref of referencedAssets(loaded)) {
-    for (const finding of scanForPrivateData(path.basename(ref.file), ref.at)) {
-      if (finding.kind !== 'URL') {
-        warnings.push(`${finding.path}: asset filename contains a ${finding.kind}`);
+    for (const privateFinding of scanForPrivateData(path.basename(ref.file), ref.at)) {
+      if (privateFinding.kind !== 'URL') {
+        warnings.push(
+          finding(
+            'privacy.secret',
+            `${privateFinding.path}: asset filename contains a ${privateFinding.kind}`,
+            { path: privateFinding.path, kind: privateFinding.kind },
+          ),
+        );
       }
     }
   }
 
   if (loaded.config.frame.type === 'terminal' && loaded.config.scenes.some((s) => s.type === 'chat')) {
     warnings.push(
-      'chat scenes pair best with the phone or browser frame; bubbles read oddly inside a terminal window',
+      finding(
+        'frame.chatTerminal',
+        'chat scenes pair best with the phone or browser frame; bubbles read oddly inside a terminal window',
+      ),
     );
   }
   if (loaded.config.output.quality === 'draft' && loaded.config.scenes.some((s) => s.type === 'screen')) {
-    warnings.push('screen scenes contain dense product UI; use output.quality: standard or high for crisp text');
+    warnings.push(
+      finding(
+        'output.draftScreen',
+        'screen scenes contain dense product UI; use output.quality: standard or high for crisp text',
+      ),
+    );
   }
 
   const formats = outputFormats(loaded.config.output);
   if (isTransparentFrame(loaded.config.frame)) {
     if (formats.some((format) => format === 'mp4' || format === 'webm')) {
       errors.push(
-        'transparent output is a policy error for mp4/webm: alpha is not reliably useful for our target destinations; use webp.',
+        finding(
+          'transparent.mp4',
+          'transparent output is a policy error for mp4/webm: alpha is not reliably useful for our target destinations; use webp.',
+        ),
       );
     }
     if (formats.includes('gif')) {
       warnings.push(
-        'transparent GIF uses hard 1-bit edges and drops the soft shadow; use webp for clean transparent edges, or frame.outside: "#hex" for a solid fallback.',
+        finding(
+          'transparent.gif',
+          'transparent GIF uses hard 1-bit edges and drops the soft shadow; use webp for clean transparent edges, or frame.outside: "#hex" for a solid fallback.',
+        ),
       );
     }
     if (loaded.config.frame.type === 'none') {
       warnings.push(
-        'frame.outside: transparent with frame.type: none has no device bezel to mask; the content edge becomes the cutout.',
+        finding(
+          'transparent.frameless',
+          'frame.outside: transparent with frame.type: none has no device bezel to mask; the content edge becomes the cutout.',
+        ),
       );
     }
   } else if (loaded.config.frame.margin !== undefined) {
-    warnings.push('frame.margin only affects transparent cutouts and is otherwise ignored.');
+    warnings.push(
+      finding('frame.margin', 'frame.margin only affects transparent cutouts and is otherwise ignored.'),
+    );
   }
 
   warnings.push(...(await screenshotSizeWarnings(loaded)));
   warnings.push(...readmeLegibilityWarnings(loaded));
   if (!opts.skipBrief) {
+    briefGate = briefGateFinding(loaded.config);
+    if (briefGate) {
+      (opts.allowInferred ? notices : errors).push(briefGate);
+    }
     warnings.push(...briefWarnings(loaded.config, { forDestinations: opts.forDestinations }));
   }
 
@@ -180,13 +242,19 @@ export async function runCheckLoaded(
       // content scene is a raw screenshot. This is a hard error so render refuses
       // it; --allow-raw-screenshots demotes it for intentional raw demos.
       (opts.allowRawScreenshots ? warnings : errors).push(
+        finding(
+          'screenshot.framelessGallery',
           'every scene is a raw screenshot in a frameless demo; this reads as "screenshots pasted in a frame". ' +
-          'Rebuild the flow as synthetic scenes (typing/steps/status-card/chat/screen) and use the screenshots only as reference. ' +
-          'If a raw-screenshot demo is intended (bug report, before/after proof), pass --allow-raw-screenshots.',
+            'Rebuild the flow as synthetic scenes (typing/steps/status-card/chat/screen) and use the screenshots only as reference. ' +
+            'If a raw-screenshot demo is intended (bug report, before/after proof), pass --allow-raw-screenshots.',
+        ),
       );
     } else {
       warnings.push(
-        `screenshot scenes are ${Math.round(screenshotShare.share * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes such as screen, typing, steps, status-card, or chat, and keep screenshot scenes for when the screenshot itself is the subject.`,
+        finding(
+          'screenshot.dominant',
+          `screenshot scenes are ${Math.round(screenshotShare.share * 100)}% of the runtime; raw screenshots read as "pasted screenshots". Reconstruct the flow with synthetic scenes such as screen, typing, steps, status-card, or chat, and keep screenshot scenes for when the screenshot itself is the subject.`,
+        ),
       );
     }
   }
@@ -194,12 +262,15 @@ export async function runCheckLoaded(
   loaded.config.scenes.forEach((scene, i) => {
     if (scene.celebrate && loaded.config.scenes.slice(i + 1).some((s) => s.type !== 'hold')) {
       warnings.push(
-        `scenes[${i}]: celebrate fires before the end; put it on the final scene or a trailing hold so the burst lands on the closing frame`,
+        finding(
+          'celebrate.early',
+          `scenes[${i}]: celebrate fires before the end; put it on the final scene or a trailing hold so the burst lands on the closing frame`,
+        ),
       );
     }
   });
 
-  return { loaded, errors, warnings };
+  return { loaded, errors, warnings, notices, briefGate };
 }
 
 export async function runCheck(file: string, opts: CheckOptions = {}): Promise<CheckResult> {

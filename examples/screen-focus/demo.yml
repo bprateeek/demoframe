@@ -3,6 +3,7 @@ output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
 theme: { accent: "#1f9d55", mode: light, font: inter }
 frame: { type: none, width: 960, height: 640 }
 brief:
+  mode: user-confirmed
   audience: Product teams evaluating a focused screen-scene moment
   source: Synthetic study-plan dashboard rebuilt from product UI references
   screenshotPolicy: reconstruct

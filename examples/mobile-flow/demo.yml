@@ -3,6 +3,7 @@ output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: vps-fieldwork-smoke, subtitle: "fieldwork-smoke · VPS" }
 brief:
+  mode: user-confirmed
   audience: README visitors evaluating a mobile agent workflow
   source: Synthetic pull-request flow reconstructed from fieldwork status screens
   screenshotPolicy: reconstruct

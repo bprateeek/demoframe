@@ -3,6 +3,7 @@ output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
 theme: { accent: "#10b981", mode: light, font: inter }
 frame: { type: phone, title: Tally, subtitle: "Expenses · March" }
 brief:
+  mode: user-confirmed
   audience: Product teams showing an assistant workflow in a README
   source: Synthetic mobile flow reconstructed from receipt-processing screenshots
   screenshotPolicy: reconstruct

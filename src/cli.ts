@@ -23,20 +23,28 @@ function fail(err: unknown): never {
   process.exit(1);
 }
 
+function collectAssumption(value: string, previous: string[]): string[] {
+  return [...previous, value];
+}
+
 program
   .command('check')
   .description('validate a demo config (schema, assets, privacy scan) without rendering')
   .argument('<config>', 'path to demo config (.yml, .yaml, or .json)')
   .option('--strict', 'treat warnings as errors (for CI)', false)
+  .option('--autonomous', 'allow an unconfirmed/inferred brief and report it as a notice', false)
   .option(
     '--allow-raw-screenshots',
     'permit a frameless all-screenshot demo (bug report, before/after); demotes that error to a warning',
     false,
   )
-  .action(async (config: string, opts: { strict: boolean; allowRawScreenshots: boolean }) => {
+  .action(async (config: string, opts: { strict: boolean; autonomous: boolean; allowRawScreenshots: boolean }) => {
     try {
       const { runCheck } = await import('./commands/check.js');
-      const result = await runCheck(config, { allowRawScreenshots: opts.allowRawScreenshots });
+      const result = await runCheck(config, {
+        allowRawScreenshots: opts.allowRawScreenshots,
+        allowInferred: opts.autonomous,
+      });
       const scenes = result.loaded.config.scenes;
       const total = scenes.reduce((sum, s) => sum + s.duration, 0);
       console.log(
@@ -45,11 +53,15 @@ program
       );
       if (result.errors.length > 0) {
         console.log(`\n${result.errors.length} error${result.errors.length === 1 ? '' : 's'}:`);
-        for (const e of result.errors) console.log(`  x ${e}`);
+        for (const e of result.errors) console.log(`  x ${e.message}`);
       }
       if (result.warnings.length > 0) {
         console.log(`\n${result.warnings.length} warning${result.warnings.length === 1 ? '' : 's'}:`);
-        for (const w of result.warnings) console.log(`  ! ${w}`);
+        for (const w of result.warnings) console.log(`  ! ${w.message}`);
+      }
+      if (result.notices.length > 0) {
+        console.log(`\n${result.notices.length} notice${result.notices.length === 1 ? '' : 's'}:`);
+        for (const n of result.notices) console.log(`  i ${n.message}`);
       }
       if (result.errors.length > 0 || (opts.strict && result.warnings.length > 0)) {
         process.exit(1);
@@ -112,10 +124,12 @@ program
   )
   .option('--asset-out <path>', 'copy the primary rendered asset to a file or directory')
   .option('--strict', 'treat check warnings and layout findings as render failures', false)
-  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string; assetOut?: string; strict: boolean; allowRawScreenshots: boolean }) => {
+  .option('--autonomous', 'allow an unconfirmed brief and label the report as inferred', false)
+  .option('--assumption <text>', 'record an assumption for an autonomous/inferred render', collectAssumption, [] as string[])
+  .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string; assetOut?: string; strict: boolean; allowRawScreenshots: boolean; autonomous: boolean; assumption: string[] }) => {
     try {
       const { runRender } = await import('./commands/render.js');
-      await runRender(config, opts);
+      await runRender(config, { ...opts, assumptions: opts.assumption });
     } catch (err) {
       fail(err);
     }
@@ -127,10 +141,12 @@ program
   .argument('<config>', 'path to demo config')
   .option('-o, --out <dir>', 'output directory', 'dist/preview')
   .option('--no-download', 'fail if Chromium is missing instead of downloading it')
-  .action(async (config: string, opts: { out: string; download: boolean }) => {
+  .option('--autonomous', 'allow an unconfirmed brief and label the preview run as inferred', false)
+  .option('--assumption <text>', 'record an assumption for an autonomous/inferred preview', collectAssumption, [] as string[])
+  .action(async (config: string, opts: { out: string; download: boolean; autonomous: boolean; assumption: string[] }) => {
     try {
       const { runPreview } = await import('./commands/preview.js');
-      await runPreview(config, opts);
+      await runPreview(config, { ...opts, assumptions: opts.assumption });
     } catch (err) {
       fail(err);
     }
@@ -144,10 +160,25 @@ program
   .option('-t, --template <name>', 'gallery template name (see --list)')
   .option('-c, --category <name>', 'category default template name (see --list)')
   .option('--list', 'list available gallery templates')
-  .action(async (dir: string, opts: { frame?: string; template?: string; category?: string; list?: boolean }) => {
+  .option('--no-agent-instructions', 'skip writing demoframe guidance into the nearest AGENTS.md')
+  .action(async (dir: string, opts: { frame?: string; template?: string; category?: string; list?: boolean; agentInstructions: boolean }) => {
     try {
       const { runInit } = await import('./commands/init.js');
       await runInit(dir, opts);
+    } catch (err) {
+      fail(err);
+    }
+  });
+
+program
+  .command('install-agent-instructions')
+  .description('write the demoframe agent guidance block into the nearest git-root AGENTS.md')
+  .argument('[dir]', 'target directory', '.')
+  .action(async (dir: string) => {
+    try {
+      const { installAgentInstructions } = await import('./commands/install-agent-instructions.js');
+      const result = installAgentInstructions(dir);
+      console.log(`${result.action} ${result.file}`);
     } catch (err) {
       fail(err);
     }

@@ -12,23 +12,35 @@ skills/demoframe/SKILL.md in the package.
 ## Commands
 
 - `demoframe init [dir] [--template <name>] [--category <name>]
-  [--frame phone|browser|terminal] [--list]`: scaffold demo.yml + assets/ from a gallery template. --list prints
+  [--frame phone|browser|terminal] [--list] [--no-agent-instructions]`: scaffold demo.yml + assets/ from a gallery template. --list prints
   the gallery (starters plus showcase templates, shipped in the package under
   templates/). --frame is sugar for --template starter-<frame>; the default is
   starter-phone. Each template's meta.yml records the demoframe version it
   targets. --category chooses a category default unless --template is supplied.
+  init also writes/refreshes a sentinel-marked demoframe block in the nearest
+  git-root AGENTS.md so consuming agents see the interview rule; pass
+  --no-agent-instructions to skip that.
+- `demoframe install-agent-instructions [dir]`: idempotently write/refresh the
+  demoframe block in the nearest git-root AGENTS.md, falling back to dir when no
+  repo root is found.
 - `demoframe schema`: print the JSON Schema for configs. The schema is pre-1.0
   and changes between versions; read it instead of relying on memorized fields.
-- `demoframe check <config> [--strict] [--allow-raw-screenshots]`: validate without
+- `demoframe check <config> [--strict] [--autonomous] [--allow-raw-screenshots]`: validate without
   rendering. Exit 0 = valid; exit 1 if there are errors. Errors and warnings print
-  as `path: message` with hints. A frameless demo whose every content scene is a raw
+  with stable finding codes in the API and human messages in the CLI. A missing,
+  TODO-filled, inferred, or otherwise unconfirmed brief is an error by default.
+  Only --autonomous demotes the brief gate to a notice; it does not demote
+  missing assets or other non-brief errors. --strict fails on warnings, not
+  notices, so check --autonomous --strict can pass the brief gate while still
+  failing real warnings. A frameless demo whose every content scene is a raw
   screenshot is a hard error ("screenshots pasted in a frame") that also makes render
   refuse; pass --allow-raw-screenshots to demote it to a warning for an intentional
   raw demo. Missing referenced assets are hard errors. Warnings cover privacy findings (emails/tokens/URLs
-  in copy), README legibility, incomplete briefs, and screenshots likely to blow the GIF size budget. Fast (<1s without
+  in copy), README legibility, brief quality mismatches, and screenshots likely to blow the GIF size budget. Fast (<1s without
   screenshot assets); run after every config edit.
 - `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]
-  [--allow-raw-screenshots] [--strict] [--asset-out path]
+  [--allow-raw-screenshots] [--strict] [--autonomous] [--assumption text]
+  [--asset-out path]
   [--for github-readme,x-post,linkedin,product-hunt]`:
   the full pipeline. Validates, renders frames, encodes every format in
   output.format, writes preview stills to <dir>/preview/, and writes
@@ -43,11 +55,22 @@ skills/demoframe/SKILL.md in the package.
   the requested --for targets do not overlap brief.placement. --asset-out copies
   the primary rendered asset(s); when it covers the embeddable GIF/WebP, the
   printed README snippet points at the copied destination.
-- `demoframe preview <config> [-o dir]`: stills only, no encode. Writes
+  --autonomous is the only way to render an unconfirmed brief; the report labels
+  it mode: inferred, confirmed: false, and records assumptions from repeatable
+  --assumption flags (or brief.assumptions when no flags are supplied). Managed
+  files in outDir are staged and promoted only after encode, preview, report,
+  and strict layout checks pass. A failed render leaves the prior output,
+  preview/, report.json, and .frames cache intact; stale outputs from old
+  formats can still remain because promotion only overwrites current managed
+  filenames. --asset-out is copied after promotion, so a copy failure can leave
+  outDir updated.
+- `demoframe preview <config> [-o dir] [--autonomous] [--assumption text]`: stills only, no encode. Writes
   semantic per-scene stills (scene_<i>_<slug>.png), key moments
   (moment_<i>_tap/cta/celebrate.png), final_readme_size.png, and
   final_github_dark/light.png composites. Transparent configs also write
-  final_transparent_checkerboard.png. Faster iteration than render.
+  final_transparent_checkerboard.png. Faster iteration than render. It refuses
+  the same unconfirmed brief gate as render unless --autonomous is passed; it
+  echoes inferred assumptions but does not persist a report.
 - `demoframe doctor`: environment report. `demoframe install-browser`: explicit
   Chromium download (otherwise automatic on first render).
 - `demoframe serve <config> [-p port]`: live preview server with a scrubber (for humans).
@@ -55,17 +78,21 @@ skills/demoframe/SKILL.md in the package.
 ## report.json shape
 
 { "title", "config", "presets"?, "budgetBytes",
-  "brief": { "present", "requiredComplete", "recommendedComplete",
-    "missingRequired": [], "missingRecommended": [] },
+  "brief": { "present", "mode": "user-confirmed"|"inferred",
+    "confirmed": bool, "requiredComplete", "recommendedComplete",
+    "missingRequired": [], "missingRecommended": [], "assumptions"? },
   "attempts": [{preset?,format,fps,width,sizeBytes}],
-  "warnings": [...], "layout": [...], "previews": ["preview/scene_0_typing.png", ...],
+  "errors": [{code,message}], "warnings": [{code,message}],
+  "notices": [{code,message}], "layout": [...],
+  "previews": ["preview/scene_0_typing.png", ...],
   "outputs": [{ "file", "format": "gif"|"webp"|"mp4"|"webm",
   "transparent", "transparencyMode": "alpha"|"1-bit"|"none", "sizeBytes",
   "width", "height", "durationS", "fps", "frameCount", "loopsForever",
   "hasAudio", "encoder", "withinBudget" }] }
 
-Verify after render: brief.requiredComplete true, brief.recommendedComplete
-true, withinBudget true, loopsForever true, durationS as designed. Then read
+Verify after render: brief.confirmed true for normal/human-confirmed demos,
+brief.requiredComplete true, brief.recommendedComplete true, withinBudget true,
+loopsForever true, durationS as designed. Then read
 the preview stills to verify layout: text readable at README size, nothing
 clipped, final frame tells the story alone.
 
@@ -75,13 +102,17 @@ Full JSON Schema: `demoframe schema` or schema/demoframe.schema.json (npm packag
 
 Top level: { title?, output?, theme?, frame, brief?, scenes }
 
-brief is authoring metadata only; it does not affect rendering. It records the
-interview that produced the demo. All fields are optional in the parser so
-partial briefs can be checked, but check warns when required/recommended fields
-are missing, empty, or placeholders like "TODO: ..." or "<target audience>".
-Under --strict, those warnings fail.
+brief records the interview that produced the demo and now gates execution.
+All fields are optional in the parser so partial briefs can be loaded, but
+check/preview/render error when the brief is missing, inferred, incomplete, or
+not marked user-confirmed. --autonomous is the explicit opt-out for headless
+inference; it demotes only brief.unconfirmed/brief.incomplete to notices and
+labels reports as inferred.
 
 brief fields:
+- mode user-confirmed|inferred: user-confirmed means the user answered the
+  interview and confirmed the screen-to-scene mapping. inferred is an honest
+  label, not a bypass; it still requires --autonomous to preview/render.
 - audience string: required by check.
 - source string: required by check; record source material/provenance such as
   screenshots, app screens, or the product flow being reconstructed.
@@ -93,11 +124,20 @@ brief fields:
 - placement github-readme|x-post|linkedin|product-hunt, or a non-empty list of
   those values: required by check. render --for warns when its requested
   destination set is disjoint from placement; --for still drives output presets.
-- arc string and climax string: recommended by check, required under --strict.
+- arc string and climax string: recommended by the schema docs and required for
+  confirmed execution because confirmed means required and recommended fields
+  are complete.
 - brand?: { accent?: hex, frame?: phone|browser|terminal|desktop|none,
   mode?: light|dark, notes?: string }. check compares accent/mode with the
   resolved theme and frame with config.frame.type.
 - product?: string, repo?: string, verbatimCopy?: string[].
+- assumptions?: string[] (max 10): optional YAML fallback for autonomous
+  inferred runs. CLI/MCP supplied assumptions take precedence; empty strings are
+  trimmed/dropped.
+
+Public API note: runCheck/runCheckLoaded return `errors`, `warnings`, and
+`notices` as structured findings `{ code, message, details? }` plus
+`briefGate?`; older callers that expected string arrays must read `.message`.
 
 output (all optional): format gif|webp|mp4|webm or a list like [webp, mp4]
 (gif), width 200-1200 (480), fps 5-30 (15), budget e.g. "5MB" (applies to gif

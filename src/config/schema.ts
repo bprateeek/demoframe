@@ -194,6 +194,7 @@ const placementValue = z.enum(DESTINATION_NAMES);
 
 const briefSchema = z
   .object({
+    mode: z.enum(['user-confirmed', 'inferred']).optional(),
     audience: z.string().optional(),
     source: z.string().optional(),
     screenshotPolicy: z.enum(['reconstruct', 'simplify', 'raw-intentional']).optional(),
@@ -212,6 +213,7 @@ const briefSchema = z
     product: z.string().optional(),
     repo: z.string().optional(),
     verbatimCopy: z.array(z.string()).optional(),
+    assumptions: z.array(z.string().trim().min(1)).max(10).optional(),
   })
   .strict();
 

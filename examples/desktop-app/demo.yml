@@ -3,6 +3,7 @@ output: { format: gif, width: 720, fps: 15, displayWidth: 560 }
 theme: { preset: github-dark }
 frame: { type: desktop, title: demoframe Studio, subtitle: "workspace: release-notes" }
 brief:
+  mode: user-confirmed
   audience: Developers evaluating a desktop-frame product demo
   source: Synthetic workspace reconstructed from a release-notes coding flow
   screenshotPolicy: reconstruct

@@ -13,13 +13,23 @@ not just the pixels they rendered.
 
 - Top-level `brief:` metadata with required-by-check `audience`, `source`,
   `screenshotPolicy`, and `placement`; recommended `arc` and `climax`; and
-  optional `brand`, `product`, `repo`, and `verbatimCopy`.
-- Brief QA warnings for missing, empty, or placeholder fields; screenshot policy
-  contradictions; brand/theme/frame mismatches; and `render --for` destination
-  mismatches against `brief.placement`. Existing `--strict` promotes these
-  warnings to errors.
+  optional `brand`, `product`, `repo`, `verbatimCopy`, and `assumptions`.
+- `brief.mode: user-confirmed | inferred`. `check`, `preview`, and `render`
+  now refuse unconfirmed briefs unless `--autonomous` (or MCP
+  `autonomous: true`) is explicit; inferred outputs are labeled in
+  `report.json`.
+- `--autonomous` on `check`/`preview`/`render`, repeatable `--assumption` on
+  `preview`/`render`, and MCP `render_demo` `autonomous`/`assumptions`
+  parameters.
+- `demoframe install-agent-instructions`, also run by `init` by default, writes
+  a sentinel-marked demoframe block into the nearest git-root `AGENTS.md`.
+- Brief QA errors for missing, empty, placeholder, inferred, or otherwise
+  unconfirmed fields, plus warnings for screenshot policy contradictions,
+  brand/theme/frame mismatches, and `render --for` destination mismatches
+  against `brief.placement`.
 - `brief` summary metadata in `report.json`: `present`, `requiredComplete`,
-  `recommendedComplete`, `missingRequired`, and `missingRecommended`.
+  `recommendedComplete`, `missingRequired`, `missingRecommended`, `mode`,
+  `confirmed`, and inferred `assumptions`.
 - `demoframe init` now prepends a TODO `brief:` stub to scaffolded configs.
 
 ### Changed
@@ -28,6 +38,13 @@ not just the pixels they rendered.
   regression test. Gallery templates remain brief-free and receive the stub only
   when scaffolded by `init`.
 - Destination names are shared between schema validation and render presets.
+- `runCheck`/`runCheckLoaded` now return structured `errors`, `warnings`, and
+  `notices` findings (`{ code, message, details? }`) plus `briefGate?` instead
+  of string arrays. This is a pre-1.0 API break; callers should read
+  `finding.message`.
+- `render` writes managed outputs atomically through a staging directory and
+  promotes them only after encode, preview, report, and strict layout checks
+  pass.
 
 ## 0.8.0
 

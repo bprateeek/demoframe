@@ -3,6 +3,7 @@ output: { format: gif, width: 600, fps: 15, displayWidth: 420 }
 theme: { accent: "#2563eb", mode: dark, font: inter }
 frame: { type: browser, title: release.ts }
 brief:
+  mode: user-confirmed
   audience: Developers scanning a README code-change animation
   source: Synthetic code diff reconstructed from a release-notes helper
   screenshotPolicy: reconstruct
