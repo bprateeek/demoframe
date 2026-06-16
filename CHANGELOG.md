@@ -3,7 +3,7 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
-## 0.9.0
+## 0.10.0
 
 Brief and interview governance. This release makes the authoring interview a
 first-class config artifact so agents can validate the story they reconstructed,
