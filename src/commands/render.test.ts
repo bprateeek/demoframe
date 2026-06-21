@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { resolveAssetOutTargets, runRender, type PrimaryOutput } from './render.js';
+import { demoConfigSchema, resolveFrameCapture } from '../config/schema.js';
+import { renderInputKey, resolveAssetOutTargets, runRender, type PrimaryOutput } from './render.js';
 
 function writeConfig(yaml: string): string {
   const dir = mkdtempSync(path.join(process.env.TMPDIR ?? tmpdir(), 'df-render-'));
@@ -139,5 +140,36 @@ describe('resolveAssetOutTargets', () => {
         dest: path.join(dir, 'assets', 'demo.product-hunt.gif'),
       },
     ]);
+  });
+});
+
+describe('renderInputKey', () => {
+  it('separates cache entries by requested format and effective capture mode', () => {
+    const config = demoConfigSchema.parse({
+      output: { format: ['gif', 'mp4'], motionBlur: 'cinematic' },
+      frame: { type: 'phone' },
+      scenes: [{ type: 'typing', duration: 3, text: 'hello' }],
+    });
+
+    const gifCapture = resolveFrameCapture(config.output, 'gif');
+    const mp4Capture = resolveFrameCapture(config.output, 'mp4');
+    expect(gifCapture.mode).toBe('directCapture');
+    expect(mp4Capture.mode).toBe('blurredCapture');
+    expect(renderInputKey(config, '/demo', 15, gifCapture)).not.toBe(
+      renderInputKey(config, '/demo', 15, mp4Capture),
+    );
+  });
+
+  it('separates off and future blur modes even when other render inputs match', () => {
+    const base = {
+      frame: { type: 'phone' },
+      scenes: [{ type: 'typing', duration: 3, text: 'hello' }],
+    } as const;
+    const off = demoConfigSchema.parse({ ...base, output: { format: 'mp4' } });
+    const forced = demoConfigSchema.parse({ ...base, output: { format: 'mp4', motionBlur: 'force' } });
+
+    expect(renderInputKey(off, '/demo', 15, resolveFrameCapture(off.output, 'mp4'))).not.toBe(
+      renderInputKey(forced, '/demo', 15, resolveFrameCapture(forced.output, 'mp4')),
+    );
   });
 });

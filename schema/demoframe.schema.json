@@ -76,6 +76,15 @@
                 "high"
               ],
               "default": "standard"
+            },
+            "motionBlur": {
+              "type": "string",
+              "enum": [
+                "off",
+                "cinematic",
+                "force"
+              ],
+              "default": "off"
             }
           },
           "additionalProperties": false,

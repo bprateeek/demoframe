@@ -6,6 +6,7 @@ import {
   normalizeLogo,
   normalizeTermLines,
   outputFormats,
+  resolveFrameCapture,
 } from './schema.js';
 
 const minimal = {
@@ -19,6 +20,7 @@ describe('demoConfigSchema', () => {
     expect(config.output.format).toBe('gif');
     expect(config.output.width).toBe(480);
     expect(config.output.fps).toBe(15);
+    expect(config.output.motionBlur).toBe('off');
     expect(config.theme.mode).toBeUndefined();
     expect(config.theme.font).toBe('inter');
     expect(config.scenes[0].transition).toBe('cut');
@@ -119,6 +121,14 @@ describe('demoConfigSchema', () => {
     expect(
       demoConfigSchema.parse({ ...minimal, output: { format: ['webm', 'mp4'] } }).output.format,
     ).toEqual(['webm', 'mp4']);
+  });
+
+  it('accepts explicit motion blur modes and rejects unknown modes', () => {
+    expect(demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'cinematic' } }).output.motionBlur).toBe(
+      'cinematic',
+    );
+    expect(demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'force' } }).output.motionBlur).toBe('force');
+    expect(demoConfigSchema.safeParse({ ...minimal, output: { motionBlur: 'always' } }).success).toBe(false);
   });
 
   it('accepts a minimal terminal-playback scene with string and styled output lines', () => {
@@ -269,6 +279,40 @@ describe('outputFormats', () => {
     expect(outputFormats(single.output)).toEqual(['gif']);
     const list = demoConfigSchema.parse({ ...minimal, output: { format: ['webp', 'webp', 'mp4'] } });
     expect(outputFormats(list.output)).toEqual(['webp', 'mp4']);
+  });
+});
+
+describe('resolveFrameCapture', () => {
+  it('keeps the default and GIF path on direct capture', () => {
+    const off = demoConfigSchema.parse({ ...minimal }).output;
+    expect(resolveFrameCapture(off, 'mp4')).toEqual({
+      format: 'mp4',
+      motionBlur: 'off',
+      mode: 'directCapture',
+    });
+
+    const cinematic = demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'cinematic' } }).output;
+    expect(resolveFrameCapture(cinematic, 'gif')).toEqual({
+      format: 'gif',
+      motionBlur: 'cinematic',
+      mode: 'directCapture',
+    });
+  });
+
+  it('routes future non-GIF blur modes to the blurred capture branch', () => {
+    const cinematic = demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'cinematic' } }).output;
+    expect(resolveFrameCapture(cinematic, 'mp4')).toEqual({
+      format: 'mp4',
+      motionBlur: 'cinematic',
+      mode: 'blurredCapture',
+    });
+
+    const force = demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'force' } }).output;
+    expect(resolveFrameCapture(force, 'webp')).toEqual({
+      format: 'webp',
+      motionBlur: 'force',
+      mode: 'blurredCapture',
+    });
   });
 });
 

@@ -1,7 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import type { BuiltDocument } from '../templates/document.js';
-import type { Output } from '../config/schema.js';
+import type { FrameCaptureMode, MotionBlur, Output, OutputFormat } from '../config/schema.js';
 import { openRenderSession } from './browser.js';
 import { computeAlphaBox, cropPngFile } from './crop.js';
 
@@ -12,15 +12,28 @@ export interface RenderedFrames {
   pattern: string;
   sourceWidth: number;
   sourceHeight: number;
+  captureMode: FrameCaptureMode;
+  motionBlur: MotionBlur;
+  format?: OutputFormat;
 }
 
-export async function renderFrames(
+export interface FrameCaptureRequest {
+  mode: FrameCaptureMode;
+  motionBlur: MotionBlur;
+  format?: OutputFormat;
+}
+
+interface CaptureResult {
+  files: string[];
+  scale: number;
+}
+
+async function directCapture(
   doc: BuiltDocument,
   quality: Output['quality'],
   outDir: string,
   onProgress?: (done: number, total: number) => void,
-): Promise<RenderedFrames> {
-  mkdirSync(outDir, { recursive: true });
+): Promise<CaptureResult> {
   const session = await openRenderSession(doc, quality);
   const { frameCount, fps } = doc.timeline;
   const files: string[] = [];
@@ -36,6 +49,31 @@ export async function renderFrames(
   } finally {
     await session.close();
   }
+  return { files, scale };
+}
+
+async function blurredCapture(
+  doc: BuiltDocument,
+  quality: Output['quality'],
+  outDir: string,
+  onProgress?: (done: number, total: number) => void,
+): Promise<CaptureResult> {
+  return directCapture(doc, quality, outDir, onProgress);
+}
+
+export async function renderFrames(
+  doc: BuiltDocument,
+  quality: Output['quality'],
+  outDir: string,
+  onProgress?: (done: number, total: number) => void,
+  capture: FrameCaptureRequest = { mode: 'directCapture', motionBlur: 'off' },
+): Promise<RenderedFrames> {
+  mkdirSync(outDir, { recursive: true });
+  const { frameCount, fps } = doc.timeline;
+  const { files, scale } =
+    capture.mode === 'blurredCapture'
+      ? await blurredCapture(doc, quality, outDir, onProgress)
+      : await directCapture(doc, quality, outDir, onProgress);
   let sourceWidth = doc.viewport.width * scale;
   let sourceHeight = doc.viewport.height * scale;
   if (doc.transparent) {
@@ -52,5 +90,8 @@ export async function renderFrames(
     pattern: path.join(outDir, 'frame_%04d.png'),
     sourceWidth,
     sourceHeight,
+    captureMode: capture.mode,
+    motionBlur: capture.motionBlur,
+    format: capture.format,
   };
 }
