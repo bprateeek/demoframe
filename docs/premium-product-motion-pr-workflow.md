@@ -99,11 +99,23 @@ Return:
 Use `gh` when credentials are available:
 
 ```sh
-gh pr view <url> --json number,url,headRefName,baseRefName,mergeable,reviewDecision,statusCheckRollup
+gh pr view <url> --json number,url,headRefName,headRefOid,baseRefName,mergeable,reviewDecision,statusCheckRollup
 gh pr checks <url>
-gh pr merge <url> --squash --delete-branch
+gh api graphql -f owner=<owner> -f repo=<repo> -F number=<number> -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      pullRequest(number: $number) {
+        reviewThreads(first: 100) {
+          nodes { isResolved }
+        }
+      }
+    }
+  }'
+gh pr merge <url> --squash --delete-branch --match-head-commit <reviewed-head-sha>
 ```
 
 If the repository policy prefers merge commits or rebase merges, use that policy
-instead of squash.
-
+instead of squash, but keep the `--match-head-commit` guard or an equivalent API
+compare. If branch protection does not require resolved conversations, the
+coordinator must explicitly confirm every returned review thread is resolved
+before merging.

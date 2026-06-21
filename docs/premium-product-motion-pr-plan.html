@@ -1232,8 +1232,9 @@
       send_message_to_thread(reviewer, "Re-review updated PR")
       continue
 
-    if github.ci_green and github.required_approvals_met and github.mergeable:
-      merge_pr(pr_url)
+    if github.ci_green and github.required_approvals_met and github.mergeable
+       and github.unresolved_review_threads == 0:
+      merge_pr(pr_url, match_head_commit: builder.reported_commit_sha)
       archive builder/reviewer threads
       break
 
