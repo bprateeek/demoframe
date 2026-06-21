@@ -1,0 +1,1308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>demoframe Premium Product Motion Upgrade - PR Plan</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f3ec;
+        --paper: #fffdf8;
+        --ink: #1d2430;
+        --muted: #667085;
+        --line: #ded6c9;
+        --soft: #f0e7da;
+        --accent: #e2603a;
+        --accent-soft: #ffe4da;
+        --green: #0f7a53;
+        --green-soft: #daf5e8;
+        --blue: #1d5fd1;
+        --blue-soft: #e3edff;
+        --purple: #7b3fc7;
+        --purple-soft: #f0e5ff;
+        --code: #111827;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 12% 0%, rgba(226, 96, 58, 0.11), transparent 31rem),
+          linear-gradient(180deg, #fffaf1 0, var(--bg) 38rem);
+        color: var(--ink);
+        font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 40px));
+        margin: 0 auto;
+        padding: 48px 0 72px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 28px;
+        align-items: end;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 28px;
+        margin-bottom: 28px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        line-height: 1.12;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(34px, 5vw, 60px);
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 25px;
+        margin-bottom: 14px;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      a {
+        color: var(--blue);
+      }
+
+      code {
+        background: rgba(17, 24, 39, 0.07);
+        border: 1px solid rgba(17, 24, 39, 0.08);
+        border-radius: 6px;
+        color: var(--code);
+        padding: 0.1em 0.32em;
+      }
+
+      pre {
+        overflow: auto;
+        background: #111827;
+        color: #f9fafb;
+        border-radius: 8px;
+        padding: 14px 16px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      pre code {
+        background: transparent;
+        border: 0;
+        color: inherit;
+        padding: 0;
+      }
+
+      .eyebrow {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+      }
+
+      .lede {
+        color: var(--muted);
+        font-size: 17px;
+        max-width: 68ch;
+      }
+
+      .meta-panel {
+        background: rgba(255, 253, 248, 0.78);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .meta-panel dl {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px 14px;
+        margin: 0;
+      }
+
+      .meta-panel dt {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .meta-panel dd {
+        margin: 0;
+      }
+
+      .grid {
+        display: grid;
+        gap: 18px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .band {
+        margin: 28px 0;
+        padding: 24px;
+        background: rgba(255, 253, 248, 0.74);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .callout {
+        background: var(--accent-soft);
+        border-left: 4px solid var(--accent);
+        border-radius: 8px;
+        padding: 16px 18px;
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0 0;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #fffaf2;
+        color: #303846;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 9px;
+      }
+
+      .pill.green {
+        background: var(--green-soft);
+        border-color: rgba(15, 122, 83, 0.22);
+        color: var(--green);
+      }
+
+      .pill.blue {
+        background: var(--blue-soft);
+        border-color: rgba(29, 95, 209, 0.2);
+        color: var(--blue);
+      }
+
+      .pill.purple {
+        background: var(--purple-soft);
+        border-color: rgba(123, 63, 199, 0.2);
+        color: var(--purple);
+      }
+
+      .stack {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+      }
+
+      .stack ol,
+      .stack ul,
+      article ul,
+      article ol {
+        margin: 8px 0 0;
+        padding-left: 22px;
+      }
+
+      li {
+        margin: 6px 0;
+      }
+
+      article.pr {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin: 18px 0;
+        overflow: hidden;
+      }
+
+      .pr-head {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 14px;
+        align-items: center;
+        background: linear-gradient(90deg, rgba(226, 96, 58, 0.1), rgba(255, 253, 248, 0));
+        border-bottom: 1px solid var(--line);
+        padding: 18px 20px;
+      }
+
+      .num {
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--ink);
+        color: white;
+        font-weight: 800;
+      }
+
+      .pr-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        padding: 20px;
+      }
+
+      .wide {
+        grid-column: 1 / -1;
+      }
+
+      .mini {
+        background: #fbf6ed;
+        border: 1px solid var(--soft);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      .mini h4 {
+        margin: 0 0 8px;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .deps {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 11px 12px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      th {
+        background: #f4eadc;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .workflow-step {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        gap: 14px;
+        margin: 16px 0;
+      }
+
+      .workflow-step strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .dot {
+        display: grid;
+        place-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        font-weight: 800;
+      }
+
+      @media (max-width: 820px) {
+        main {
+          width: min(100vw - 24px, 1180px);
+          padding-top: 26px;
+        }
+
+        header,
+        .grid.two,
+        .grid.three,
+        .pr-body {
+          grid-template-columns: 1fr;
+        }
+
+        .pr-head {
+          grid-template-columns: auto 1fr;
+        }
+
+        .pr-head .pill-row {
+          grid-column: 1 / -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <div class="eyebrow">demoframe roadmap</div>
+          <h1>Premium Product Motion Upgrade</h1>
+          <p class="lede">
+            A PR-by-PR implementation plan for moving demoframe from clean framed UI output to staged,
+            premium product motion while preserving deterministic rendering and strict anti-screenshot rules.
+          </p>
+        </div>
+        <aside class="meta-panel" aria-label="Plan metadata">
+          <dl>
+            <dt>Recommended shape</dt>
+            <dd>Separate PRs, grouped into short stacks</dd>
+            <dt>First merge target</dt>
+            <dd>Wrapper shell plus layout QA</dd>
+            <dt>Main risk</dt>
+            <dd>Hardening the API before full-bleed composition is proven</dd>
+            <dt>Compatibility rule</dt>
+            <dd>No cinematic fields and <code>output.motionBlur: off</code> keep the direct capture path</dd>
+          </dl>
+        </aside>
+      </header>
+
+      <section class="band">
+        <h2>How To Work This</h2>
+        <div class="grid three">
+          <div class="stack">
+            <h3>Visual Architecture Stack</h3>
+            <ol>
+              <li>Stage/canvas spike</li>
+              <li>Wrapper shell plus layout QA</li>
+              <li>Cinematic schema/runtime plumbing</li>
+              <li>Visible premium slice</li>
+              <li>Fieldwork A/B plus landscape proof</li>
+            </ol>
+          </div>
+          <div class="stack">
+            <h3>Rendering Stack</h3>
+            <ol>
+              <li><code>output.motionBlur</code> plumbing</li>
+              <li>Motion registry plus shared sampling</li>
+              <li>Encoder profiles and video budgets</li>
+              <li>Real motion blur</li>
+            </ol>
+          </div>
+          <div class="stack">
+            <h3>Policy And Workflow Stack</h3>
+            <ol>
+              <li><code>brief.intent</code> and screenshot gates</li>
+              <li>MCP, preview, docs, and agent workflow parity</li>
+              <li>Generalized premium templates later</li>
+            </ol>
+          </div>
+        </div>
+        <p class="callout" style="margin-top: 18px;">
+          Do not combine the whole roadmap into one PR. The safe path is short stacks where each PR is reviewable
+          by itself and gives the next PR a stable contract.
+        </p>
+      </section>
+
+      <section>
+        <h2>PR Plans</h2>
+
+        <article class="pr" id="pr-0">
+          <div class="pr-head">
+            <div class="num">0</div>
+            <div>
+              <h3>Stage/Canvas Landscape Spike</h3>
+              <div class="deps">Standalone discovery branch. It should inform later API shape, not ship a public API.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill purple">spike</span>
+              <span class="pill">no visible product change</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Prove whether <code>frame: none</code> can host a full-bleed 854x480 composition with a floating
+                device/card, ambient outside the device chrome, and no safe-area clipping.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>examples/landscape-stage-spike/demo.yml</code> or a temporary spike fixture</li>
+                <li><code>src/templates/frames/none.ts</code> only if a minimal proof needs frame-none behavior</li>
+                <li><code>docs/</code> for a short findings note</li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Create a throwaway demo using <code>frame.type: none</code>, <code>output.width: 854</code>, and <code>fps: 30</code>.</li>
+                <li>Render a landscape full-bleed background, a centered device/card, and an ambient layer outside the card bounds.</li>
+                <li>Answer four questions in the PR description or a committed note: full-bleed possible, device/card can sit without clipping, ambient can live outside chrome, and whether this needs a new top-level stage model.</li>
+                <li>Do not expose final schema fields unless the spike proves the direction.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run build</code></li>
+                <li><code>npm run dev -- render examples/landscape-stage-spike/demo.yml -o dist/landscape-spike --for github-readme</code></li>
+                <li>Inspect <code>dist/landscape-spike/preview/final_readme_size.png</code>.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>The four pass/fail answers are explicit.</li>
+                <li>The next composition API recommendation is clear: stage model or frame-none landscape config.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-1">
+          <div class="pr-head">
+            <div class="num">1</div>
+            <div>
+              <h3>Mandatory Motion Wrapper Shell And Layout QA</h3>
+              <div class="deps">Depends on nothing. This is the first real merge candidate.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill green">foundation</span>
+              <span class="pill">stack: visual architecture</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Make every scene render through the inert shell
+                <code>.df-scene &gt; .df-scene-motion &gt; .df-rail-motion &gt; .df-rail</code>,
+                so cinematic motion can later write wrapper CSS variables without stomping existing inner transforms.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/templates/base.ts</code></li>
+                <li><code>src/templates/scenes/*.ts</code></li>
+                <li><code>src/qa/layout.ts</code></li>
+                <li><code>src/golden.test.ts</code> only if test helper tolerance needs wrapper awareness</li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Add base CSS for <code>.df-scene-motion</code> and <code>.df-rail-motion</code> with default custom properties that produce identity transforms and full-size layout.</li>
+                <li>Introduce a small helper such as <code>sceneShell(index, railHtml)</code> to avoid each scene inventing the wrapper.</li>
+                <li>Convert every scene template to use the helper and keep existing <code>.df-rail</code> classes and slots intact.</li>
+                <li>Update <code>measureLayout()</code> to measure settled inner content and treat wrapper transforms as cosmetic once cinematic exists.</li>
+                <li>Add tests that assert each rendered scene contains the wrapper chain and that legacy examples still pass layout/golden tolerance.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run build</code></li>
+                <li><code>npm test</code></li>
+                <li>Render at least <code>examples/fieldwork-hero/demo.yml</code> and compare preview stills against current expectations.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>The wrapper is present for typing, steps, status-card, screenshot, terminal-playback, code, chat, metric-card, and screen scenes.</li>
+                <li>No existing config has to add cinematic fields to keep its old behavior.</li>
+                <li>Layout QA does not falsely flag the inert wrappers.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-2">
+          <div class="pr-head">
+            <div class="num">2</div>
+            <div>
+              <h3><code>output.motionBlur</code> Plumbing And Capture Branch</h3>
+              <div class="deps">Independent of PR 1, but easier to review after render-cache tests are stable.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill green">foundation</span>
+              <span class="pill">stack: rendering</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Add the public contract <code>output.motionBlur: off | cinematic | force</code> with default
+                <code>off</code>, and thread that choice through render-frame caching without implementing blur yet.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/config/schema.ts</code></li>
+                <li><code>schema/demoframe.schema.json</code></li>
+                <li><code>src/commands/render.ts</code></li>
+                <li><code>src/render/frames.ts</code></li>
+                <li><code>src/commands/render.test.ts</code>, <code>src/config/schema.test.ts</code></li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Add the schema enum on <code>output</code> with default <code>off</code>.</li>
+                <li>Add an effective blur resolver: <code>off</code> always direct, <code>cinematic</code> skips GIF, and <code>force</code> allows GIF with a warning later.</li>
+                <li>Extend <code>renderInputKey()</code> with an explicit motion-blur dimension.</li>
+                <li>Change <code>getFrames(config, fps)</code> to <code>getFrames(config, fps, effectiveBlur)</code>, resolving per output format so GIF and MP4 do not share incompatible frames.</li>
+                <li>Rename the current path in <code>src/render/frames.ts</code> to <code>directCapture</code> and add a placeholder <code>blurredCapture</code> that currently delegates or throws only when real blur is requested, depending on the chosen transition behavior.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run schema &gt; schema/demoframe.schema.json</code></li>
+                <li><code>npm test -- src/config/schema.test.ts src/commands/render.test.ts</code></li>
+                <li>Render a multi-format config and confirm separate cache keys when formats resolve different blur modes.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>Existing configs default to <code>off</code>.</li>
+                <li>Report/check output can later mention skipped or forced blur without schema churn.</li>
+                <li>Direct capture remains the path for old configs.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-3">
+          <div class="pr-head">
+            <div class="num">3</div>
+            <div>
+              <h3>Motion Preset Registry And Shared Sampling</h3>
+              <div class="deps">Can stack after PR 2 or PR 1. Required before visible motion and blur.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill green">foundation</span>
+              <span class="pill blue">single source of truth</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Create one TypeScript registry for motion presets, windows, peaks, and easing names, then serialize it
+                into the generated runtime instead of maintaining a second hand-coded JavaScript copy.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/templates/motion/presets.ts</code> new</li>
+                <li><code>src/templates/runtime.ts</code></li>
+                <li><code>src/render/timeline.ts</code></li>
+                <li><code>src/commands/preview.ts</code></li>
+                <li><code>src/render/sampling.ts</code> new</li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Move <code>previewSampleTimes()</code> out of <code>src/commands/preview.ts</code> into <code>src/render/sampling.ts</code>.</li>
+                <li>Define preset metadata in <code>src/templates/motion/presets.ts</code>: name, eligible scene types, choreography windows, peak sample offsets, and easing names.</li>
+                <li>Export helpers for timeline motion windows, preview/contact-sheet peak times, and runtime JSON serialization.</li>
+                <li>Inject the serialized registry into <code>runtime.ts</code> in the same style as timeline data.</li>
+                <li>Add tests that make drift visible: a preset window added to the registry must automatically appear in sampling/runtime helpers.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run build</code></li>
+                <li><code>npm test -- src/render/timeline.test.ts</code></li>
+                <li>Run preview on an existing demo and confirm output still includes expected scene/moment/final stills.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>There is exactly one editable preset registry.</li>
+                <li>Preview sampling can consume regular scene samples and future motion peak samples from the same module.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-4">
+          <div class="pr-head">
+            <div class="num">4</div>
+            <div>
+              <h3>Encoder Profiles, Reported Settings, And Video Budgets</h3>
+              <div class="deps">Can be worked independently of visual architecture. Should merge before A/B artifacts.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill">stack: rendering</span>
+              <span class="pill blue">auditability</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Make encoder behavior reproducible with <code>--encoder-profile legacy|modern</code>, pass concrete
+                encoder settings through reports, and apply budget retries/warnings to MP4 and WebM.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/cli.ts</code></li>
+                <li><code>src/commands/render.ts</code></li>
+                <li><code>src/encode/gif.ts</code>, <code>src/encode/webp.ts</code>, <code>src/encode/mp4.ts</code>, <code>src/encode/webm.ts</code></li>
+                <li><code>src/qa/report.ts</code></li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Add a render option <code>encoderProfile</code> with hidden CLI flag support for <code>legacy</code> and <code>modern</code>.</li>
+                <li>Create encoder settings factories keyed by profile, quality, and format.</li>
+                <li>For modern MP4, use explicit <code>libx264</code>, <code>preset slow</code>, <code>profile high</code>, and quality-mapped CRF.</li>
+                <li>For modern WebM/WebP/GIF, map quality to CRF/quality settings and return the exact settings object from each encoder.</li>
+                <li>Extend <code>OutputReport</code> with <code>encoderProfile</code> and <code>encoderSettings</code>; do not regex-probe these settings from output files.</li>
+                <li>Run the retry ladder for MP4/WebM or add an equivalent video-specific ladder that lowers fps/width while preserving report attempts.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run build</code></li>
+                <li><code>npm test -- src/commands/render.test.ts</code></li>
+                <li>Render MP4 and WebM over a tight budget and confirm attempts plus <code>withinBudget</code> are reported.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>Legacy output can still be requested intentionally.</li>
+                <li>Modern report JSON records profile and settings directly.</li>
+                <li>Video outputs no longer omit budget truth.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-5">
+          <div class="pr-head">
+            <div class="num">5</div>
+            <div>
+              <h3>Cinematic Scene Schema And Runtime Plumbing</h3>
+              <div class="deps">Stacks best after PR 1 and PR 3.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill">stack: visual architecture</span>
+              <span class="pill blue">public API</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Add explicit, non-empty scene-level cinematic blocks without changing default behavior:
+                <code>cinematic: { composition, motion, ambient }</code>.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/config/schema.ts</code></li>
+                <li><code>src/render/timeline.ts</code></li>
+                <li><code>src/templates/runtime.ts</code></li>
+                <li><code>src/commands/check.ts</code></li>
+                <li><code>schema/demoframe.schema.json</code></li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Define strict cinematic schemas for <code>composition</code>, <code>motion</code>, and <code>ambient</code>. Do not default the block into existence.</li>
+                <li>Implement <code>hasCinematicFields(config)</code> as any scene carrying a non-empty cinematic block.</li>
+                <li>Reject <code>cinematic: {}</code> as semantically empty if strict Zod permits an object shape during authoring.</li>
+                <li>Reject cinematic on hold scenes entirely in v1; holds inherit the rendered scene's final state.</li>
+                <li>Reject screenshot cinematic unless <code>brief.screenshotPolicy: raw-intentional</code>.</li>
+                <li>Thread cinematic data through <code>clientData()</code> and runtime initialization, but keep wrappers at identity until the visible slice.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run schema &gt; schema/demoframe.schema.json</code></li>
+                <li><code>npm test -- src/config/schema.test.ts src/commands/check.test.ts src/render/timeline.test.ts</code></li>
+                <li>Manual check: old config renders direct path with no cinematic data.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>Top-level cinematic defaults remain deferred.</li>
+                <li>Schema, check, runtime data, and generated JSON schema agree.</li>
+                <li>Holds and screenshots follow the v1 rules.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-6">
+          <div class="pr-head">
+            <div class="num">6</div>
+            <div>
+              <h3>Visible Premium Slice</h3>
+              <div class="deps">Stacks after PR 1, PR 3, and PR 5. Benefits from PR 4 for A/B reporting.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill blue">visible change</span>
+              <span class="pill">center-hero</span>
+              <span class="pill">ember</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Ship the first real premium look: center-hero composition, a restrained timeline-wide ember ambient
+                layer, and 2-3 wrapper-based motion presets.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/templates/document.ts</code></li>
+                <li><code>src/templates/base.ts</code></li>
+                <li><code>src/templates/runtime.ts</code></li>
+                <li><code>src/templates/scenes/*.ts</code> only for scene-specific composition behavior</li>
+                <li><code>src/commands/preview.ts</code>, <code>src/render/sampling.ts</code></li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Add ambient HTML below <code>.df-scenes</code> and below overlays/logos, activated when any scene requests <code>cinematic.ambient</code>.</li>
+                <li>Document and report that v1 ambient scope is timeline-wide when any scene opts in.</li>
+                <li>Implement center-hero as per-scene composition behavior, not one blanket rail transform. Typing, status-card, screen, and metric-card should preserve their natural slot/body structure.</li>
+                <li>Add readability caps: text-heavy scenes should not scale below 1, and most scenes should cap around 1.08-1.15 unless object/card-only.</li>
+                <li>Implement motion presets by writing only wrapper CSS variables from runtime <code>apply()</code>.</li>
+                <li>Extend preview/contact sheet generation to include motion peak times from the registry, likely with <code>sharp</code> composite tiling.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run build</code> and targeted runtime tests</li>
+                <li>Render an example with <code>center-hero</code>, <code>float-in</code>, and <code>ember</code>.</li>
+                <li>Inspect <code>final_readme_size.png</code> and the contact sheet for readability and motion peaks.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>Old demos remain visually compatible unless cinematic fields are present.</li>
+                <li>Motion changes only wrapper CSS variables.</li>
+                <li>Reports/docs surface ambient timeline-wide scope.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-7">
+          <div class="pr-head">
+            <div class="num">7</div>
+            <div>
+              <h3>Fieldwork A/B Matrix And Landscape Proof</h3>
+              <div class="deps">Stacks after PR 4 and PR 6. Uses the PR 0 spike result.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill blue">example</span>
+              <span class="pill">visual approval gate</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Rebuild <code>examples/fieldwork-hero</code> with the premium slice, produce a reproducible artifact
+                matrix, and add a tiny landscape proof before committing to the next architecture step.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>examples/fieldwork-hero/demo.yml</code></li>
+                <li><code>examples/landscape-proof/demo.yml</code></li>
+                <li><code>test/golden/hero_*.png</code> only after visual approval</li>
+                <li>Example docs or README snippets if the example becomes the hero</li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Create a four-artifact matrix: legacy/old composition, legacy/new composition, modern/new composition, and later cinematic blur.</li>
+                <li>Use <code>--encoder-profile</code> so composition and encoder deltas are isolated.</li>
+                <li>Add a small landscape <code>frame: none</code> proof based on the PR 0 findings.</li>
+                <li>Collect preview stills and final README-size renders for review.</li>
+                <li>Update only Fieldwork golden frames after approval.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run dev -- render examples/fieldwork-hero/demo.yml -o dist/fieldwork-ab --for github-readme</code></li>
+                <li><code>npm test -- src/golden.test.ts src/examples.test.ts</code></li>
+                <li>Manual approval of the A/B matrix before committing golden changes.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>The artifact matrix can be reproduced by command.</li>
+                <li>Only intended Fieldwork goldens change.</li>
+                <li>The architecture checkpoint has a recorded decision.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-8">
+          <div class="pr-head">
+            <div class="num">8</div>
+            <div>
+              <h3>Choreography-Only Motion Blur</h3>
+              <div class="deps">Stacks after PR 2, PR 3, and PR 6. Do this after composition is worth blurring.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill purple">high risk</span>
+              <span class="pill">rendering</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Implement opt-in accumulation blur only for choreography windows from the registry. Never blur typing,
+                changing counters, terminal output, or other text mutation.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/render/frames.ts</code></li>
+                <li><code>src/render/browser.ts</code></li>
+                <li><code>src/templates/motion/presets.ts</code></li>
+                <li><code>src/commands/render.ts</code></li>
+                <li><code>src/qa/report.ts</code></li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Calculate eligible blur windows from the motion registry and active scene intervals.</li>
+                <li>Clamp subframe sampling to the active scene interval. Allow crossfade sampling only inside the fade window.</li>
+                <li>Implement raw RGBA accumulation using <code>sharp</code> decoded buffers. Use premultiplied alpha for transparent frames.</li>
+                <li>Choose and test sRGB versus linear-light averaging on accent blobs, white cards, and text edges.</li>
+                <li>Map quality to subframe count: draft 1, standard 3, high 8, with a global clamp and memory guard.</li>
+                <li>Skip GIF for <code>cinematic</code>; allow GIF only for <code>force</code> with a warning.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li>Determinism test: render the same choreography frame twice and compare hashes.</li>
+                <li>Negative test: typing/counter frames do not blur text mutation.</li>
+                <li>Guard tests for pixel-count, subframe-count, and memory constraints.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>Blur only appears during eligible choreography windows.</li>
+                <li>Transparent output uses correct premultiplied handling.</li>
+                <li>GIF skip/force semantics are visible in warnings/report semantics.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-9">
+          <div class="pr-head">
+            <div class="num">9</div>
+            <div>
+              <h3><code>brief.intent</code> Gates And Anti-Screenshot Strictness</h3>
+              <div class="deps">Mostly independent. Can merge before or after visible motion.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill">policy</span>
+              <span class="pill blue">schema</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Make product, abstract, and hybrid intent first-class while keeping screenshot reconstruction rules
+                strict for every intent.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/config/schema.ts</code></li>
+                <li><code>src/qa/brief.ts</code>, <code>src/qa/brief.test.ts</code></li>
+                <li><code>src/commands/check.ts</code></li>
+                <li><code>src/mcp.ts</code></li>
+                <li><code>schema/demoframe.schema.json</code></li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Add <code>brief.intent: product | abstract | hybrid</code>, defaulting to product in resolution code rather than required fields.</li>
+                <li>Surface intent in brief summary and MCP <code>validate_config</code> as <code>briefIntent</code>.</li>
+                <li>Keep frameless all-screenshot as a hard error for every intent unless <code>--allow-raw-screenshots</code>.</li>
+                <li>For abstract intent, reject screenshot scenes unless <code>screenshotPolicy: raw-intentional</code>.</li>
+                <li>Add static <code>abstract.noPayload</code> scoring over <code>sceneTextLeaves(scene)</code> and timeline render awareness for holds.</li>
+                <li>Keep readability checks browser-rendered and warning-only at preview/render time.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run schema &gt; schema/demoframe.schema.json</code></li>
+                <li><code>npm test -- src/qa/brief.test.ts src/commands/check.test.ts src/config/schema.test.ts</code></li>
+                <li>MCP validate output includes stable <code>briefIntent</code>.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>Confirmed brief math is unchanged.</li>
+                <li>Abstract does not become a loophole for raw screenshots.</li>
+                <li>Payload scoring is static and fast.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-10">
+          <div class="pr-head">
+            <div class="num">10</div>
+            <div>
+              <h3>Agent Workflow, Preview Presets, And MCP Parity</h3>
+              <div class="deps">Independent policy/workflow PR, but coordinate schema conflicts with PR 9.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill">workflow</span>
+              <span class="pill blue">MCP parity</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Make CLI, preview, render, MCP, and agent guidance agree so destination presets and interview rules
+                produce the same visual QA path everywhere.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Files To Touch</h4>
+              <ul>
+                <li><code>src/cli.ts</code></li>
+                <li><code>src/commands/check.ts</code>, <code>src/commands/preview.ts</code></li>
+                <li><code>src/mcp.ts</code></li>
+                <li><code>AGENTS.md</code>, <code>skills/demoframe/SKILL.md</code>, <code>docs/llms.txt</code></li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Implementation Steps</h4>
+              <ol>
+                <li>Add <code>check --for</code> and make it share destination preset application with render.</li>
+                <li>Add <code>preview --for</code> so preview dimensions, fps, and quality match render QA.</li>
+                <li>Add MCP <code>preview_demo</code> and <code>list_templates</code>.</li>
+                <li>Bring MCP <code>render_demo</code> to CLI parity: <code>for</code>, <code>strict</code>, <code>allowRawScreenshots</code>, and <code>assetOut</code>.</li>
+                <li>Update agent guidance with the scene-mapping format: source signal, intent, scene, preserve, simplify, remove, copy.</li>
+              </ol>
+            </div>
+            <div class="mini">
+              <h4>Verification</h4>
+              <ul>
+                <li><code>npm run build</code></li>
+                <li><code>npm test -- src/commands/check.test.ts src/commands/init.test.ts</code></li>
+                <li>Run CLI preview/render with the same <code>--for</code> and confirm dimensions align.</li>
+              </ul>
+            </div>
+            <div class="mini">
+              <h4>Done When</h4>
+              <ul>
+                <li>Preview no longer lies about render preset dimensions.</li>
+                <li>MCP users can list templates, preview, validate, and render with the same major knobs as the CLI.</li>
+                <li>Agent docs teach the required interview and mapping workflow.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="pr" id="pr-11">
+          <div class="pr-head">
+            <div class="num">11</div>
+            <div>
+              <h3>Generalized Premium Composition Set</h3>
+              <div class="deps">Later work. Depends on the architecture checkpoint after PR 7.</div>
+            </div>
+            <div class="pill-row">
+              <span class="pill purple">later</span>
+              <span class="pill">template expansion</span>
+            </div>
+          </div>
+          <div class="pr-body">
+            <div class="mini">
+              <h4>Objective</h4>
+              <p>
+                Expand premium composition and motion beyond the first slice once the stage/canvas decision is settled.
+              </p>
+            </div>
+            <div class="mini">
+              <h4>Candidate Work</h4>
+              <ul>
+                <li><code>floating-stage</code>, <code>macro-card</code>, <code>path-journey</code>, <code>orbit-object</code></li>
+                <li>Top-level cinematic defaults</li>
+                <li>Abstract hero-object scenes</li>
+                <li>Expanded preset-bound screen layouts</li>
+                <li>Template packs and stricter abstract generic warnings</li>
+              </ul>
+            </div>
+            <div class="mini wide">
+              <h4>Start Conditions</h4>
+              <ul>
+                <li>PR 7 has recorded whether off-frame objects require a real stage/canvas layer.</li>
+                <li>At least one premium example has shipped and survived normal usage.</li>
+                <li>The motion registry, cinematic schema, and preview contact sheet have proved stable.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="band" id="workflow">
+        <h2>Automated PR Thread Workflow</h2>
+        <p class="lede">
+          Yes, this is possible as a coordinator workflow, but it should be built as a guarded orchestration loop,
+          not as a blind auto-merge machine. The Codex app already exposes thread primitives for creating,
+          reading, and steering background threads, plus heartbeat/cron automations for polling.
+        </p>
+
+        <div class="grid two">
+          <div class="stack">
+            <h3>Available Building Blocks</h3>
+            <ul>
+              <li><code>list_projects</code> and <code>create_thread</code> can create builder/reviewer threads in worktrees.</li>
+              <li><code>read_thread</code> can inspect progress and extract the PR URL or blocker summary.</li>
+              <li><code>send_message_to_thread</code> can feed review comments back to the builder thread.</li>
+              <li><code>fork_thread</code> can create a related review thread from completed context.</li>
+              <li><code>automation_update</code> can create a heartbeat or cron poller for long-running loops.</li>
+              <li>GitHub status, comments, approvals, and mergeability still need <code>gh</code> or another GitHub API path with credentials.</li>
+            </ul>
+          </div>
+          <div class="stack">
+            <h3>Important Limits</h3>
+            <ul>
+              <li>Codex can resolve review comments, but it cannot manufacture human approvals on protected branches.</li>
+              <li>Networked GitHub polling and merging require credentials and explicit command approval in restricted environments.</li>
+              <li>Each builder should work in its own branch/worktree to prevent cross-PR file conflicts.</li>
+              <li>The coordinator should stop on ambiguous merge conflicts, failing CI, or design approval gates.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="workflow-step">
+          <div class="dot">1</div>
+          <div>
+            <strong>Coordinator chooses the next plan item.</strong>
+            Read a queue like the PR sequence above. Only start an item when its dependencies are merged or deliberately
+            stacked on top of a known branch.
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="dot">2</div>
+          <div>
+            <strong>Builder thread implements the PR.</strong>
+            Create a Codex thread in a new worktree with a branch like <code>codex/premium-motion-wrapper-shell</code>.
+            Its prompt should include the specific plan card, acceptance criteria, branch target, expected tests, and
+            the requirement to file or prepare a PR.
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="dot">3</div>
+          <div>
+            <strong>Coordinator waits for a PR URL or blocker.</strong>
+            Poll the builder thread summary. If the builder is blocked on product/design input, stop and ask the user.
+            If it produces a PR URL, record it as the active PR for that queue item.
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="dot">4</div>
+          <div>
+            <strong>Reviewer thread reviews the filed PR.</strong>
+            Start a separate reviewer thread with a code-review prompt: inspect the diff, prioritize bugs and missing
+            tests, avoid style churn, and return actionable findings. If GitHub access is available, it can also post
+            comments; otherwise it returns comments to the coordinator.
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="dot">5</div>
+          <div>
+            <strong>Coordinator loops comments back to the builder.</strong>
+            Send the review findings and any GitHub comments to the builder thread. The builder updates the branch,
+            reruns tests, and reports the new commit SHA.
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="dot">6</div>
+          <div>
+            <strong>Approval loop checks external state.</strong>
+            Poll GitHub for unresolved comments, requested changes, CI checks, mergeability, and required human
+            approvals. Continue the builder/reviewer loop until the PR is clean or a human decision is required.
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="dot">7</div>
+          <div>
+            <strong>Coordinator merges and triggers the next item.</strong>
+            Once checks and approvals pass, merge via the approved repository policy, archive or summarize the old
+            builder/reviewer threads, then create the next builder thread from the updated base branch.
+          </div>
+        </div>
+
+        <h3>Coordinator Pseudocode</h3>
+        <pre><code>for item in roadmap:
+  ensure item.dependencies are merged or choose an explicit stack base
+  builder = create_thread(project worktree, prompt_for(item))
+  wait until builder reports pr_url or blocker
+  if blocker:
+    ask user, then continue or stop
+
+  reviewer = create_thread(project worktree, review_prompt(pr_url, item))
+  while true:
+    review = read_thread(reviewer)
+    github = gh_pr_state(pr_url)
+
+    if review.has_findings or github.has_requested_changes:
+      send_message_to_thread(builder, comments_from(review, github))
+      wait until builder reports updated_commit
+      send_message_to_thread(reviewer, "Re-review updated PR")
+      continue
+
+    if github.ci_green and github.required_approvals_met and github.mergeable:
+      merge_pr(pr_url)
+      archive builder/reviewer threads
+      break
+
+    if github.needs_human or github.conflict:
+      ask user for direction
+      break</code></pre>
+
+        <h3>Prompt Template For Builder Threads</h3>
+        <pre><code>You are implementing PR {n}: {title} for demoframe.
+
+Use branch codex/{slug}. Start from {base_branch_or_pr}.
+Scope: {objective}
+Files likely involved: {files}
+Acceptance criteria: {done_when}
+Verification commands: {commands}
+
+Keep the PR focused. Do not implement later roadmap items.
+When finished, run verification, commit, push, create a PR, and report the PR URL,
+test results, and any risks.</code></pre>
+
+        <h3>Prompt Template For Reviewer Threads</h3>
+        <pre><code>Review PR {url} for demoframe.
+
+Use a code-review stance. Prioritize bugs, regressions, missing tests, and roadmap scope creep.
+Ground every finding in file/line references when possible.
+Do not request broad refactors unrelated to this PR.
+Return:
+- blocking findings
+- non-blocking findings
+- test gaps
+- approve/no-approve recommendation</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Workflow Part</th>
+              <th>Possible Now?</th>
+              <th>What It Needs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Spin up builder thread</td>
+              <td>Yes</td>
+              <td>Use project-scoped <code>create_thread</code> with a worktree target.</td>
+            </tr>
+            <tr>
+              <td>Spin up reviewer thread</td>
+              <td>Yes</td>
+              <td>Create or fork a separate thread after the PR exists.</td>
+            </tr>
+            <tr>
+              <td>Loop review comments back to builder</td>
+              <td>Yes, with polling</td>
+              <td><code>read_thread</code>, <code>send_message_to_thread</code>, and GitHub comment/status polling.</td>
+            </tr>
+            <tr>
+              <td>Wait for all approvals</td>
+              <td>Partially</td>
+              <td>Requires GitHub API/CLI access and respects branch protection/human approval rules.</td>
+            </tr>
+            <tr>
+              <td>Merge and start next piece</td>
+              <td>Yes, if credentials permit</td>
+              <td>Use repository merge policy, then create the next builder thread from the updated base.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
