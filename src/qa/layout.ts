@@ -20,33 +20,43 @@ export async function measureLayout(
   for (const scene of timeline.scenes) {
     if (scene.type === 'hold') continue;
     await session.seek(Math.max(0, scene.end * 1000 - 50));
+    const layoutPayload = {
+      renderIndex: scene.renderIndex,
+      sceneType: String(scene.type),
+      motion: typeof scene.data.motion === 'string' ? scene.data.motion : undefined,
+      focusIndex: typeof scene.data.focusIndex === 'number' ? scene.data.focusIndex : undefined,
+      sceneName: sceneName(scene),
+    };
     const sceneFindings = await session.page.evaluate(
-      ({ sceneIndex, renderIndex, sceneType, motion, focusIndex, sceneName }) => {
-        const out: Array<{ kind: LayoutFinding['kind']; detail: string }> = [];
-        const active = document.querySelector<HTMLElement>('[data-scene="' + renderIndex + '"]');
-        const safe = active?.closest<HTMLElement>('.df-safe');
-        const rail = active?.querySelector<HTMLElement>('.df-rail');
+      new Function(
+        'payload',
+        `
+        const { renderIndex, sceneType, motion, focusIndex, sceneName } = payload;
+        const out = [];
+        const active = document.querySelector('[data-scene="' + renderIndex + '"]');
+        const safe = active?.closest('.df-safe');
+        const rail = active?.querySelector('.df-rail');
         if (!active || !safe || !rail) return out;
 
         const safeRect = safe.getBoundingClientRect();
         const content =
-          active.querySelector<HTMLElement>('.df-screen-stack') ??
-          (rail.firstElementChild as HTMLElement | null) ??
+          active.querySelector('.df-screen-stack') ??
+          rail.firstElementChild ??
           rail;
         const contentRect = content.getBoundingClientRect();
         const slack = 1.5;
-        const outside = (rect: DOMRect): boolean =>
+        const outside = (rect) =>
           rect.top < safeRect.top - slack ||
           rect.left < safeRect.left - slack ||
           rect.right > safeRect.right + slack ||
           rect.bottom > safeRect.bottom + slack;
-        const describeRect = (label: string, rect: DOMRect): string =>
-          `${label} ${Math.round(rect.width)}x${Math.round(rect.height)} at ` +
-          `${Math.round(rect.left - safeRect.left)},${Math.round(rect.top - safeRect.top)} exceeds safe ` +
-          `${Math.round(safeRect.width)}x${Math.round(safeRect.height)}`;
+        const describeRect = (label, rect) =>
+          label + ' ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' at ' +
+          Math.round(rect.left - safeRect.left) + ',' + Math.round(rect.top - safeRect.top) + ' exceeds safe ' +
+          Math.round(safeRect.width) + 'x' + Math.round(safeRect.height);
 
         if (sceneType === 'screen' && motion === 'scroll') {
-          const blocks = Array.from(active.querySelectorAll<HTMLElement>('[data-block]'));
+          const blocks = Array.from(active.querySelectorAll('[data-block]'));
           const finalBlock = blocks.at(-1);
           if (finalBlock) {
             const rect = finalBlock.getBoundingClientRect();
@@ -60,7 +70,7 @@ export async function measureLayout(
         if (sceneType === 'screen' && motion === 'focus') {
           const block =
             typeof focusIndex === 'number'
-              ? active.querySelector<HTMLElement>('[data-block="' + focusIndex + '"]')
+              ? active.querySelector('[data-block="' + focusIndex + '"]')
               : null;
           if (block) {
             const rect = block.getBoundingClientRect();
@@ -76,7 +86,7 @@ export async function measureLayout(
           out.push({ kind: 'overflow', detail: describeRect('content', contentRect) });
         }
 
-        active.querySelectorAll<HTMLElement>('[data-qa-key]').forEach((el) => {
+        active.querySelectorAll('[data-qa-key]').forEach((el) => {
           const rect = el.getBoundingClientRect();
           if (outside(rect)) {
             const key = el.getAttribute('data-qa-key') ?? 'key element';
@@ -86,17 +96,11 @@ export async function measureLayout(
 
         return out.map((finding) => ({
           ...finding,
-          detail: `${sceneName}: ${finding.detail}`,
+          detail: sceneName + ': ' + finding.detail,
         }));
-      },
-      {
-        sceneIndex: scene.index,
-        renderIndex: scene.renderIndex,
-        sceneType: String(scene.type),
-        motion: typeof scene.data.motion === 'string' ? scene.data.motion : undefined,
-        focusIndex: typeof scene.data.focusIndex === 'number' ? scene.data.focusIndex : undefined,
-        sceneName: sceneName(scene),
-      },
+      `,
+      ) as (payload: typeof layoutPayload) => Array<{ kind: LayoutFinding['kind']; detail: string }>,
+      layoutPayload,
     );
     for (const finding of sceneFindings) {
       findings.push({
@@ -109,4 +113,3 @@ export async function measureLayout(
   }
   return findings;
 }
-

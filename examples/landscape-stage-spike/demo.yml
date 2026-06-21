@@ -1,0 +1,49 @@
+title: Landscape stage spike
+output: { format: webp, width: 854, fps: 15, budget: 4MB, displayWidth: 640 }
+theme:
+  accent: "#e2603a"
+  mode: light
+  font: inter
+  palette:
+    screen: "#f3f6fb"
+    card: "#ffffff"
+    border: "#dfe5ee"
+    shadow: "rgba(20, 31, 49, 0.14)"
+frame: { type: none, width: 854, height: 480 }
+brief:
+  mode: inferred
+  audience: Maintainers validating premium product-motion stage constraints
+  source: Synthetic fixture for the landscape stage/canvas spike
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Establish a full-bleed landscape stage, float a compact product card, then hold on the result
+  climax: The ready card sits inside the ambient landscape canvas without clipping
+  brand: { accent: "#e2603a", frame: none, mode: light }
+  product: demoframe
+  repo: bprateeek/demoframe
+  verbatimCopy: ["Stage ready", "No clipping", "Ambient outside chrome"]
+  assumptions:
+    - "Landscape spike uses an inferred brief because no user interview confirmed the scene map."
+    - "The central screen stack stands in for the future device/card layer."
+    - "The full-bleed screen palette stands in for restrained ambient outside device chrome."
+scenes:
+  - type: screen
+    duration: 6
+    motion: reveal
+    blocks:
+      - { block: app-header, title: Stage ready, subtitle: "854x480 - frame none", icon: spark }
+      - block: stat-strip
+        tiles:
+          - { label: Canvas, value: { value: 854, suffix: "w" } }
+          - { label: Height, value: { value: 480, suffix: "h" } }
+          - { label: Safe clip, value: { value: 0 } }
+      - block: card-grid
+        cards:
+          - { title: Full bleed, value: "yes", desc: "Landscape stage fills the frame", badge: stage, icon: check }
+          - { title: Device card, value: "centered", desc: "Chrome-sized content stays inset", badge: safe, icon: bolt }
+      - block: callout
+        name: result
+        variant: message
+        text: "No clipping. Ambient outside chrome."
+  - type: hold
+    duration: 1.5
