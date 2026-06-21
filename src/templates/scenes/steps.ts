@@ -1,5 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
+import { sceneShell } from '../base.js';
 import type { StepsScene } from '../../config/schema.js';
 
 export const stepsCss = `
@@ -80,12 +81,11 @@ export function stepsHtml(scene: StepsScene, index: number): string {
       </div>`;
     })
     .join('\n');
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-slot-body df-steps-list">
+  return sceneShell(
+    index,
+    `    <div class="df-slot-body df-steps-list">
       ${header}
       ${items}
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }

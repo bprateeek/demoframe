@@ -1,4 +1,5 @@
 import { blockHtml } from '../blocks/index.js';
+import { sceneShell } from '../base.js';
 import type { ScreenScene } from '../../config/schema.js';
 
 export const screenCss = `
@@ -23,12 +24,11 @@ export const screenCss = `
 
 export function screenHtml(scene: ScreenScene, index: number): string {
   const blocks = scene.blocks.map((block, blockIndex) => blockHtml(block, blockIndex)).join('\n');
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail df-screen-rail">
-    <div class="df-screen-stack">
+  return sceneShell(
+    index,
+    `    <div class="df-screen-stack">
       ${blocks}
-    </div>
-  </div>
-</div>`;
+    </div>`,
+    'df-screen-rail',
+  );
 }
-

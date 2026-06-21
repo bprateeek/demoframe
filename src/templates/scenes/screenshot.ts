@@ -1,4 +1,5 @@
 import { escapeHtml } from '../html.js';
+import { sceneShell } from '../base.js';
 import type { ScreenshotScene } from '../../config/schema.js';
 
 export const screenshotCss = `
@@ -32,14 +33,13 @@ export function screenshotHtml(
   const caption = scene.caption
     ? `<div class="df-shot-caption">${escapeHtml(scene.caption)}</div>`
     : '';
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-slot-body df-shot-body">
+  return sceneShell(
+    index,
+    `    <div class="df-slot-body df-shot-body">
       <div class="df-shot-wrap df-shot-${scene.fit}">
         <img src="${dataUrl}" alt="">
       </div>
       ${caption}
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }
