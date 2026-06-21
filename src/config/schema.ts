@@ -47,6 +47,7 @@ export function budgetToBytes(budget: string | number): number {
 }
 
 const formatValue = z.enum(['gif', 'webp', 'mp4', 'webm']);
+const motionBlurValue = z.enum(['off', 'cinematic', 'force']);
 
 const outputSchema = z
   .object({
@@ -56,6 +57,7 @@ const outputSchema = z
     budget: sizeBudget,
     displayWidth: z.number().int().min(100).max(1200).optional(),
     quality: z.enum(['draft', 'standard', 'high']).default('standard'),
+    motionBlur: motionBlurValue.default('off'),
   })
   .default({});
 
@@ -847,6 +849,14 @@ export type ScreenScene = z.infer<typeof screenScene>;
 export type ScreenBlock = z.infer<typeof screenBlock>;
 export type TermLineStyle = z.infer<typeof termLineStyle>;
 export type CodeLang = (typeof CODE_LANGS)[number];
+export type MotionBlur = z.infer<typeof motionBlurValue>;
+export type FrameCaptureMode = 'directCapture' | 'blurredCapture';
+
+export interface FrameCapturePlan {
+  format: OutputFormat;
+  motionBlur: MotionBlur;
+  mode: FrameCaptureMode;
+}
 
 export interface NormalizedTermLine {
   text: string;
@@ -875,6 +885,13 @@ export type OutputFormat = z.infer<typeof formatValue>;
 export function outputFormats(output: Output): OutputFormat[] {
   const list = Array.isArray(output.format) ? output.format : [output.format];
   return [...new Set(list)];
+}
+
+export function resolveFrameCapture(output: Output, format: OutputFormat): FrameCapturePlan {
+  if (output.motionBlur === 'off' || format === 'gif') {
+    return { format, motionBlur: output.motionBlur, mode: 'directCapture' };
+  }
+  return { format, motionBlur: output.motionBlur, mode: 'blurredCapture' };
 }
 
 export const SCALE_BY_QUALITY = { draft: 1, standard: 2, high: 4 } as const;

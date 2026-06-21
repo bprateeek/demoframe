@@ -16,7 +16,9 @@ import {
   budgetToBytes,
   isTransparentFrame,
   outputFormats,
+  resolveFrameCapture,
   type DemoConfig,
+  type FrameCapturePlan,
   type OutputFormat,
 } from '../config/schema.js';
 import { applyPreset } from '../config/presets.js';
@@ -105,7 +107,12 @@ function parsePresets(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
-function renderInputKey(config: DemoConfig, baseDir: string, fps: number): string {
+export function renderInputKey(
+  config: DemoConfig,
+  baseDir: string,
+  fps: number,
+  capture: FrameCapturePlan,
+): string {
   const input = {
     baseDir,
     scenes: config.scenes,
@@ -113,6 +120,9 @@ function renderInputKey(config: DemoConfig, baseDir: string, fps: number): strin
     theme: config.theme,
     fps,
     quality: config.output.quality,
+    motionBlur: capture.motionBlur,
+    captureMode: capture.mode,
+    format: capture.format,
   };
   return crypto.createHash('sha1').update(JSON.stringify(input)).digest('hex').slice(0, 12);
 }
@@ -332,15 +342,25 @@ export async function runRender(
   const framesRoot = path.join(stageDir, '.frames');
 
   const frameCache = new Map<string, RenderedFrames>();
-  const getFrames = async (config: DemoConfig, fps: number): Promise<RenderedFrames> => {
-    const key = renderInputKey(config, baseDir, fps);
+  const getFrames = async (config: DemoConfig, fps: number, format: OutputFormat): Promise<RenderedFrames> => {
+    const capture = resolveFrameCapture(config.output, format);
+    const key = renderInputKey(config, baseDir, fps, capture);
     const cached = frameCache.get(key);
     if (cached) return cached;
     const doc = await buildDocument(config, baseDir, fps);
-    console.log(`rendering ${doc.timeline.frameCount} frames at ${fps}fps (${config.output.quality} quality)...`);
-    const frames = await renderFrames(doc, config.output.quality, path.join(framesRoot, key), (done, total) => {
-      if (done % 25 === 0 || done === total) process.stdout.write(`\r  frame ${done}/${total}`);
-    });
+    console.log(
+      `rendering ${doc.timeline.frameCount} ${capture.mode} frames for ${format.toUpperCase()} at ${fps}fps ` +
+        `(${config.output.quality} quality)...`,
+    );
+    const frames = await renderFrames(
+      doc,
+      config.output.quality,
+      path.join(framesRoot, key),
+      (done, total) => {
+        if (done % 25 === 0 || done === total) process.stdout.write(`\r  frame ${done}/${total}`);
+      },
+      capture,
+    );
     process.stdout.write('\n');
     frameCache.set(key, frames);
     return frames;
@@ -363,7 +383,7 @@ export async function runRender(
         const outPath = path.join(stageDir, outputFileName(name, preset, format));
         let final: OutputReport | null = null;
         for (const step of ladderSteps(config.output.fps, config.output.width)) {
-          const frames = await getFrames(renderConfig, step.fps);
+          const frames = await getFrames(renderConfig, step.fps, format);
           console.log(`encoding ${format.toUpperCase()} at ${step.width}px / ${step.fps}fps...`);
           if (format === 'gif') {
             const { encoder } = await encodeGif(frames, step.width, outPath, {
@@ -395,7 +415,7 @@ export async function runRender(
 
       if (formats.includes('mp4')) {
         const mp4Path = path.join(stageDir, outputFileName(name, preset, 'mp4'));
-        const frames = await getFrames(config, config.output.fps);
+        const frames = await getFrames(config, config.output.fps, 'mp4');
         console.log(`encoding MP4 at ${config.output.width}px / ${config.output.fps}fps...`);
         await encodeMp4(frames, config.output.width, mp4Path);
         const report = inspectMp4(mp4Path);
@@ -406,7 +426,7 @@ export async function runRender(
 
       if (formats.includes('webm')) {
         const webmPath = path.join(stageDir, outputFileName(name, preset, 'webm'));
-        const frames = await getFrames(config, config.output.fps);
+        const frames = await getFrames(config, config.output.fps, 'webm');
         console.log(`encoding WebM at ${config.output.width}px / ${config.output.fps}fps...`);
         await encodeWebm(frames, config.output.width, webmPath);
         const report = inspectWebm(webmPath);

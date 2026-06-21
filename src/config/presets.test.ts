@@ -12,8 +12,12 @@ const parse = (output: Record<string, unknown> = {}) =>
 
 describe('applyPreset', () => {
   it('overrides every differing output field and lists the changes', () => {
-    const { config, changes } = applyPreset(parse({ format: 'gif', width: 480, fps: 15 }), 'x-post');
+    const { config, changes } = applyPreset(
+      parse({ format: 'gif', width: 480, fps: 15, motionBlur: 'cinematic' }),
+      'x-post',
+    );
     expect(config.output).toMatchObject({ format: 'mp4', width: 1080, fps: 30, budget: '15MB', quality: 'high' });
+    expect(config.output.motionBlur).toBe('cinematic');
     expect(changes).toEqual([
       'output.format: gif -> mp4',
       'output.width: 480 -> 1080',
