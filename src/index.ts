@@ -9,6 +9,7 @@ export {
   frameViewport,
   resolveFrameCapture,
   normalizeLogo,
+  hasCinematicFields,
   PALETTE_KEYS,
   THEME_PRESET_NAMES,
 } from './config/schema.js';
@@ -20,6 +21,7 @@ export type {
   Output,
   OutputFormat,
   MotionBlur,
+  SceneCinematic,
   FrameCaptureMode,
   FrameCapturePlan,
   TerminalPlaybackScene,

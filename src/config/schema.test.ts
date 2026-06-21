@@ -3,6 +3,7 @@ import {
   budgetToBytes,
   demoConfigSchema,
   frameViewport,
+  hasCinematicFields,
   normalizeLogo,
   normalizeTermLines,
   outputFormats,
@@ -129,6 +130,82 @@ describe('demoConfigSchema', () => {
     );
     expect(demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'force' } }).output.motionBlur).toBe('force');
     expect(demoConfigSchema.safeParse({ ...minimal, output: { motionBlur: 'always' } }).success).toBe(false);
+  });
+
+  it('accepts explicit non-empty scene cinematic blocks and detects them', () => {
+    const without = demoConfigSchema.parse(minimal);
+    expect(hasCinematicFields(without)).toBe(false);
+
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      scenes: [
+        {
+          type: 'typing',
+          duration: 3,
+          text: 'hello',
+          cinematic: { composition: 'center-hero', motion: 'float-in', ambient: 'ember' },
+        },
+      ],
+    });
+    expect(config.scenes[0].cinematic).toEqual({
+      composition: 'center-hero',
+      motion: 'float-in',
+      ambient: 'ember',
+    });
+    expect(hasCinematicFields(config)).toBe(true);
+  });
+
+  it('rejects empty or unknown cinematic blocks', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', cinematic: {} }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', cinematic: { motion: 'zoom' } }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'typing', duration: 3, text: 'hi', cinematic: { motion: 'float-in', blur: true } }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it('rejects hold cinematic blocks and gates screenshot cinematic to raw-intentional briefs', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [
+          { type: 'typing', duration: 3, text: 'hi' },
+          { type: 'hold', duration: 1, cinematic: { motion: 'float-in' } },
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'screenshot', duration: 3, src: 'a.png', cinematic: { ambient: 'ember' } }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        brief: { screenshotPolicy: 'reconstruct' },
+        scenes: [{ type: 'screenshot', duration: 3, src: 'a.png', cinematic: { ambient: 'ember' } }],
+      }).success,
+    ).toBe(false);
+
+    const raw = demoConfigSchema.parse({
+      ...minimal,
+      brief: { screenshotPolicy: 'raw-intentional' },
+      scenes: [{ type: 'screenshot', duration: 3, src: 'a.png', cinematic: { ambient: 'ember' } }],
+    });
+    expect(hasCinematicFields(raw)).toBe(true);
   });
 
   it('accepts a minimal terminal-playback scene with string and styled output lines', () => {

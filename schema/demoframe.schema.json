@@ -694,6 +694,73 @@
                     },
                     "additionalProperties": false
                   },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
                   "text": {
                     "type": "string",
                     "minLength": 1,
@@ -779,6 +846,73 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "header": {
                     "type": "object",
@@ -905,6 +1039,73 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "title": {
                     "type": "string",
@@ -1043,6 +1244,73 @@
                     },
                     "additionalProperties": false
                   },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
                   "src": {
                     "type": "string",
                     "minLength": 1
@@ -1140,6 +1408,73 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -1208,6 +1543,73 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "command": {
                     "type": "string",
@@ -1350,6 +1752,73 @@
                     },
                     "additionalProperties": false
                   },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
                   "lang": {
                     "type": "string",
                     "enum": [
@@ -1478,6 +1947,73 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "messages": {
                     "type": "array",
@@ -1637,6 +2173,73 @@
                     },
                     "additionalProperties": false
                   },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
                   "title": {
                     "type": "string",
                     "maxLength": 80
@@ -1790,6 +2393,73 @@
                       }
                     },
                     "additionalProperties": false
+                  },
+                  "cinematic": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "composition"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "motion"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "composition": {
+                            "type": "string",
+                            "const": "center-hero"
+                          },
+                          "motion": {
+                            "type": "string",
+                            "const": "float-in"
+                          },
+                          "ambient": {
+                            "type": "string",
+                            "const": "ember"
+                          }
+                        },
+                        "required": [
+                          "ambient"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   "motion": {
                     "type": "string",
