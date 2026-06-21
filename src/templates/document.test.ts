@@ -48,6 +48,49 @@ describe('buildDocument overlay injection (v0.5)', () => {
   });
 });
 
+describe('buildDocument scene motion wrappers', () => {
+  it('renders every content scene through the shared inert motion shell', async () => {
+    const scenes = [
+      { type: 'typing', duration: 2, text: 'Ship the demo' },
+      {
+        type: 'steps',
+        duration: 2,
+        items: [
+          { label: 'Plan', state: 'done' },
+          { label: 'Render', state: 'active' },
+        ],
+      },
+      { type: 'status-card', duration: 2, title: 'Ready', checks: ['Build passed'] },
+      { type: 'screenshot', duration: 2, src: 'test/golden/hero_2.5.png' },
+      { type: 'terminal-playback', duration: 2, command: 'npm test', output: ['passed'] },
+      { type: 'code', duration: 2, code: 'const ready = true;' },
+      { type: 'chat', duration: 2, messages: [{ role: 'assistant', text: 'Done.' }] },
+      { type: 'metric-card', duration: 2, metrics: [{ label: 'Tests', value: 42 }] },
+      {
+        type: 'screen',
+        duration: 2,
+        blocks: [{ block: 'callout', variant: 'message', text: 'All systems go' }],
+      },
+    ];
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      scenes,
+    });
+    const doc = await buildDocument(config, baseDir);
+    const shellMatches = Array.from(
+      doc.html.matchAll(
+        /<div class="df-scene" data-scene="(\d+)">\s*<div class="df-scene-motion">\s*<div class="df-rail-motion">\s*<div class="([^"]*)">/g,
+      ),
+    );
+
+    expect(shellMatches).toHaveLength(scenes.length);
+    expect(shellMatches.map((match) => Number(match[1]))).toEqual(scenes.map((_, index) => index));
+    expect(shellMatches.map((match) => match[2].split(' '))).toEqual(
+      scenes.map((scene) => (scene.type === 'screen' ? ['df-rail', 'df-screen-rail'] : ['df-rail'])),
+    );
+  });
+});
+
 describe('buildDocument frame chrome layers (v0.7)', () => {
   it('renders thin browser chrome without the URL bar', async () => {
     const config = demoConfigSchema.parse({

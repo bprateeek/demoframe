@@ -1,5 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
+import { sceneShell } from '../base.js';
 import type { StatusCardScene } from '../../config/schema.js';
 
 export const statusCardCss = `
@@ -123,9 +124,9 @@ export function statusCardHtml(scene: StatusCardScene, index: number): string {
   const caption = scene.caption
     ? `<div class="df-card-caption" data-qa-key="caption">${escapeHtml(scene.caption)}</div>`
     : '';
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-slot-body df-card-body">
+  return sceneShell(
+    index,
+    `    <div class="df-slot-body df-card-body">
       ${repo}
       <h1 class="df-card-title">${escapeHtml(scene.title)}</h1>
       ${branch}
@@ -133,7 +134,6 @@ export function statusCardHtml(scene: StatusCardScene, index: number): string {
       ${checks}
       ${cta}
       ${caption}
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }

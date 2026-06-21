@@ -35,69 +35,82 @@ export async function measureLayout(
         const out = [];
         const active = document.querySelector('[data-scene="' + renderIndex + '"]');
         const safe = active?.closest('.df-safe');
-        const rail = active?.querySelector('.df-rail');
+        const rail =
+          active?.querySelector('.df-scene-motion > .df-rail-motion > .df-rail') ??
+          active?.querySelector('.df-rail');
         if (!active || !safe || !rail) return out;
 
-        const safeRect = safe.getBoundingClientRect();
-        const content =
-          active.querySelector('.df-screen-stack') ??
-          rail.firstElementChild ??
-          rail;
-        const contentRect = content.getBoundingClientRect();
         const slack = 1.5;
-        const outside = (rect) =>
-          rect.top < safeRect.top - slack ||
-          rect.left < safeRect.left - slack ||
-          rect.right > safeRect.right + slack ||
-          rect.bottom > safeRect.bottom + slack;
-        const describeRect = (label, rect) =>
-          label + ' ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' at ' +
-          Math.round(rect.left - safeRect.left) + ',' + Math.round(rect.top - safeRect.top) + ' exceeds safe ' +
-          Math.round(safeRect.width) + 'x' + Math.round(safeRect.height);
-
-        if (sceneType === 'screen' && motion === 'scroll') {
-          const blocks = Array.from(active.querySelectorAll('[data-block]'));
-          const finalBlock = blocks.at(-1);
-          if (finalBlock) {
-            const rect = finalBlock.getBoundingClientRect();
-            if (outside(rect)) {
-              out.push({ kind: 'scroll-framing', detail: describeRect('final block', rect) });
-            }
-          }
-          return out;
-        }
-
-        if (sceneType === 'screen' && motion === 'focus') {
-          const block =
-            typeof focusIndex === 'number'
-              ? active.querySelector('[data-block="' + focusIndex + '"]')
-              : null;
-          if (block) {
-            const rect = block.getBoundingClientRect();
-            const tooSmall = rect.width < safeRect.width * 0.22 || rect.height < safeRect.height * 0.12;
-            if (outside(rect) || tooSmall) {
-              out.push({ kind: 'focus-framing', detail: describeRect('focused block', rect) });
-            }
-          }
-          return out;
-        }
-
-        if (content.scrollHeight > safe.clientHeight + slack || outside(contentRect)) {
-          out.push({ kind: 'overflow', detail: describeRect('content', contentRect) });
-        }
-
-        active.querySelectorAll('[data-qa-key]').forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          if (outside(rect)) {
-            const key = el.getAttribute('data-qa-key') ?? 'key element';
-            out.push({ kind: 'clipped-key', detail: describeRect(key, rect) });
-          }
+        const wrappers = Array.from(active.querySelectorAll('.df-scene-motion, .df-rail-motion'));
+        const previousTransforms = wrappers.map((wrapper) => wrapper.style.transform);
+        wrappers.forEach((wrapper) => {
+          wrapper.style.transform = 'none';
         });
+        try {
+          const safeRect = safe.getBoundingClientRect();
+          const content =
+            active.querySelector('.df-screen-stack') ??
+            rail.firstElementChild ??
+            rail;
+          const contentRect = content.getBoundingClientRect();
+          const outside = (rect) =>
+            rect.top < safeRect.top - slack ||
+            rect.left < safeRect.left - slack ||
+            rect.right > safeRect.right + slack ||
+            rect.bottom > safeRect.bottom + slack;
+          const describeRect = (label, rect) =>
+            label + ' ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' at ' +
+            Math.round(rect.left - safeRect.left) + ',' + Math.round(rect.top - safeRect.top) + ' exceeds safe ' +
+            Math.round(safeRect.width) + 'x' + Math.round(safeRect.height);
 
-        return out.map((finding) => ({
-          ...finding,
-          detail: sceneName + ': ' + finding.detail,
-        }));
+          if (sceneType === 'screen' && motion === 'scroll') {
+            const blocks = Array.from(active.querySelectorAll('[data-block]'));
+            const finalBlock = blocks.at(-1);
+            if (finalBlock) {
+              const rect = finalBlock.getBoundingClientRect();
+              if (outside(rect)) {
+                out.push({ kind: 'scroll-framing', detail: describeRect('final block', rect) });
+              }
+            }
+            return out;
+          }
+
+          if (sceneType === 'screen' && motion === 'focus') {
+            const block =
+              typeof focusIndex === 'number'
+                ? active.querySelector('[data-block="' + focusIndex + '"]')
+                : null;
+            if (block) {
+              const rect = block.getBoundingClientRect();
+              const tooSmall = rect.width < safeRect.width * 0.22 || rect.height < safeRect.height * 0.12;
+              if (outside(rect) || tooSmall) {
+                out.push({ kind: 'focus-framing', detail: describeRect('focused block', rect) });
+              }
+            }
+            return out;
+          }
+
+          if (content.scrollHeight > safe.clientHeight + slack || outside(contentRect)) {
+            out.push({ kind: 'overflow', detail: describeRect('content', contentRect) });
+          }
+
+          active.querySelectorAll('[data-qa-key]').forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            if (outside(rect)) {
+              const key = el.getAttribute('data-qa-key') ?? 'key element';
+              out.push({ kind: 'clipped-key', detail: describeRect(key, rect) });
+            }
+          });
+
+          return out.map((finding) => ({
+            ...finding,
+            detail: sceneName + ': ' + finding.detail,
+          }));
+        } finally {
+          wrappers.forEach((wrapper, index) => {
+            wrapper.style.transform = previousTransforms[index];
+          });
+        }
       `,
       ) as (payload: typeof layoutPayload) => Array<{ kind: LayoutFinding['kind']; detail: string }>,
       layoutPayload,

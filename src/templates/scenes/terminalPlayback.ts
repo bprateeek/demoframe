@@ -1,5 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
+import { sceneShell } from '../base.js';
 import { normalizeTermLines, type TerminalPlaybackScene } from '../../config/schema.js';
 
 export const terminalPlaybackCss = `
@@ -60,21 +61,19 @@ export function terminalPlaybackHtml(
       ${spinner || exit ? `<div class="df-play-status">${spinner}${exit}</div>` : ''}
       <div class="df-term-line df-play-next"><span class="df-term-prompt">${prompt}</span><span class="df-term-caret"></span></div>`;
   if (frameType === 'terminal') {
-    return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-slot-header df-play">
+    return sceneShell(
+      index,
+      `    <div class="df-slot-header df-play">
       ${body}
-    </div>
-  </div>
-</div>`;
+    </div>`,
+    );
   }
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-play-center">
+  return sceneShell(
+    index,
+    `    <div class="df-play-center">
       <div class="df-play df-play-panel">
         ${body}
       </div>
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }

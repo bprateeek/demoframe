@@ -1,5 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
+import { sceneShell } from '../base.js';
 import type { TypingScene } from '../../config/schema.js';
 
 export const typingCss = `
@@ -74,15 +75,14 @@ export const typingCss = `
 
 export function typingHtml(scene: TypingScene, index: number, frameType: string, prompt = '$'): string {
   if (frameType === 'terminal') {
-    return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-slot-header df-term-line"><span class="df-term-prompt">${escapeHtml(prompt)}</span><span class="df-typed"></span><span class="df-term-caret df-caret-blink"></span></div>
-  </div>
-</div>`;
+    return sceneShell(
+      index,
+      `    <div class="df-slot-header df-term-line"><span class="df-term-prompt">${escapeHtml(prompt)}</span><span class="df-typed"></span><span class="df-term-caret df-caret-blink"></span></div>`,
+    );
   }
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-slot-footer df-composer">
+  return sceneShell(
+    index,
+    `    <div class="df-slot-footer df-composer">
       <div class="df-composer-top">
         <div class="df-composer-text"><span class="df-typed"></span><span class="df-caret df-caret-blink"></span>${
           scene.placeholder ? `<span class="df-placeholder">${escapeHtml(scene.placeholder)}</span>` : ''
@@ -93,7 +93,6 @@ export function typingHtml(scene: TypingScene, index: number, frameType: string,
         <span class="df-composer-code">${icons.code} Code</span>
         <span class="df-composer-icons">${icons.paperclip}${icons.mic}</span>
       </div>
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }

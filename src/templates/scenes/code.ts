@@ -1,6 +1,7 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
 import { highlightCode } from '../highlight.js';
+import { sceneShell } from '../base.js';
 import type { CodeScene } from '../../config/schema.js';
 
 export const codeCss = `
@@ -67,14 +68,13 @@ export async function codeHtml(scene: CodeScene, index: number, mode: 'light' | 
   const bar = scene.title
     ? `<div class="df-codepanel-bar">${icons.code}<span>${escapeHtml(scene.title)}</span></div>`
     : '';
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-code-center">
+  return sceneShell(
+    index,
+    `    <div class="df-code-center">
       <div class="df-codepanel">
         ${bar}
         <div class="df-codepanel-body${hasGutter ? ' df-code-gutter' : ''}">${highlighted}</div>
       </div>
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }

@@ -32,6 +32,32 @@ svg { display: block; width: 100%; height: 100%; }
   display: flex;
   flex-direction: column;
 }
+.df-scene-motion {
+  --df-scene-motion-x: 0px;
+  --df-scene-motion-y: 0px;
+  --df-scene-motion-scale: 1;
+  --df-scene-motion-opacity: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: var(--df-scene-motion-opacity);
+  transform: translate3d(var(--df-scene-motion-x), var(--df-scene-motion-y), 0) scale(var(--df-scene-motion-scale));
+  transform-origin: center center;
+}
+.df-rail-motion {
+  --df-rail-motion-x: 0px;
+  --df-rail-motion-y: 0px;
+  --df-rail-motion-scale: 1;
+  --df-rail-motion-opacity: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: var(--df-rail-motion-opacity);
+  transform: translate3d(var(--df-rail-motion-x), var(--df-rail-motion-y), 0) scale(var(--df-rail-motion-scale));
+  transform-origin: center center;
+}
 .df-rail {
   flex: 1;
   min-height: 0;
@@ -135,3 +161,16 @@ svg { display: block; width: 100%; height: 100%; }
   background: var(--df-accent);
 }
 `;
+
+export function sceneShell(index: number, railContents: string, railClass = ''): string {
+  const railClasses = ['df-rail', railClass].filter(Boolean).join(' ');
+  return `<div class="df-scene" data-scene="${index}">
+  <div class="df-scene-motion">
+    <div class="df-rail-motion">
+      <div class="${railClasses}">
+${railContents}
+      </div>
+    </div>
+  </div>
+</div>`;
+}

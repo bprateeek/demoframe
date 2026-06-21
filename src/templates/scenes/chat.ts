@@ -1,4 +1,5 @@
 import { escapeHtml } from '../html.js';
+import { sceneShell } from '../base.js';
 import type { ChatScene } from '../../config/schema.js';
 
 export const chatCss = `
@@ -112,11 +113,10 @@ export function chatHtml(scene: ChatScene, index: number, avatars?: ResolvedAvat
       </div>`;
     })
     .join('\n');
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-slot-body df-chat">
+  return sceneShell(
+    index,
+    `    <div class="df-slot-body df-chat">
       ${messages}
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }

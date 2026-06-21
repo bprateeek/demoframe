@@ -1,4 +1,5 @@
 import { escapeHtml } from '../html.js';
+import { sceneShell } from '../base.js';
 import type { MetricCardScene } from '../../config/schema.js';
 
 export const metricCardCss = `
@@ -120,9 +121,9 @@ export function metricCardHtml(scene: MetricCardScene, index: number): string {
     : '';
   const chart = scene.chart ? `<div class="df-chart">${chartSvg(scene.chart)}${labels}</div>` : '';
   const caption = scene.caption ? `<div class="df-metric-caption">${escapeHtml(scene.caption)}</div>` : '';
-  return `<div class="df-scene" data-scene="${index}">
-  <div class="df-rail">
-    <div class="df-metric-center">
+  return sceneShell(
+    index,
+    `    <div class="df-metric-center">
       <div class="df-metric-panel">
         ${title}
         <div class="df-metric-grid">
@@ -131,7 +132,6 @@ export function metricCardHtml(scene: MetricCardScene, index: number): string {
         ${chart}
         ${caption}
       </div>
-    </div>
-  </div>
-</div>`;
+    </div>`,
+  );
 }
