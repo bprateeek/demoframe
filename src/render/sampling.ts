@@ -1,0 +1,85 @@
+import type { Timeline, TimelineScene } from './timeline.js';
+import {
+  MOTION_PRESET_NAMES,
+  motionPreset,
+  isMotionSceneEligible,
+  type MotionEasingName,
+  type MotionPresetName,
+  type MotionWindowName,
+} from '../templates/motion/presets.js';
+
+export const TAP_PRESS_SAMPLE_OFFSET = 0.94;
+
+export interface TimelineMotionWindow {
+  sceneIndex: number;
+  sceneType: TimelineScene['type'];
+  preset: MotionPresetName;
+  window: MotionWindowName;
+  start: number;
+  end: number;
+  easing: MotionEasingName;
+}
+
+function clampTimelineTime(timeline: Timeline, time: number): number {
+  return Math.max(0, Math.min(timeline.duration, time));
+}
+
+function roundTimelineTime(timeline: Timeline, time: number): number {
+  return Number(clampTimelineTime(timeline, time).toFixed(3));
+}
+
+function uniqueRoundedTimes(times: number[]): number[] {
+  return [...new Set(times.map((t) => Math.max(0, t).toFixed(3)))].map(Number);
+}
+
+export function previewSampleTimes(timeline: Timeline): number[] {
+  const times: number[] = [];
+  for (const ts of timeline.scenes) {
+    times.push(ts.start + ts.duration * 0.15, ts.start + ts.duration * 0.5, ts.start + ts.duration * 0.9);
+    if (ts.data.tap) times.push(ts.start + ts.duration * TAP_PRESS_SAMPLE_OFFSET);
+    if (ts.data.celebrate) times.push(ts.start + Math.min(0.2, ts.duration * 0.25));
+  }
+  times.push(Math.max(0, timeline.duration - 0.05));
+  return uniqueRoundedTimes(times.map((t) => clampTimelineTime(timeline, t)));
+}
+
+function presetNames(name: MotionPresetName | undefined): MotionPresetName[] {
+  return name ? [name] : MOTION_PRESET_NAMES;
+}
+
+export function motionPeakTimes(timeline: Timeline, presetName?: MotionPresetName): number[] {
+  const times: number[] = [];
+  for (const scene of timeline.scenes) {
+    for (const name of presetNames(presetName)) {
+      if (!isMotionSceneEligible(scene.type, name)) continue;
+      for (const offset of motionPreset(name).peakSampleOffsets) {
+        times.push(scene.start + scene.duration * offset);
+      }
+    }
+  }
+  return uniqueRoundedTimes(times.map((t) => clampTimelineTime(timeline, t)));
+}
+
+export function timelineMotionWindows(timeline: Timeline, presetName?: MotionPresetName): TimelineMotionWindow[] {
+  const windows: TimelineMotionWindow[] = [];
+  for (const scene of timeline.scenes) {
+    for (const name of presetNames(presetName)) {
+      if (!isMotionSceneEligible(scene.type, name)) continue;
+      const preset = motionPreset(name);
+      for (const [window, spec] of Object.entries(preset.windows) as Array<
+        [MotionWindowName, NonNullable<(typeof preset.windows)[MotionWindowName]>]
+      >) {
+        windows.push({
+          sceneIndex: scene.index,
+          sceneType: scene.type,
+          preset: name,
+          window,
+          start: roundTimelineTime(timeline, scene.start + scene.duration * spec.start),
+          end: roundTimelineTime(timeline, scene.start + scene.duration * spec.end),
+          easing: spec.easing,
+        });
+      }
+    }
+  }
+  return windows;
+}

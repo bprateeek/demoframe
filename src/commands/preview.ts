@@ -7,12 +7,12 @@ import type { LoadedConfig } from '../config/load.js';
 import { buildDocument } from '../templates/document.js';
 import { openRenderSession, type RenderSession } from '../render/browser.js';
 import { applyCrop, computeAlphaBox, type AlphaBox } from '../render/crop.js';
+import { previewSampleTimes, TAP_PRESS_SAMPLE_OFFSET } from '../render/sampling.js';
 import { measureLayout, type LayoutFinding } from '../qa/layout.js';
 import { briefSummary, resolveInferredAssumptions } from '../qa/brief.js';
 
 const GITHUB_DARK = '#0d1117';
 const GITHUB_LIGHT = '#ffffff';
-const TAP_PRESS = 0.94;
 
 async function compositeOn(stillPng: Buffer, background: string, outFile: string): Promise<void> {
   const meta = await sharp(stillPng).metadata();
@@ -59,24 +59,13 @@ interface CropPlan {
   marginPx: number;
 }
 
-function previewSampleTimes(doc: Awaited<ReturnType<typeof buildDocument>>): number[] {
-  const times: number[] = [];
-  for (const ts of doc.timeline.scenes) {
-    times.push(ts.start + ts.duration * 0.15, ts.start + ts.duration * 0.5, ts.start + ts.duration * 0.9);
-    if (ts.data.tap) times.push(ts.start + ts.duration * TAP_PRESS);
-    if (ts.data.celebrate) times.push(ts.start + Math.min(0.2, ts.duration * 0.25));
-  }
-  times.push(Math.max(0, doc.timeline.duration - 0.05));
-  return [...new Set(times.map((t) => Math.max(0, Math.min(doc.timeline.duration, t)).toFixed(3)))].map(Number);
-}
-
 async function transparentCropPlan(
   session: RenderSession,
   doc: Awaited<ReturnType<typeof buildDocument>>,
 ): Promise<CropPlan | undefined> {
   if (!doc.transparent) return undefined;
   const samples: Buffer[] = [];
-  for (const t of previewSampleTimes(doc)) {
+  for (const t of previewSampleTimes(doc.timeline)) {
     await session.seek(t * 1000);
     samples.push(await session.screenshot());
   }
@@ -121,7 +110,7 @@ export async function writePreviewArtifacts(
     for (const ts of doc.timeline.scenes) {
       const rendered = config.scenes[ts.renderIndex];
       if (ts.data.tap) {
-        await session.seek((ts.start + ts.duration * TAP_PRESS) * 1000);
+        await session.seek((ts.start + ts.duration * TAP_PRESS_SAMPLE_OFFSET) * 1000);
         const label = rendered.type === 'status-card' ? 'cta' : 'tap';
         const file = path.join(outDir, `moment_${ts.index}_${label}.png`);
         await sharp(await captureStill(session, crop)).png().toFile(file);
