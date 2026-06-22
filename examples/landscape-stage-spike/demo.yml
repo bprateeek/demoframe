@@ -1,4 +1,4 @@
-title: Landscape stage spike
+title: Landscape frame-none proof
 output: { format: webp, width: 854, fps: 15, budget: 4MB, displayWidth: 640 }
 theme:
   accent: "#e2603a"
@@ -12,38 +12,39 @@ theme:
 frame: { type: none, width: 854, height: 480 }
 brief:
   mode: inferred
-  audience: Maintainers validating premium product-motion stage constraints
-  source: Synthetic fixture for the landscape stage/canvas spike
+  audience: Maintainers validating the premium product-motion roadmap
+  source: Synthetic Phase 2 proof for the landscape frame-none checkpoint
   screenshotPolicy: reconstruct
   placement: github-readme
-  arc: Establish a full-bleed landscape stage, float a compact product card, then hold on the result
-  climax: The ready card sits inside the ambient landscape canvas without clipping
+  arc: Establish a full-bleed landscape stage, float a compact product surface, then hold on the result
+  climax: The launch card sits inside restrained ambient without safe-area clipping
   brand: { accent: "#e2603a", frame: none, mode: light }
   product: demoframe
   repo: bprateeek/demoframe
-  verbatimCopy: ["Stage ready", "No clipping", "Ambient outside chrome"]
+  verbatimCopy: ["Launch card ready", "No safe-area clipping", "Ambient outside chrome"]
   assumptions:
-    - "Landscape spike uses an inferred brief because no user interview confirmed the scene map."
-    - "The central screen stack stands in for the future device/card layer."
-    - "The full-bleed screen palette stands in for restrained ambient outside device chrome."
+    - "The Phase 2 proof uses an inferred brief because no user interview confirmed the scene map."
+    - "The screen scene's centered block stack stands in for a near-term synthetic product card."
+    - "The ember ambient layer and full-bleed screen palette stand in for restrained stage atmosphere outside chrome."
 scenes:
   - type: screen
     duration: 6
     motion: reveal
+    cinematic: { composition: center-hero, motion: float-in, ambient: ember }
     blocks:
-      - { block: app-header, title: Stage ready, subtitle: "854x480 - frame none", icon: spark }
+      - { block: app-header, title: Launch card ready, subtitle: "854x480 - frame none", icon: spark }
       - block: stat-strip
         tiles:
           - { label: Canvas, value: { value: 854, suffix: "w" } }
-          - { label: Height, value: { value: 480, suffix: "h" } }
-          - { label: Safe clip, value: { value: 0 } }
+          - { label: Aspect, value: { value: 16, suffix: ":9" } }
+          - { label: Clips, value: { value: 0 } }
       - block: card-grid
         cards:
-          - { title: Full bleed, value: "yes", desc: "Landscape stage fills the frame", badge: stage, icon: check }
-          - { title: Device card, value: "centered", desc: "Chrome-sized content stays inset", badge: safe, icon: bolt }
+          - { title: Full bleed, value: "stage", desc: "Ambient fills the landscape", badge: none, icon: check }
+          - { title: Product surface, value: "inset", desc: "Card stack stays clear of edges", badge: safe, icon: bolt }
       - block: callout
         name: result
         variant: message
-        text: "No clipping. Ambient outside chrome."
+        text: "No safe-area clipping. Ambient outside chrome."
   - type: hold
     duration: 1.5
