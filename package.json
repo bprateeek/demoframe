@@ -38,6 +38,7 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
     "fieldwork:ab": "npm run build && node scripts/fieldwork-ab-matrix.mjs",
+    "fieldwork:cinematic": "npm run build && node scripts/fieldwork-cinematic-sibling.mjs",
     "test": "vitest run",
     "schema": "tsx src/config/export-schema.ts"
   },
