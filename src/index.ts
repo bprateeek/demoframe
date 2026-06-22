@@ -39,6 +39,23 @@ export type { DestinationPreset, PresetName } from './config/presets.js';
 export { scanForPrivateData } from './config/privacy.js';
 export { resolveTimeline } from './render/timeline.js';
 export type { Timeline, TimelineScene } from './render/timeline.js';
+export { previewSampleTimes, motionPeakTimes, timelineMotionWindows } from './render/sampling.js';
+export type { TimelineMotionWindow } from './render/sampling.js';
+export {
+  MOTION_EASING_NAMES,
+  MOTION_PRESET_NAMES,
+  MOTION_PRESET_REGISTRY,
+  motionPreset,
+  isMotionSceneEligible,
+} from './templates/motion/presets.js';
+export type {
+  MotionEasingName,
+  MotionPreset,
+  MotionPresetName,
+  MotionSceneType,
+  MotionWindowName,
+  MotionWindowPreset,
+} from './templates/motion/presets.js';
 export { PALETTES, THEME_PRESETS, resolveTheme } from './templates/theme.js';
 export type { ResolvedTheme, ThemePreset } from './templates/theme.js';
 export { buildDocument } from './templates/document.js';
