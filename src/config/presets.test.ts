@@ -27,6 +27,11 @@ describe('applyPreset', () => {
     ]);
   });
 
+  it('never changes motionBlur when applying destination presets', () => {
+    expect(applyPreset(parse({ motionBlur: 'off' }), 'product-hunt').config.output.motionBlur).toBe('off');
+    expect(applyPreset(parse({ motionBlur: 'force' }), 'github-readme').config.output.motionBlur).toBe('force');
+  });
+
   it('reports no changes when the config already matches', () => {
     const { changes } = applyPreset(
       parse({ format: 'webp', width: 640, fps: 15, budget: '4MB', quality: 'standard' }),

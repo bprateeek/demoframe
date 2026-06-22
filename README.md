@@ -245,7 +245,15 @@ solid fallback for video.
 
 Rendering for a specific destination? `render --for github-readme | x-post |
 linkedin | product-hunt` sets format, width, fps, budget, and quality in one
-flag, overriding the config's `output` values and printing what it changed.
+flag, overriding only those `output` values and printing what it changed.
+Destination presets never change `output.motionBlur`.
+
+`output.motionBlur` defaults to `off`, which uses `directCapture` for every
+format. `cinematic` uses blurred capture for eligible choreography windows in
+blur-capable formats, but skips GIF and records a notice because GIF palettes,
+dither, and size budgets make blur a poor default. `force` applies blurred
+capture to eligible choreography windows even for GIF and emits a warning; it
+does not blur every frame and still avoids text-mutating scenes.
 
 GIF and WebP outputs default to a 5MB budget (GitHub renders README GIFs
 poorly past that). If an encode exceeds the budget, demoframe automatically
@@ -254,7 +262,8 @@ it did. Every render ends with a QA report (dimensions, duration, fps, frame
 count, size, loop marker, audio absence, transparency mode), printed and
 written to `report.json`. The report also includes `brief.present`,
 `brief.requiredComplete`, `brief.recommendedComplete`, `brief.mode`,
-`brief.confirmed`, structured `warnings`/`notices`, and inferred
+`brief.confirmed`, effective `motionBlur` capture policy, per-output
+`captureMode`, structured `warnings`/`notices`, and inferred
 `brief.assumptions` when applicable. Transparent renders also write
 `preview/final_transparent_checkerboard.png` so the cutout can be inspected.
 

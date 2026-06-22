@@ -9,6 +9,7 @@ import {
   isTransparentFrame,
   normalizeLogo,
   outputFormats,
+  resolveFrameCapture,
   type DemoConfig,
 } from '../config/schema.js';
 import { briefGateFinding, briefWarnings, screenshotRuntimeShare } from '../qa/brief.js';
@@ -123,6 +124,34 @@ function readmeLegibilityWarnings(loaded: LoadedConfig): CheckFinding[] {
   ];
 }
 
+function motionBlurFindings(config: DemoConfig): { warnings: CheckFinding[]; notices: CheckFinding[] } {
+  const warnings: CheckFinding[] = [];
+  const notices: CheckFinding[] = [];
+  if (!outputFormats(config.output).includes('gif')) return { warnings, notices };
+
+  const gifCapture = resolveFrameCapture(config.output, 'gif');
+  if (config.output.motionBlur === 'cinematic' && gifCapture.mode === 'directCapture') {
+    notices.push(
+      finding(
+        'motionBlur.gifSkipped',
+        'output.motionBlur: cinematic skips GIF motion blur and uses directCapture; use motionBlur: force only when GIF palette, dither, and size tradeoffs are acceptable.',
+        { format: 'gif', motionBlur: 'cinematic', captureMode: gifCapture.mode },
+      ),
+    );
+  }
+  if (config.output.motionBlur === 'force' && gifCapture.mode === 'blurredCapture') {
+    warnings.push(
+      finding(
+        'motionBlur.gifForced',
+        'output.motionBlur: force applies blurredCapture to eligible GIF choreography windows; expect larger files and GIF palette/dither tradeoffs. It still does not blur text-mutating scenes or every frame.',
+        { format: 'gif', motionBlur: 'force', captureMode: gifCapture.mode },
+      ),
+    );
+  }
+
+  return { warnings, notices };
+}
+
 export async function runCheckLoaded(
   loaded: LoadedConfig,
   opts: CheckOptions = {},
@@ -186,6 +215,10 @@ export async function runCheckLoaded(
   }
 
   const formats = outputFormats(loaded.config.output);
+  const motionBlur = motionBlurFindings(loaded.config);
+  warnings.push(...motionBlur.warnings);
+  notices.push(...motionBlur.notices);
+
   if (isTransparentFrame(loaded.config.frame)) {
     if (formats.some((format) => format === 'mp4' || format === 'webm')) {
       errors.push(

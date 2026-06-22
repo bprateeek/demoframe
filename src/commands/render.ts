@@ -20,7 +20,9 @@ import {
   resolveAmbient,
   resolveFrameCapture,
   type DemoConfig,
+  type FrameCaptureMode,
   type FrameCapturePlan,
+  type MotionBlur,
   type OutputFormat,
 } from '../config/schema.js';
 import { applyPreset } from '../config/presets.js';
@@ -65,6 +67,19 @@ interface ManagedMove {
 
 export interface ReportCinematic {
   ambient: NonNullable<ReturnType<typeof resolveAmbient>>;
+}
+
+export interface ReportMotionBlurOutput {
+  preset?: string;
+  format: OutputFormat;
+  motionBlur: MotionBlur;
+  captureMode: FrameCaptureMode;
+  policy: 'off' | 'cinematic' | 'gif-cinematic-skip' | 'force' | 'gif-force';
+}
+
+export interface ReportMotionBlur {
+  requested: MotionBlur;
+  outputs: ReportMotionBlurOutput[];
 }
 
 function finding(code: string, message: string, details?: Record<string, unknown>): CheckFinding {
@@ -180,6 +195,12 @@ function annotateTransparency<T extends OutputReport>(
   return report;
 }
 
+function annotateCapture<T extends OutputReport>(report: T, frames: RenderedFrames): T {
+  report.captureMode = frames.captureMode;
+  report.motionBlur = frames.motionBlur;
+  return report;
+}
+
 function copiedAssetFor(file: string, targets: AssetOutTarget[]): string | undefined {
   const source = path.resolve(file);
   return targets.find((target) => path.resolve(target.source) === source)?.dest;
@@ -220,6 +241,35 @@ function resolveBriefForReport(
 export function resolveReportCinematic(config: DemoConfig): ReportCinematic | undefined {
   const ambient = resolveAmbient(config);
   return ambient ? { ambient } : undefined;
+}
+
+function reportMotionBlurPolicy(capture: FrameCapturePlan): ReportMotionBlurOutput['policy'] {
+  if (capture.motionBlur === 'off') return 'off';
+  if (capture.motionBlur === 'cinematic' && capture.format === 'gif' && capture.mode === 'directCapture') {
+    return 'gif-cinematic-skip';
+  }
+  if (capture.motionBlur === 'force' && capture.format === 'gif' && capture.mode === 'blurredCapture') {
+    return 'gif-force';
+  }
+  return capture.motionBlur;
+}
+
+export function resolveReportMotionBlur(targets: Array<{ preset?: string; config: DemoConfig }>): ReportMotionBlur {
+  return {
+    requested: targets[0]?.config.output.motionBlur ?? 'off',
+    outputs: targets.flatMap((target) =>
+      outputFormats(target.config.output).map((format) => {
+        const capture = resolveFrameCapture(target.config.output, format);
+        return {
+          ...(target.preset ? { preset: target.preset } : {}),
+          format,
+          motionBlur: capture.motionBlur,
+          captureMode: capture.mode,
+          policy: reportMotionBlurPolicy(capture),
+        };
+      }),
+    ),
+  };
 }
 
 function promoteManagedOutputs(
@@ -291,6 +341,7 @@ export async function runRender(
           return { preset, config: applied.config, changes: applied.changes };
         })
       : [{ config: loaded.config, changes: [] }];
+  const reportMotionBlur = resolveReportMotionBlur(targets);
 
   const errorSet = new Map<string, CheckFinding>();
   const warningSet = new Map<string, CheckFinding>();
@@ -395,6 +446,8 @@ export async function runRender(
     format: string;
     fps: number;
     width: number;
+    motionBlur: MotionBlur;
+    captureMode: FrameCaptureMode;
     sizeBytes: number;
     encoderProfile: EncoderProfile;
     withinBudget: boolean | undefined;
@@ -430,12 +483,15 @@ export async function runRender(
             });
             final = annotateTransparency(await inspectWebp(outPath, encoding, budgetBytes, step.fps), renderConfig, format);
           }
+          final = annotateCapture(final, frames);
           if (preset) final.preset = preset;
           attempts.push({
             preset,
             format,
             fps: step.fps,
             width: step.width,
+            motionBlur: frames.motionBlur,
+            captureMode: frames.captureMode,
             sizeBytes: final.sizeBytes,
             encoderProfile,
             withinBudget: final.withinBudget,
@@ -468,12 +524,15 @@ export async function runRender(
             quality: config.output.quality,
           });
           final = inspectMp4(mp4Path, encoding, budgetBytes);
+          final = annotateCapture(final, frames);
           if (preset) final.preset = preset;
           attempts.push({
             preset,
             format: 'mp4',
             fps: step.fps,
             width: step.width,
+            motionBlur: frames.motionBlur,
+            captureMode: frames.captureMode,
             sizeBytes: final.sizeBytes,
             encoderProfile,
             withinBudget: final.withinBudget,
@@ -506,12 +565,15 @@ export async function runRender(
             quality: config.output.quality,
           });
           final = inspectWebm(webmPath, encoding, budgetBytes);
+          final = annotateCapture(final, frames);
           if (preset) final.preset = preset;
           attempts.push({
             preset,
             format: 'webm',
             fps: step.fps,
             width: step.width,
+            motionBlur: frames.motionBlur,
+            captureMode: frames.captureMode,
             sizeBytes: final.sizeBytes,
             encoderProfile,
             withinBudget: final.withinBudget,
@@ -590,6 +652,7 @@ export async function runRender(
       budgetBytes: targets.length === 1 ? budgetToBytes(targets[0].config.output.budget) : undefined,
       brief: reportBrief.brief,
       ...(reportCinematic ? { cinematic: reportCinematic } : {}),
+      motionBlur: reportMotionBlur,
       attempts,
       errors: [],
       warnings: allWarnings.map(reportFinding),

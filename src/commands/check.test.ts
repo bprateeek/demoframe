@@ -240,6 +240,40 @@ scenes:
     );
   });
 
+  it('notices when cinematic motion blur is skipped for GIF', async () => {
+    const file = writeConfig(`
+output: { format: gif, motionBlur: cinematic }
+frame: { type: phone }
+scenes:
+  - { type: status-card, duration: 3, title: Done }
+`);
+    const { warnings, notices } = await runCheck(file, { skipBrief: true });
+    expect(hasMessage(warnings, 'cinematic skips GIF motion blur')).toBe(false);
+    expect(hasMessage(notices, 'cinematic skips GIF motion blur')).toBe(true);
+    expect(notices.find((notice) => notice.code === 'motionBlur.gifSkipped')?.details).toMatchObject({
+      format: 'gif',
+      motionBlur: 'cinematic',
+      captureMode: 'directCapture',
+    });
+  });
+
+  it('warns when force applies motion blur to GIF', async () => {
+    const file = writeConfig(`
+output: { format: gif, motionBlur: force }
+frame: { type: phone }
+scenes:
+  - { type: status-card, duration: 3, title: Done }
+`);
+    const { warnings, notices } = await runCheck(file, { skipBrief: true });
+    expect(hasMessage(notices, 'force applies blurredCapture')).toBe(false);
+    expect(hasMessage(warnings, 'force applies blurredCapture')).toBe(true);
+    expect(warnings.find((warning) => warning.code === 'motionBlur.gifForced')?.details).toMatchObject({
+      format: 'gif',
+      motionBlur: 'force',
+      captureMode: 'blurredCapture',
+    });
+  });
+
   it('fails an absent or inferred brief unless autonomous mode is explicit', async () => {
     const absent = writeConfig(`
 frame: { type: phone }
