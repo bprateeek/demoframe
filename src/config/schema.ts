@@ -230,12 +230,41 @@ const sceneFrameOverride = z
   })
   .strict();
 
+const cinematicComposition = z.literal('center-hero');
+const cinematicMotion = z.literal('float-in');
+const cinematicAmbient = z.literal('ember');
+
+const cinematicSchema = z.union([
+  z
+    .object({
+      composition: cinematicComposition,
+      motion: cinematicMotion.optional(),
+      ambient: cinematicAmbient.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      composition: cinematicComposition.optional(),
+      motion: cinematicMotion,
+      ambient: cinematicAmbient.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      composition: cinematicComposition.optional(),
+      motion: cinematicMotion.optional(),
+      ambient: cinematicAmbient,
+    })
+    .strict(),
+]);
+
 const sceneBase = {
   duration: z.number().positive().max(30),
   transition: z.enum(['cut', 'crossfade']).default('cut'),
   name: z.string().max(40).optional(),
   celebrate: z.boolean().default(false),
   frame: sceneFrameOverride.optional(),
+  cinematic: cinematicSchema.optional(),
 };
 
 const typingScene = z.object({
@@ -678,6 +707,25 @@ export const demoConfigSchema = z
           }
         }
       }
+      if (scene.cinematic) {
+        if (scene.type === 'hold') {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'cinematic'],
+            message: 'hold.cinematic is not supported in v1; holds inherit the previous scene final state',
+          });
+        }
+        if (
+          scene.type === 'screenshot' &&
+          config.brief?.screenshotPolicy !== 'raw-intentional'
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['scenes', index, 'cinematic'],
+            message: 'screenshot.cinematic needs brief.screenshotPolicy: raw-intentional',
+          });
+        }
+      }
       if (scene.type === 'code') {
         const lines = scene.code.split('\n');
         if (lines.length > CODE_MAX_LINES) {
@@ -830,6 +878,7 @@ export type Brief = NonNullable<DemoConfig['brief']>;
 export type Frame = DemoConfig['frame'];
 export type Scene = DemoConfig['scenes'][number];
 export type SceneFrameOverride = NonNullable<Scene['frame']>;
+export type SceneCinematic = NonNullable<Scene['cinematic']>;
 export type Theme = DemoConfig['theme'];
 export type Output = DemoConfig['output'];
 export type TypingScene = z.infer<typeof typingScene>;
@@ -867,6 +916,10 @@ export function normalizeTermLines(output: TerminalPlaybackScene['output']): Nor
   return output.map((line) =>
     typeof line === 'string' ? { text: line, style: 'normal' } : { text: line.text, style: line.style },
   );
+}
+
+export function hasCinematicFields(config: DemoConfig): boolean {
+  return config.scenes.some((scene) => scene.cinematic !== undefined);
 }
 
 export type LogoPlacement = 'header' | 'corner';

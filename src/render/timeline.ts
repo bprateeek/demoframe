@@ -87,6 +87,7 @@ export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timel
       transition: scene.transition,
       data: {
         ...clientData(scene),
+        ...(scene.cinematic ? { cinematic: scene.cinematic } : {}),
         ...(scene.celebrate ? { celebrate: true } : {}),
         ...('tap' in scene && scene.tap ? { tap: true } : {}),
       },

@@ -87,6 +87,34 @@ scenes:
     expect(warnings.some((w) => w.message.includes('of the runtime') || w.message.includes('pasted'))).toBe(false);
   });
 
+  it('fails check loading when a screenshot has cinematic without raw-intentional policy', async () => {
+    const file = writeConfig(`
+brief:
+  screenshotPolicy: reconstruct
+frame: { type: browser }
+scenes:
+  - { type: screenshot, duration: 3, src: a.png, cinematic: { motion: float-in } }
+`);
+    await expect(runCheck(file, { skipBrief: true })).rejects.toMatchObject({
+      name: 'ConfigError',
+      issues: expect.arrayContaining([
+        expect.stringContaining('screenshot.cinematic needs brief.screenshotPolicy: raw-intentional'),
+      ]),
+    });
+  });
+
+  it('allows screenshot cinematic for raw-intentional briefs', async () => {
+    const file = writeConfig(`
+brief:
+  screenshotPolicy: raw-intentional
+frame: { type: browser }
+scenes:
+  - { type: screenshot, duration: 3, src: a.png, cinematic: { motion: float-in } }
+`);
+    const { errors } = await runCheck(file, { skipBrief: true });
+    expect(errors).toHaveLength(0);
+  });
+
   it('does not flag an all-screen frameless demo as pasted screenshots', async () => {
     const file = writeConfig(`
 frame: { type: none }

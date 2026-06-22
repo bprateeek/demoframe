@@ -59,6 +59,29 @@ describe('resolveTimeline', () => {
     expect(timeline.scenes[2].renderIndex).toBe(1);
   });
 
+  it('carries scene cinematic data without applying runtime effects', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'phone' },
+        scenes: [
+          {
+            type: 'typing',
+            duration: 3,
+            text: 'hi',
+            cinematic: { composition: 'center-hero', motion: 'float-in' },
+          },
+          { type: 'steps', duration: 2, items: [{ label: 'done' }] },
+        ],
+      }),
+    );
+    expect(timeline.scenes[0].data).toEqual({
+      text: 'hi',
+      send: false,
+      cinematic: { composition: 'center-hero', motion: 'float-in' },
+    });
+    expect(timeline.scenes[1].data).toEqual({ count: 1 });
+  });
+
   it('carries client data for the v0.3 scene types', () => {
     const timeline = resolveTimeline(
       demoConfigSchema.parse({
