@@ -4,17 +4,15 @@ import { run } from './exec.js';
 import { ffmpegPath } from '../env/doctor.js';
 import { resolveGifski } from '../env/gifski.js';
 import type { RenderedFrames } from '../render/frames.js';
-
-export interface GifEncodeResult {
-  encoder: 'gifski' | 'ffmpeg';
-}
+import { gifQuality, legacySettings, type EncodeOptions, type EncodeResult } from './profiles.js';
 
 export async function encodeGif(
   frames: RenderedFrames,
   width: number,
   outFile: string,
-  opts: { transparent?: boolean } = {},
-): Promise<GifEncodeResult> {
+  opts: { transparent?: boolean } & EncodeOptions,
+): Promise<EncodeResult> {
+  const quality = opts.profile === 'modern' ? gifQuality(opts.quality) : 90;
   const gifski = resolveGifski();
   if (gifski && !opts.transparent) {
     const files = readdirSync(frames.dir)
@@ -24,11 +22,19 @@ export async function encodeGif(
     await run(gifski, [
       '--fps', String(frames.fps),
       '--width', String(width),
-      '--quality', '90',
+      '--quality', String(quality),
       '-o', outFile,
       ...files,
     ]);
-    return { encoder: 'gifski' };
+    return {
+      encoder: 'gifski',
+      profile: opts.profile,
+      settings: {
+        ...legacySettings('gif', width, frames.fps),
+        quality,
+        transparent: false,
+      },
+    };
   }
 
   const ffmpeg = ffmpegPath();
@@ -58,5 +64,15 @@ export async function encodeGif(
     '-loop', '0',
     outFile,
   ]);
-  return { encoder: 'ffmpeg' };
+  return {
+    encoder: 'ffmpeg',
+    profile: opts.profile,
+    settings: {
+      ...legacySettings('gif', width, frames.fps),
+      palettegen: paletteOptions,
+      paletteuse: useOptions,
+      loop: 0,
+      transparent: Boolean(opts.transparent),
+    },
+  };
 }

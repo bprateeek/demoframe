@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import sharp from 'sharp';
 import { parseGif } from './gifInfo.js';
 import { ffmpegPath } from '../env/doctor.js';
+import type { EncoderProfile, EncoderSettings } from '../encode/profiles.js';
 
 export interface OutputReport {
   file: string;
@@ -19,13 +20,22 @@ export interface OutputReport {
   loopsForever: boolean | null;
   hasAudio: boolean | null;
   encoder?: string;
+  encoderProfile?: EncoderProfile;
+  encoderSettings?: EncoderSettings;
+  budgetBytes?: number;
   withinBudget?: boolean;
   preset?: string;
 }
 
+export interface ReportEncoding {
+  encoder: string;
+  profile: EncoderProfile;
+  settings: EncoderSettings;
+}
+
 export function inspectGif(
   file: string,
-  encoder: string,
+  encoding: ReportEncoding,
   budgetBytes: number,
   encodeFps: number,
 ): OutputReport {
@@ -47,7 +57,10 @@ export function inspectGif(
     frameCount: info.frameCount,
     loopsForever: info.loopsForever,
     hasAudio: false,
-    encoder,
+    encoder: encoding.encoder,
+    encoderProfile: encoding.profile,
+    encoderSettings: encoding.settings,
+    budgetBytes,
     withinBudget: sizeBytes <= budgetBytes,
   };
 }
@@ -74,13 +87,14 @@ function probeWithFfmpeg(file: string, report: OutputReport): OutputReport {
   return report;
 }
 
-export function inspectMp4(file: string): OutputReport {
+export function inspectMp4(file: string, encoding: ReportEncoding, budgetBytes: number): OutputReport {
+  const sizeBytes = statSync(file).size;
   return probeWithFfmpeg(file, {
     file,
     format: 'mp4',
     transparent: false,
     transparencyMode: 'none',
-    sizeBytes: statSync(file).size,
+    sizeBytes,
     width: null,
     height: null,
     durationS: null,
@@ -88,16 +102,22 @@ export function inspectMp4(file: string): OutputReport {
     frameCount: null,
     loopsForever: null,
     hasAudio: null,
+    encoder: encoding.encoder,
+    encoderProfile: encoding.profile,
+    encoderSettings: encoding.settings,
+    budgetBytes,
+    withinBudget: sizeBytes <= budgetBytes,
   });
 }
 
-export function inspectWebm(file: string): OutputReport {
+export function inspectWebm(file: string, encoding: ReportEncoding, budgetBytes: number): OutputReport {
+  const sizeBytes = statSync(file).size;
   return probeWithFfmpeg(file, {
     file,
     format: 'webm',
     transparent: false,
     transparencyMode: 'none',
-    sizeBytes: statSync(file).size,
+    sizeBytes,
     width: null,
     height: null,
     durationS: null,
@@ -105,11 +125,17 @@ export function inspectWebm(file: string): OutputReport {
     frameCount: null,
     loopsForever: null,
     hasAudio: null,
+    encoder: encoding.encoder,
+    encoderProfile: encoding.profile,
+    encoderSettings: encoding.settings,
+    budgetBytes,
+    withinBudget: sizeBytes <= budgetBytes,
   });
 }
 
 export async function inspectWebp(
   file: string,
+  encoding: ReportEncoding,
   budgetBytes: number,
   encodeFps: number,
 ): Promise<OutputReport> {
@@ -127,7 +153,10 @@ export async function inspectWebp(
     frameCount: null,
     loopsForever: null,
     hasAudio: false,
-    encoder: 'sharp',
+    encoder: encoding.encoder,
+    encoderProfile: encoding.profile,
+    encoderSettings: encoding.settings,
+    budgetBytes,
     withinBudget: sizeBytes <= budgetBytes,
   };
   const meta = await sharp(file, { animated: true }).metadata();
@@ -152,6 +181,7 @@ export function printReport(report: OutputReport): void {
   if (report.loopsForever != null) console.log(`  loops: ${report.loopsForever ? 'forever' : 'NO (missing loop marker)'}`);
   if (report.hasAudio != null) console.log(`  audio: ${report.hasAudio ? 'PRESENT (unexpected)' : 'none'}`);
   if (report.encoder) console.log(`  encoder: ${report.encoder}`);
+  if (report.encoderProfile) console.log(`  encoder profile: ${report.encoderProfile}`);
   if (report.transparent) console.log(`  transparency: ${report.transparencyMode}`);
 }
 

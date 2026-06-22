@@ -83,9 +83,10 @@ server.registerTool(
       out: z.string().optional().describe('output directory (default "dist")'),
       autonomous: z.boolean().optional().describe('allow an unconfirmed brief and label the render as inferred'),
       assumptions: z.array(z.string()).optional().describe('assumptions to record for an autonomous/inferred render'),
+      encoderProfile: z.enum(['legacy', 'modern']).optional().describe('encoder profile to use (default "legacy")'),
     },
   },
-  async ({ config, out, autonomous, assumptions }) => {
+  async ({ config, out, autonomous, assumptions, encoderProfile }) => {
     try {
       const checked = await runCheck(config, { allowInferred: autonomous });
       const summary = briefSummary(checked.loaded.config);
@@ -121,6 +122,7 @@ server.registerTool(
     const outDir = path.resolve(out ?? 'dist');
     const cli = fileURLToPath(new URL('./cli.js', import.meta.url));
     const argv = [cli, 'render', config, '-o', outDir];
+    if (encoderProfile) argv.push('--encoder-profile', encoderProfile);
     if (autonomous) argv.push('--autonomous');
     for (const assumption of assumptions ?? []) argv.push('--assumption', assumption);
     const result = await new Promise<{ code: number; output: string }>((resolve) => {
