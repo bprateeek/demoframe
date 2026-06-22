@@ -922,6 +922,17 @@ export function hasCinematicFields(config: DemoConfig): boolean {
   return config.scenes.some((scene) => scene.cinematic !== undefined);
 }
 
+export interface ResolvedAmbient {
+  type: 'ember';
+  scope: 'timeline';
+}
+
+export function resolveAmbient(config: DemoConfig): ResolvedAmbient | undefined {
+  return config.scenes.some((scene) => scene.cinematic?.ambient === 'ember')
+    ? { type: 'ember', scope: 'timeline' }
+    : undefined;
+}
+
 export type LogoPlacement = 'header' | 'corner';
 
 export function normalizeLogo(

@@ -13,6 +13,26 @@ describe('buildDocument overlay injection (v0.5)', () => {
     const doc = await buildDocument(config, baseDir);
     expect(doc.html).not.toContain('class="df-cursor"');
     expect(doc.html).not.toContain('class="df-celebrate"');
+    expect(doc.html).not.toContain('class="df-ambient');
+  });
+
+  it('injects ember ambience below scenes when any scene opts in', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      scenes: [
+        { type: 'typing', duration: 2, text: 'build it', cinematic: { ambient: 'ember' } },
+        { type: 'status-card', duration: 2, title: 'Ready', cta: { label: 'Open PR' }, tap: true },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+    const ambientIndex = doc.html.indexOf('class="df-ambient df-ambient-ember"');
+    const scenesIndex = doc.html.indexOf('class="df-scenes"');
+    const cursorIndex = doc.html.indexOf('class="df-cursor"');
+
+    expect(ambientIndex).toBeGreaterThan(-1);
+    expect(doc.html).toContain('data-ambient-scope="timeline"');
+    expect(scenesIndex).toBeGreaterThan(ambientIndex);
+    expect(cursorIndex).toBeGreaterThan(scenesIndex);
   });
 
   it('injects overlay nodes and anchors when a scene uses tap or celebrate', async () => {

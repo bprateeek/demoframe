@@ -17,6 +17,7 @@ import {
   budgetToBytes,
   isTransparentFrame,
   outputFormats,
+  resolveAmbient,
   resolveFrameCapture,
   type DemoConfig,
   type FrameCapturePlan,
@@ -60,6 +61,10 @@ export interface AssetOutTarget {
 interface ManagedMove {
   stage: string;
   final: string;
+}
+
+export interface ReportCinematic {
+  ambient: NonNullable<ReturnType<typeof resolveAmbient>>;
 }
 
 function finding(code: string, message: string, details?: Record<string, unknown>): CheckFinding {
@@ -212,6 +217,11 @@ function resolveBriefForReport(
   };
 }
 
+export function resolveReportCinematic(config: DemoConfig): ReportCinematic | undefined {
+  const ambient = resolveAmbient(config);
+  return ambient ? { ambient } : undefined;
+}
+
 function promoteManagedOutputs(
   outDir: string,
   stageDir: string,
@@ -273,6 +283,7 @@ export async function runRender(
   });
   const { loaded, errors: baseErrors } = baseCheck;
   const reportBrief = resolveBriefForReport(loaded.config, opts.assumptions, opts.autonomous);
+  const reportCinematic = resolveReportCinematic(loaded.config);
   const targets: RenderTarget[] =
     presets.length > 0
       ? presets.map((preset) => {
@@ -288,6 +299,15 @@ export async function runRender(
   for (const warning of baseCheck.warnings) addFinding(warningSet, warning);
   for (const notice of baseCheck.notices) addFinding(noticeSet, notice);
   for (const notice of reportBrief.notices) addFinding(noticeSet, notice);
+  if (reportCinematic?.ambient) {
+    addFinding(
+      noticeSet,
+      finding(
+        'cinematic.ambient.timeline',
+        `cinematic ambient ${reportCinematic.ambient.type} resolved as ${reportCinematic.ambient.scope}-wide for v1`,
+      ),
+    );
+  }
 
   for (const target of targets) {
     for (const change of target.changes) console.log(`  ! preset ${target.preset} overrides ${change}`);
@@ -569,6 +589,7 @@ export async function runRender(
       ...(presets.length > 0 ? { presets } : {}),
       budgetBytes: targets.length === 1 ? budgetToBytes(targets[0].config.output.budget) : undefined,
       brief: reportBrief.brief,
+      ...(reportCinematic ? { cinematic: reportCinematic } : {}),
       attempts,
       errors: [],
       warnings: allWarnings.map(reportFinding),

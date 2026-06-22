@@ -81,6 +81,7 @@ skills/demoframe/SKILL.md in the package.
   "brief": { "present", "mode": "user-confirmed"|"inferred",
     "confirmed": bool, "requiredComplete", "recommendedComplete",
     "missingRequired": [], "missingRecommended": [], "assumptions"? },
+  "cinematic"?: { "ambient"?: { "type": "ember", "scope": "timeline" } },
   "attempts": [{preset?,format,fps,width,sizeBytes}],
   "errors": [{code,message}], "warnings": [{code,message}],
   "notices": [{code,message}], "layout": [...],
@@ -257,6 +258,9 @@ scene or a trailing hold so it lands on the closing frame):
   See examples/mobile-flow for all three.
 - Story arc that works: typing (the ask) -> steps (the work) -> status-card
   (the result) -> hold 1-1.5s so the ending reads before the loop.
+- `cinematic.ambient: ember` adds a restrained ambient layer inside the frame.
+  In v1 the resolved scope is timeline-wide whenever any scene opts in; render
+  records this as `cinematic.ambient.scope: timeline` in report.json.
 - More arcs: terminal-playback alone sells a CLI; chat (the ask) ->
   code with added/removed (the fix) -> status-card (the PR); metric-card
   closes a launch-post demo with numbers; screen reconstructs dense product

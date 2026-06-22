@@ -3,6 +3,7 @@ import {
   captureViewport,
   isTransparentFrame,
   normalizeLogo,
+  resolveAmbient,
   type DemoConfig,
   type Frame,
   type ChatScene,
@@ -60,6 +61,17 @@ async function resolveChatAvatars(
     user: await resolveAvatar(avatars.user, baseDir),
     assistant: await resolveAvatar(avatars.assistant, baseDir),
   };
+}
+
+function ambientHtml(config: DemoConfig): string {
+  const ambient = resolveAmbient(config);
+  if (!ambient) return '';
+  return `<div class="df-ambient df-ambient-ember" data-ambient="${ambient.type}" data-ambient-scope="${ambient.scope}" aria-hidden="true">
+  <span class="df-ember" style="--df-ember-left:10%;--df-ember-top:18%;--df-ember-size:190px;--df-ember-blur:28px;--df-ember-opacity:0.42"></span>
+  <span class="df-ember" style="--df-ember-left:58%;--df-ember-top:6%;--df-ember-size:150px;--df-ember-blur:30px;--df-ember-opacity:0.20"></span>
+  <span class="df-ember" style="--df-ember-left:70%;--df-ember-top:62%;--df-ember-size:220px;--df-ember-blur:34px;--df-ember-opacity:0.24"></span>
+  <span class="df-ember" style="--df-ember-left:22%;--df-ember-top:72%;--df-ember-size:130px;--df-ember-blur:24px;--df-ember-opacity:0.18"></span>
+</div>`;
 }
 
 export async function buildDocument(
@@ -156,7 +168,7 @@ export async function buildDocument(
       `<div class="df-celebrate-check">${icons.check}</div></div>`
     : '';
 
-  const scenesHtml = `<div class="df-scenes" style="position:relative;flex:1;min-height:0;">${sceneParts.join('\n')}${cornerLogoHtml}${overlayHtml}</div>`;
+  const scenesHtml = `${ambientHtml(config)}<div class="df-scenes" style="position:relative;z-index:1;flex:1;min-height:0;">${sceneParts.join('\n')}${cornerLogoHtml}${overlayHtml}</div>`;
 
   let frameHtml: string;
   switch (config.frame.type) {

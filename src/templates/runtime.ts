@@ -13,6 +13,8 @@ export function runtimeJs(timelineJson: string): string {
   const TAP_PRESS = 0.94;
   const scenesEl = document.querySelector('.df-scenes');
   const chromeEls = Array.from(document.querySelectorAll('[data-chrome]'));
+  const ambientEl = document.querySelector('[data-ambient="ember"]');
+  const emberEls = ambientEl ? Array.from(ambientEl.querySelectorAll('.df-ember')) : [];
   const cursorEl = document.querySelector('.df-cursor');
   const burstEl = document.querySelector('.df-celebrate');
 
@@ -285,6 +287,24 @@ export function runtimeJs(timelineJson: string): string {
     if (fn) fn(el, s, lt);
   }
 
+  function drawAmbient(t) {
+    if (!ambientEl) return;
+    const span = Math.max(T.duration, 1);
+    const p = t / span;
+    const baseX = Math.sin(p * Math.PI * 2) * 6;
+    const baseY = Math.cos(p * Math.PI * 2) * 5;
+    ambientEl.style.transform = 'translate3d(' + baseX.toFixed(2) + 'px,' + baseY.toFixed(2) + 'px,0)';
+    emberEls.forEach((el, k) => {
+      const phase = p * Math.PI * 2 + k * 1.37;
+      const drift = 4 + k * 1.5;
+      const x = Math.sin(phase) * drift;
+      const y = Math.cos(phase * 0.8) * drift * 0.7;
+      const scale = 1 + Math.sin(phase * 0.7) * 0.025;
+      el.style.transform =
+        'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0) scale(' + scale.toFixed(3) + ')';
+    });
+  }
+
   // Singleton overlays. Flags and timing come from the active scene 'act' (which
   // may be a hold); the target DOM comes from the render scene 'rScene', so a
   // trailing hold can celebrate the held scene's result.
@@ -382,6 +402,7 @@ export function runtimeJs(timelineJson: string): string {
     const lt = act.index === rScene.index ? t - act.start : rScene.duration;
     let curOpacity = 1;
     let prevChromeLayer = null;
+    drawAmbient(t);
     if (act.transition === 'crossfade' && a > 0) {
       const fade = Math.min(T.fade, act.duration / 2);
       const fp = clamp((t - act.start) / fade, 0, 1);

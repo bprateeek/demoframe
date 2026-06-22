@@ -25,6 +25,41 @@ svg { display: block; width: 100%; height: 100%; }
   flex-direction: column;
   overflow: hidden;
 }
+.df-ambient {
+  position: absolute;
+  inset: -8%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.48;
+  transform: translate3d(0, 0, 0);
+}
+.df-ambient-ember {
+  background:
+    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--df-accent) 20%, transparent), transparent 26%),
+    radial-gradient(circle at 82% 76%, color-mix(in srgb, var(--df-accent) 16%, transparent), transparent 30%);
+}
+.df-ember {
+  position: absolute;
+  width: var(--df-ember-size);
+  height: var(--df-ember-size);
+  left: var(--df-ember-left);
+  top: var(--df-ember-top);
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--df-accent) 34%, transparent), transparent 66%);
+  filter: blur(var(--df-ember-blur));
+  opacity: var(--df-ember-opacity);
+  transform: translate3d(0, 0, 0) scale(var(--df-ember-scale, 1));
+}
+.df-ember:nth-child(2) {
+  background: radial-gradient(circle, color-mix(in srgb, var(--df-success) 18%, transparent), transparent 68%);
+}
+.df-ember:nth-child(3) {
+  background: radial-gradient(circle, color-mix(in srgb, var(--df-info) 16%, transparent), transparent 70%);
+}
+.df-ember:nth-child(4) {
+  background: radial-gradient(circle, color-mix(in srgb, var(--df-accent) 22%, transparent), transparent 70%);
+}
 .df-scene {
   position: absolute;
   inset: 0;
