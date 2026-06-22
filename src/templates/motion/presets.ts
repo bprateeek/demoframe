@@ -6,7 +6,7 @@ export const MOTION_EASING_NAMES = ['linear', 'ease-out-cubic', 'ease-in-out-cub
 
 export type MotionEasingName = (typeof MOTION_EASING_NAMES)[number];
 
-export type MotionWindowName = 'entrance' | 'settle' | 'ambient';
+export type MotionWindowName = 'entrance' | 'settle';
 
 export interface MotionWindowPreset {
   start: number;
@@ -49,16 +49,8 @@ export const MOTION_PRESET_REGISTRY = {
       entrance: { start: 0, end: 0.36, easing: 'ease-out-cubic' },
       settle: { start: 0.36, end: 0.64, easing: 'ease-in-out-cubic' },
     },
-    peakSampleOffsets: [0.15, 0.36, 0.64],
+    peakSampleOffsets: [0.15, 0.42, 0.64],
     easing: { primary: 'ease-out-cubic', secondary: 'ease-in-out-cubic' },
-  },
-  drift: {
-    eligibleSceneTypes: ['screenshot', 'screen', 'metric-card'],
-    windows: {
-      ambient: { start: 0.08, end: 0.92, easing: 'linear' },
-    },
-    peakSampleOffsets: [0.08, 0.5, 0.92],
-    easing: { primary: 'linear' },
   },
 } as const satisfies Record<string, MotionPreset>;
 

@@ -46,7 +46,14 @@ export {
   motionPreset,
   isMotionSceneEligible,
 } from './templates/motion/presets.js';
-export type { MotionEasingName, MotionPreset, MotionPresetName, MotionSceneType } from './templates/motion/presets.js';
+export type {
+  MotionEasingName,
+  MotionPreset,
+  MotionPresetName,
+  MotionSceneType,
+  MotionWindowName,
+  MotionWindowPreset,
+} from './templates/motion/presets.js';
 export { PALETTES, THEME_PRESETS, resolveTheme } from './templates/theme.js';
 export type { ResolvedTheme, ThemePreset } from './templates/theme.js';
 export { buildDocument } from './templates/document.js';

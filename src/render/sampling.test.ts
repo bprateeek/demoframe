@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { demoConfigSchema } from '../config/schema.js';
 import {
+  MOTION_EASING_NAMES,
   MOTION_PRESET_NAMES,
   MOTION_PRESET_REGISTRY,
   type MotionPresetName,
@@ -39,8 +40,23 @@ describe('previewSampleTimes', () => {
 });
 
 describe('motion preset sampling', () => {
-  it('keeps the planned v1 preset names in one registry', () => {
-    expect(MOTION_PRESET_NAMES).toEqual(['float-in', 'rise', 'drift']);
+  it('keeps the scoped preset names in one registry', () => {
+    expect(MOTION_PRESET_NAMES).toEqual(['float-in', 'rise']);
+  });
+
+  it('keeps registry offsets and windows inside normalized timeline bounds', () => {
+    for (const preset of Object.values(MOTION_PRESET_REGISTRY)) {
+      for (const offset of preset.peakSampleOffsets) {
+        expect(offset).toBeGreaterThanOrEqual(0);
+        expect(offset).toBeLessThanOrEqual(1);
+      }
+      for (const window of Object.values(preset.windows)) {
+        expect(window.start).toBeGreaterThanOrEqual(0);
+        expect(window.end).toBeLessThanOrEqual(1);
+        expect(window.start).toBeLessThanOrEqual(window.end);
+        expect(MOTION_EASING_NAMES).toContain(window.easing);
+      }
+    }
   });
 
   it('derives peak times from registry offsets', () => {
@@ -55,6 +71,29 @@ describe('motion preset sampling', () => {
     expect(motionPeakTimes(timeline, presetName)).toEqual(
       MOTION_PRESET_REGISTRY[presetName].peakSampleOffsets.map((offset) => Number((offset * 10).toFixed(3))),
     );
+  });
+
+  it('samples all eligible presets by default and de-dupes overlapping peaks', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        scenes: [{ type: 'typing', duration: 10, text: 'Launch' }],
+      }),
+    );
+
+    expect(motionPeakTimes(timeline)).toEqual([1.8, 4.2, 7.2, 1.5, 6.4]);
+  });
+
+  it('filters ineligible scenes out of preset-derived samples and windows', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        scenes: [{ type: 'screenshot', duration: 5, src: 'test/golden/hero_2.5.png' }],
+      }),
+    );
+
+    expect(motionPeakTimes(timeline, 'rise')).toEqual([]);
+    expect(timelineMotionWindows(timeline, 'rise')).toEqual([]);
   });
 
   it('derives timeline windows from registry windows', () => {
