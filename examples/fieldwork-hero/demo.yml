@@ -1,5 +1,5 @@
 title: Fieldwork mobile to pull request demo
-output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280 }
+output: { format: gif, width: 480, fps: 15, budget: 5MB, displayWidth: 280, motionBlur: off }
 theme: { accent: "#e2603a", mode: light, font: inter }
 frame: { type: phone, title: vps-fieldwork-smoke, subtitle: "fieldwork-smoke · VPS" }
 brief:
@@ -17,10 +17,12 @@ brief:
 scenes:
   - type: typing
     duration: 3.8
+    cinematic: { composition: center-hero, motion: float-in, ambient: ember }
     text: "Add a tiny release-notes helper with a basic test"
     send: true
   - type: steps
     duration: 3.6
+    cinematic: { composition: center-hero, motion: float-in }
     header: { title: Workspace ready, detail: "VPS connected. Pull requests open for review." }
     items:
       - { label: Verification passed, detail: "Read files, created a basic test +3 -0", state: done }
@@ -29,6 +31,7 @@ scenes:
       - { label: PR ready for review, detail: "fieldwork-smoke #12", state: done }
   - type: status-card
     duration: 3.0
+    cinematic: { composition: center-hero, motion: float-in }
     transition: crossfade
     title: Add release notes helper
     subtitle: "fieldwork / fieldwork-smoke #12"
