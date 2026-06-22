@@ -1,6 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
-import { sceneShell } from '../base.js';
+import { centerHeroSceneClass, sceneShell } from '../base.js';
 import { normalizeTermLines, type TerminalPlaybackScene } from '../../config/schema.js';
 
 export const terminalPlaybackCss = `
@@ -41,6 +41,7 @@ export function terminalPlaybackHtml(
   frameType: string,
   framePrompt: string,
 ): string {
+  const compositionClass = centerHeroSceneClass(scene, 'terminal-playback');
   const prompt = escapeHtml(scene.prompt ?? framePrompt);
   const lines = normalizeTermLines(scene.output)
     .map(
@@ -66,6 +67,8 @@ export function terminalPlaybackHtml(
       `    <div class="df-slot-header df-play">
       ${body}
     </div>`,
+      '',
+      compositionClass,
     );
   }
   return sceneShell(
@@ -75,5 +78,7 @@ export function terminalPlaybackHtml(
         ${body}
       </div>
     </div>`,
+    '',
+    compositionClass,
   );
 }

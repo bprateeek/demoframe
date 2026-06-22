@@ -1,6 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
-import { sceneShell } from '../base.js';
+import { centerHeroSceneClass, sceneShell } from '../base.js';
 import type { TypingScene } from '../../config/schema.js';
 
 export const typingCss = `
@@ -74,10 +74,13 @@ export const typingCss = `
 `;
 
 export function typingHtml(scene: TypingScene, index: number, frameType: string, prompt = '$'): string {
+  const compositionClass = centerHeroSceneClass(scene, 'typing');
   if (frameType === 'terminal') {
     return sceneShell(
       index,
       `    <div class="df-slot-header df-term-line"><span class="df-term-prompt">${escapeHtml(prompt)}</span><span class="df-typed"></span><span class="df-term-caret df-caret-blink"></span></div>`,
+      '',
+      compositionClass,
     );
   }
   return sceneShell(
@@ -94,5 +97,7 @@ export function typingHtml(scene: TypingScene, index: number, frameType: string,
         <span class="df-composer-icons">${icons.paperclip}${icons.mic}</span>
       </div>
     </div>`,
+    '',
+    compositionClass,
   );
 }

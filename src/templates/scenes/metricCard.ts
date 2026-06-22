@@ -1,5 +1,5 @@
 import { escapeHtml } from '../html.js';
-import { sceneShell } from '../base.js';
+import { centerHeroSceneClass, sceneShell } from '../base.js';
 import type { MetricCardScene } from '../../config/schema.js';
 
 export const metricCardCss = `
@@ -133,5 +133,7 @@ export function metricCardHtml(scene: MetricCardScene, index: number): string {
         ${caption}
       </div>
     </div>`,
+    '',
+    centerHeroSceneClass(scene, 'metric-card'),
   );
 }
