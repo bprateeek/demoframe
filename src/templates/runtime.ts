@@ -1,6 +1,10 @@
+import { MOTION_PRESET_REGISTRY } from './motion/presets.js';
+
 export function runtimeJs(timelineJson: string): string {
+  const motionPresetJson = JSON.stringify(MOTION_PRESET_REGISTRY);
   return `(() => {
   const T = ${timelineJson};
+  const MOTION_PRESETS = ${motionPresetJson};
   const els = {};
   T.scenes.forEach((s) => {
     const el = document.querySelector('[data-scene="' + s.index + '"]');
@@ -8,6 +12,13 @@ export function runtimeJs(timelineJson: string): string {
   });
   const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
   const ease = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+  const easeByName = {
+    linear: (p) => p,
+    'ease-out-cubic': (p) => 1 - Math.pow(1 - p, 3),
+    'ease-in-out-cubic': (p) =>
+      p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2,
+  };
+  const motionIdentity = { x: 0, y: 0, scale: 1, opacity: 1 };
 
   // Shared so the cursor tap and the button press land on the same frame.
   const TAP_PRESS = 0.94;
@@ -44,6 +55,59 @@ export function runtimeJs(timelineJson: string): string {
       Number(el.dataset.decimals || 0),
       p,
     );
+  }
+
+  function motionEase(name, p) {
+    return (easeByName[name] || easeByName.linear)(clamp(p, 0, 1));
+  }
+
+  function motionWindowProgress(window, tp) {
+    if (!window) return 1;
+    const span = Math.max(0.0001, window.end - window.start);
+    return motionEase(window.easing, (tp - window.start) / span);
+  }
+
+  function mixMotionState(a, b, p) {
+    return {
+      x: a.x + (b.x - a.x) * p,
+      y: a.y + (b.y - a.y) * p,
+      scale: a.scale + (b.scale - a.scale) * p,
+      opacity: a.opacity + (b.opacity - a.opacity) * p,
+    };
+  }
+
+  function motionTrackState(track, windows, tp) {
+    if (!track) return motionIdentity;
+    const entrance = windows.entrance;
+    const settle = windows.settle;
+    if (entrance && tp < entrance.end) {
+      return mixMotionState(track.from, track.settle, motionWindowProgress(entrance, tp));
+    }
+    if (settle && tp < settle.end) {
+      return mixMotionState(track.settle, track.to, motionWindowProgress(settle, tp));
+    }
+    return track.to;
+  }
+
+  function setMotionVars(el, prefix, state) {
+    if (!el) return;
+    el.style.setProperty('--df-' + prefix + '-motion-x', state.x.toFixed(3) + 'px');
+    el.style.setProperty('--df-' + prefix + '-motion-y', state.y.toFixed(3) + 'px');
+    el.style.setProperty('--df-' + prefix + '-motion-scale', state.scale.toFixed(4));
+    el.style.setProperty('--df-' + prefix + '-motion-opacity', state.opacity.toFixed(4));
+  }
+
+  function applyMotion(el, s, lt) {
+    const sceneMotion = el.querySelector('.df-scene-motion');
+    const railMotion = sceneMotion ? sceneMotion.querySelector('.df-rail-motion') : null;
+    const motionName = s.data.cinematic && s.data.cinematic.motion;
+    const preset = motionName ? MOTION_PRESETS[motionName] : null;
+    const eligible = preset && preset.eligibleSceneTypes.includes(s.type);
+    const tp = clamp(lt / Math.max(0.0001, s.duration), 0, 1);
+    const sceneState = eligible ? motionTrackState(preset.wrappers && preset.wrappers.scene, preset.windows, tp) : motionIdentity;
+    const railState = eligible ? motionTrackState(preset.wrappers && preset.wrappers.rail, preset.windows, tp) : motionIdentity;
+    setMotionVars(sceneMotion, 'scene', sceneState);
+    setMotionVars(railMotion, 'rail', railState);
   }
 
   function animateChart(scope, d, lt, startRatio) {
@@ -281,6 +345,7 @@ export function runtimeJs(timelineJson: string): string {
     const el = els[s.index];
     if (!el) return;
     el.style.opacity = opacity;
+    applyMotion(el, s, lt);
     const fn = updaters[s.type];
     if (fn) fn(el, s, lt);
   }
