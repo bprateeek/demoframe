@@ -952,7 +952,7 @@ export function outputFormats(output: Output): OutputFormat[] {
 }
 
 export function resolveFrameCapture(output: Output, format: OutputFormat): FrameCapturePlan {
-  if (output.motionBlur === 'off' || format === 'gif') {
+  if (output.motionBlur === 'off' || (output.motionBlur === 'cinematic' && format === 'gif')) {
     return { format, motionBlur: output.motionBlur, mode: 'directCapture' };
   }
   return { format, motionBlur: output.motionBlur, mode: 'blurredCapture' };

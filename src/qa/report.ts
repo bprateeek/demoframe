@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { parseGif } from './gifInfo.js';
 import { ffmpegPath } from '../env/doctor.js';
 import type { EncoderProfile, EncoderSettings } from '../encode/profiles.js';
+import type { FrameCaptureMode, MotionBlur } from '../config/schema.js';
 
 export interface OutputReport {
   file: string;
@@ -22,6 +23,8 @@ export interface OutputReport {
   encoder?: string;
   encoderProfile?: EncoderProfile;
   encoderSettings?: EncoderSettings;
+  captureMode?: FrameCaptureMode;
+  motionBlur?: MotionBlur;
   budgetBytes?: number;
   withinBudget?: boolean;
   preset?: string;

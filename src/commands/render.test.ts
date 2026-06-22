@@ -3,7 +3,14 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { demoConfigSchema, resolveFrameCapture } from '../config/schema.js';
-import { renderInputKey, resolveAssetOutTargets, resolveReportCinematic, runRender, type PrimaryOutput } from './render.js';
+import {
+  renderInputKey,
+  resolveAssetOutTargets,
+  resolveReportCinematic,
+  resolveReportMotionBlur,
+  runRender,
+  type PrimaryOutput,
+} from './render.js';
 
 function writeConfig(yaml: string): string {
   const dir = mkdtempSync(path.join(process.env.TMPDIR ?? tmpdir(), 'df-render-'));
@@ -100,6 +107,30 @@ scenes:
     }
     expect(lines.filter((line) => line.includes('brief: placement')).length).toBe(1);
   });
+
+  it('refuses forced GIF motion blur under strict warning policy before rendering', async () => {
+    const file = writeConfig(`
+brief:
+  mode: user-confirmed
+  audience: README visitors
+  source: Synthetic flow
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Ask, work, result
+  climax: Final card
+output: { format: gif, motionBlur: force }
+frame: { type: phone }
+scenes:
+  - { type: status-card, duration: 2, title: Done }
+`);
+    await expect(
+      runRender(file, {
+        out: path.join(path.dirname(file), 'dist'),
+        keepFrames: false,
+        strict: true,
+      }),
+    ).rejects.toThrow(/refusing to render under --strict/);
+  });
 });
 
 describe('resolveAssetOutTargets', () => {
@@ -168,6 +199,51 @@ describe('resolveReportCinematic', () => {
   });
 });
 
+describe('resolveReportMotionBlur', () => {
+  it('records cinematic GIF skips and force GIF capture policy', () => {
+    const cinematic = demoConfigSchema.parse({
+      output: { format: ['gif', 'mp4'], motionBlur: 'cinematic' },
+      frame: { type: 'browser' },
+      scenes: [{ type: 'status-card', duration: 2, title: 'Done' }],
+    });
+    const forced = demoConfigSchema.parse({
+      output: { format: 'gif', motionBlur: 'force' },
+      frame: { type: 'browser' },
+      scenes: [{ type: 'status-card', duration: 2, title: 'Done' }],
+    });
+
+    expect(resolveReportMotionBlur([{ config: cinematic }])).toEqual({
+      requested: 'cinematic',
+      outputs: [
+        {
+          format: 'gif',
+          motionBlur: 'cinematic',
+          captureMode: 'directCapture',
+          policy: 'gif-cinematic-skip',
+        },
+        {
+          format: 'mp4',
+          motionBlur: 'cinematic',
+          captureMode: 'blurredCapture',
+          policy: 'cinematic',
+        },
+      ],
+    });
+    expect(resolveReportMotionBlur([{ preset: 'product-hunt', config: forced }])).toEqual({
+      requested: 'force',
+      outputs: [
+        {
+          preset: 'product-hunt',
+          format: 'gif',
+          motionBlur: 'force',
+          captureMode: 'blurredCapture',
+          policy: 'gif-force',
+        },
+      ],
+    });
+  });
+});
+
 describe('renderInputKey', () => {
   it('separates cache entries by requested format and effective capture mode', () => {
     const config = demoConfigSchema.parse({
@@ -195,6 +271,21 @@ describe('renderInputKey', () => {
 
     expect(renderInputKey(off, '/demo', 15, resolveFrameCapture(off.output, 'mp4'))).not.toBe(
       renderInputKey(forced, '/demo', 15, resolveFrameCapture(forced.output, 'mp4')),
+    );
+  });
+
+  it('separates cinematic and forced GIF capture entries', () => {
+    const base = {
+      frame: { type: 'phone' },
+      scenes: [{ type: 'status-card', duration: 3, title: 'Done' }],
+    } as const;
+    const cinematic = demoConfigSchema.parse({ ...base, output: { format: 'gif', motionBlur: 'cinematic' } });
+    const forced = demoConfigSchema.parse({ ...base, output: { format: 'gif', motionBlur: 'force' } });
+
+    expect(resolveFrameCapture(cinematic.output, 'gif').mode).toBe('directCapture');
+    expect(resolveFrameCapture(forced.output, 'gif').mode).toBe('blurredCapture');
+    expect(renderInputKey(cinematic, '/demo', 15, resolveFrameCapture(cinematic.output, 'gif'))).not.toBe(
+      renderInputKey(forced, '/demo', 15, resolveFrameCapture(forced.output, 'gif')),
     );
   });
 });

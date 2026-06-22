@@ -51,8 +51,9 @@ skills/demoframe/SKILL.md in the package.
   budget/quality in one flag (github-readme: webp 640px 15fps 4MB; x-post:
   mp4 1080px 30fps; linkedin: mp4 1080px 24fps; product-hunt: gif 1200px
   12fps 3MB). --for accepts a comma list and writes suffixed outputs.
-  Overrides are printed and preset names land in report.json. render warns when
-  the requested --for targets do not overlap brief.placement. --asset-out copies
+  Overrides are printed and preset names land in report.json. Presets never
+  change output.motionBlur. render warns when the requested --for targets do
+  not overlap brief.placement. --asset-out copies
   the primary rendered asset(s); when it covers the embeddable GIF/WebP, the
   printed README snippet points at the copied destination.
   --autonomous is the only way to render an unconfirmed brief; the report labels
@@ -82,14 +83,17 @@ skills/demoframe/SKILL.md in the package.
     "confirmed": bool, "requiredComplete", "recommendedComplete",
     "missingRequired": [], "missingRecommended": [], "assumptions"? },
   "cinematic"?: { "ambient"?: { "type": "ember", "scope": "timeline" } },
-  "attempts": [{preset?,format,fps,width,sizeBytes}],
+  "motionBlur": { "requested": "off"|"cinematic"|"force",
+    "outputs": [{preset?,format,motionBlur,captureMode,
+      policy: "off"|"cinematic"|"gif-cinematic-skip"|"force"|"gif-force"}] },
+  "attempts": [{preset?,format,fps,width,motionBlur,captureMode,sizeBytes}],
   "errors": [{code,message}], "warnings": [{code,message}],
   "notices": [{code,message}], "layout": [...],
   "previews": ["preview/scene_0_typing.png", ...],
   "outputs": [{ "file", "format": "gif"|"webp"|"mp4"|"webm",
   "transparent", "transparencyMode": "alpha"|"1-bit"|"none", "sizeBytes",
   "width", "height", "durationS", "fps", "frameCount", "loopsForever",
-  "hasAudio", "encoder", "withinBudget" }] }
+  "hasAudio", "encoder", "captureMode", "motionBlur", "withinBudget" }] }
 
 Verify after render: brief.confirmed true for normal/human-confirmed demos,
 brief.requiredComplete true, brief.recommendedComplete true, withinBudget true,
@@ -102,6 +106,18 @@ clipped, final frame tells the story alone.
 Full JSON Schema: `demoframe schema` or schema/demoframe.schema.json (npm package root).
 
 Top level: { title?, output?, theme?, frame, brief?, scenes }
+
+output.motionBlur policy:
+- off: every format uses directCapture.
+- cinematic: blur-capable formats use blurredCapture for eligible choreography
+  windows; GIF is skipped/directCapture and check/render record a notice.
+- force: eligible choreography windows use blurredCapture even for GIF. GIF
+  force emits a warning about palette, dither, and size tradeoffs, so
+  --strict fails before rendering. Force does not mean every frame is blurred,
+  and text-mutating scenes remain direct inside the blur capture path.
+- Destination presets may override only format, width, fps, budget, and
+  quality. They must not implicitly turn on motionBlur or alter the requested
+  visual behavior.
 
 brief records the interview that produced the demo and now gates execution.
 All fields are optional in the parser so partial briefs can be loaded, but

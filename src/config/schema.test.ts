@@ -376,7 +376,7 @@ describe('resolveFrameCapture', () => {
     });
   });
 
-  it('routes future non-GIF blur modes to the blurred capture branch', () => {
+  it('routes blur-capable formats to the blurred capture branch', () => {
     const cinematic = demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'cinematic' } }).output;
     expect(resolveFrameCapture(cinematic, 'mp4')).toEqual({
       format: 'mp4',
@@ -387,6 +387,15 @@ describe('resolveFrameCapture', () => {
     const force = demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'force' } }).output;
     expect(resolveFrameCapture(force, 'webp')).toEqual({
       format: 'webp',
+      motionBlur: 'force',
+      mode: 'blurredCapture',
+    });
+  });
+
+  it('routes forced GIF motion blur to the blurred capture branch', () => {
+    const force = demoConfigSchema.parse({ ...minimal, output: { motionBlur: 'force' } }).output;
+    expect(resolveFrameCapture(force, 'gif')).toEqual({
+      format: 'gif',
       motionBlur: 'force',
       mode: 'blurredCapture',
     });
