@@ -12,6 +12,7 @@ import { encodeGif } from '../encode/gif.js';
 import { encodeMp4 } from '../encode/mp4.js';
 import { encodeWebp } from '../encode/webp.js';
 import { encodeWebm } from '../encode/webm.js';
+import { parseEncoderProfile, type EncoderProfile } from '../encode/profiles.js';
 import {
   budgetToBytes,
   isTransparentFrame,
@@ -260,8 +261,10 @@ export async function runRender(
     allowRawScreenshots?: boolean;
     autonomous?: boolean;
     assumptions?: string[];
+    encoderProfile?: EncoderProfile | string;
   },
 ): Promise<void> {
+  const encoderProfile = parseEncoderProfile(opts.encoderProfile);
   const presets = parsePresets(opts.for);
   const baseCheck = await runCheck(configFile, {
     allowRawScreenshots: opts.allowRawScreenshots,
@@ -367,7 +370,15 @@ export async function runRender(
   };
 
   const reports: OutputReport[] = [];
-  const attempts: Array<{ preset?: string; format: string; fps: number; width: number; sizeBytes: number }> = [];
+  const attempts: Array<{
+    preset?: string;
+    format: string;
+    fps: number;
+    width: number;
+    sizeBytes: number;
+    encoderProfile: EncoderProfile;
+    withinBudget: boolean | undefined;
+  }> = [];
   const primaryOutputs: PrimaryOutput[] = [];
 
   try {
@@ -386,16 +397,29 @@ export async function runRender(
           const frames = await getFrames(renderConfig, step.fps, format);
           console.log(`encoding ${format.toUpperCase()} at ${step.width}px / ${step.fps}fps...`);
           if (format === 'gif') {
-            const { encoder } = await encodeGif(frames, step.width, outPath, {
+            const encoding = await encodeGif(frames, step.width, outPath, {
+              profile: encoderProfile,
+              quality: renderConfig.output.quality,
               transparent: isTransparentFrame(renderConfig.frame),
             });
-            final = annotateTransparency(inspectGif(outPath, encoder, budgetBytes, step.fps), renderConfig, format);
+            final = annotateTransparency(inspectGif(outPath, encoding, budgetBytes, step.fps), renderConfig, format);
           } else {
-            await encodeWebp(frames, step.width, outPath);
-            final = annotateTransparency(await inspectWebp(outPath, budgetBytes, step.fps), renderConfig, format);
+            const encoding = await encodeWebp(frames, step.width, outPath, {
+              profile: encoderProfile,
+              quality: renderConfig.output.quality,
+            });
+            final = annotateTransparency(await inspectWebp(outPath, encoding, budgetBytes, step.fps), renderConfig, format);
           }
           if (preset) final.preset = preset;
-          attempts.push({ preset, format, fps: step.fps, width: step.width, sizeBytes: final.sizeBytes });
+          attempts.push({
+            preset,
+            format,
+            fps: step.fps,
+            width: step.width,
+            sizeBytes: final.sizeBytes,
+            encoderProfile,
+            withinBudget: final.withinBudget,
+          });
           if (final.withinBudget) break;
           console.log(
             `  over budget: ${(final.sizeBytes / 1024 / 1024).toFixed(2)}MB > ${(budgetBytes / 1024 / 1024).toFixed(1)}MB, retrying`,
@@ -415,24 +439,78 @@ export async function runRender(
 
       if (formats.includes('mp4')) {
         const mp4Path = path.join(stageDir, outputFileName(name, preset, 'mp4'));
-        const frames = await getFrames(config, config.output.fps, 'mp4');
-        console.log(`encoding MP4 at ${config.output.width}px / ${config.output.fps}fps...`);
-        await encodeMp4(frames, config.output.width, mp4Path);
-        const report = inspectMp4(mp4Path);
-        if (preset) report.preset = preset;
-        reports.push(report);
-        if (primary === 'mp4') primaryOutputs.push({ preset, file: report.file, format: 'mp4' });
+        let final: OutputReport | null = null;
+        for (const step of ladderSteps(config.output.fps, config.output.width)) {
+          const frames = await getFrames(config, step.fps, 'mp4');
+          console.log(`encoding MP4 at ${step.width}px / ${step.fps}fps...`);
+          const encoding = await encodeMp4(frames, step.width, mp4Path, {
+            profile: encoderProfile,
+            quality: config.output.quality,
+          });
+          final = inspectMp4(mp4Path, encoding, budgetBytes);
+          if (preset) final.preset = preset;
+          attempts.push({
+            preset,
+            format: 'mp4',
+            fps: step.fps,
+            width: step.width,
+            sizeBytes: final.sizeBytes,
+            encoderProfile,
+            withinBudget: final.withinBudget,
+          });
+          if (final.withinBudget) break;
+          console.log(
+            `  over budget: ${(final.sizeBytes / 1024 / 1024).toFixed(2)}MB > ${(budgetBytes / 1024 / 1024).toFixed(1)}MB, retrying`,
+          );
+        }
+        if (final) {
+          reports.push(final);
+          if (primary === 'mp4') primaryOutputs.push({ preset, file: final.file, format: 'mp4' });
+          if (!final.withinBudget) {
+            console.log(
+              '\nMP4 is still over budget after the retry ladder. Suggestions: shorten scene durations, lower output.fps, ' +
+                'lower output.width, or use output.quality: draft.',
+            );
+          }
+        }
       }
 
       if (formats.includes('webm')) {
         const webmPath = path.join(stageDir, outputFileName(name, preset, 'webm'));
-        const frames = await getFrames(config, config.output.fps, 'webm');
-        console.log(`encoding WebM at ${config.output.width}px / ${config.output.fps}fps...`);
-        await encodeWebm(frames, config.output.width, webmPath);
-        const report = inspectWebm(webmPath);
-        if (preset) report.preset = preset;
-        reports.push(report);
-        if (primary === 'webm') primaryOutputs.push({ preset, file: report.file, format: 'webm' });
+        let final: OutputReport | null = null;
+        for (const step of ladderSteps(config.output.fps, config.output.width)) {
+          const frames = await getFrames(config, step.fps, 'webm');
+          console.log(`encoding WebM at ${step.width}px / ${step.fps}fps...`);
+          const encoding = await encodeWebm(frames, step.width, webmPath, {
+            profile: encoderProfile,
+            quality: config.output.quality,
+          });
+          final = inspectWebm(webmPath, encoding, budgetBytes);
+          if (preset) final.preset = preset;
+          attempts.push({
+            preset,
+            format: 'webm',
+            fps: step.fps,
+            width: step.width,
+            sizeBytes: final.sizeBytes,
+            encoderProfile,
+            withinBudget: final.withinBudget,
+          });
+          if (final.withinBudget) break;
+          console.log(
+            `  over budget: ${(final.sizeBytes / 1024 / 1024).toFixed(2)}MB > ${(budgetBytes / 1024 / 1024).toFixed(1)}MB, retrying`,
+          );
+        }
+        if (final) {
+          reports.push(final);
+          if (primary === 'webm') primaryOutputs.push({ preset, file: final.file, format: 'webm' });
+          if (!final.withinBudget) {
+            console.log(
+              '\nWebM is still over budget after the retry ladder. Suggestions: shorten scene durations, lower output.fps, ' +
+                'lower output.width, or use output.quality: draft.',
+            );
+          }
+        }
       }
     }
   } catch (err) {
