@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { demoConfigSchema, resolveFrameCapture } from '../config/schema.js';
-import { renderInputKey, resolveAssetOutTargets, runRender, type PrimaryOutput } from './render.js';
+import { renderInputKey, resolveAssetOutTargets, resolveReportCinematic, runRender, type PrimaryOutput } from './render.js';
 
 function writeConfig(yaml: string): string {
   const dir = mkdtempSync(path.join(process.env.TMPDIR ?? tmpdir(), 'df-render-'));
@@ -140,6 +140,31 @@ describe('resolveAssetOutTargets', () => {
         dest: path.join(dir, 'assets', 'demo.product-hunt.gif'),
       },
     ]);
+  });
+});
+
+describe('resolveReportCinematic', () => {
+  it('reports ember ambient as timeline-wide when any scene opts in', () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      scenes: [
+        { type: 'typing', duration: 2, text: 'ship it' },
+        { type: 'status-card', duration: 2, title: 'Ready', cinematic: { ambient: 'ember' } },
+      ],
+    });
+
+    expect(resolveReportCinematic(config)).toEqual({
+      ambient: { type: 'ember', scope: 'timeline' },
+    });
+  });
+
+  it('omits cinematic report semantics when ambient is absent', () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      scenes: [{ type: 'typing', duration: 2, text: 'ship it' }],
+    });
+
+    expect(resolveReportCinematic(config)).toBeUndefined();
   });
 });
 
