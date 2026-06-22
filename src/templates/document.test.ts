@@ -109,6 +109,68 @@ describe('buildDocument scene motion wrappers', () => {
       scenes.map((scene) => (scene.type === 'screen' ? ['df-rail', 'df-screen-rail'] : ['df-rail'])),
     );
   });
+
+  it('adds center-hero composition classes only for supported opted-in scenes', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      scenes: [
+        { type: 'typing', duration: 2, text: 'Ship the demo', cinematic: { composition: 'center-hero' } },
+        {
+          type: 'steps',
+          duration: 2,
+          items: [{ label: 'Render', state: 'active' }],
+          cinematic: { composition: 'center-hero' },
+        },
+        { type: 'status-card', duration: 2, title: 'Ready', cinematic: { composition: 'center-hero' } },
+        {
+          type: 'chat',
+          duration: 2,
+          messages: [{ role: 'assistant', text: 'Done.' }],
+          cinematic: { composition: 'center-hero' },
+        },
+        { type: 'code', duration: 2, code: 'const ready = true;', cinematic: { composition: 'center-hero' } },
+        {
+          type: 'terminal-playback',
+          duration: 2,
+          command: 'npm test',
+          output: ['passed'],
+          cinematic: { composition: 'center-hero' },
+        },
+        {
+          type: 'metric-card',
+          duration: 2,
+          metrics: [{ label: 'Tests', value: 42 }],
+          cinematic: { composition: 'center-hero' },
+        },
+        {
+          type: 'screen',
+          duration: 2,
+          blocks: [{ block: 'callout', variant: 'message', text: 'All systems go' }],
+          cinematic: { composition: 'center-hero' },
+        },
+        {
+          type: 'screen',
+          duration: 2,
+          motion: 'focus',
+          focus: 'money',
+          blocks: [{ name: 'money', block: 'callout', variant: 'message', text: 'Keep focus math stable' }],
+          cinematic: { composition: 'center-hero' },
+        },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+
+    expect(doc.html).toContain('df-composition-center-hero-typing');
+    expect(doc.html).toContain('df-composition-center-hero-steps');
+    expect(doc.html).toContain('df-composition-center-hero-status-card');
+    expect(doc.html).toContain('df-composition-center-hero-chat');
+    expect(doc.html).toContain('df-composition-center-hero-code');
+    expect(doc.html).toContain('df-composition-center-hero-terminal-playback');
+    expect(doc.html).toContain('df-composition-center-hero-metric-card');
+    expect(doc.html).toContain('df-composition-center-hero-screen');
+    expect(doc.html.match(/class="df-scene[^"]*df-composition-center-hero-screen/g)).toHaveLength(1);
+    expect(doc.html).toContain('.df-composition-center-hero-status-card .df-rail-motion');
+  });
 });
 
 describe('buildDocument frame chrome layers (v0.7)', () => {

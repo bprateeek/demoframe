@@ -100,6 +100,83 @@ svg { display: block; width: 100%; height: 100%; }
   flex-direction: column;
   padding: var(--df-s5);
 }
+.df-composition-center-hero-typing .df-rail-motion {
+  --df-rail-motion-y: -8px;
+  --df-rail-motion-scale: 1.08;
+}
+.df-composition-center-hero-typing .df-rail {
+  justify-content: center;
+}
+.df-composition-center-hero-typing .df-slot-footer {
+  margin-top: 0;
+}
+.df-frame-terminal .df-composition-center-hero-typing .df-rail-motion {
+  --df-rail-motion-y: 0px;
+  --df-rail-motion-scale: 1.04;
+}
+.df-composition-center-hero-steps .df-rail-motion {
+  --df-rail-motion-scale: 1.08;
+}
+.df-composition-center-hero-steps .df-rail {
+  justify-content: center;
+}
+.df-composition-center-hero-steps .df-slot-body {
+  flex: 0 1 auto;
+}
+.df-composition-center-hero-steps .df-steps-list {
+  padding-top: 0;
+  padding-left: var(--df-s5);
+  padding-right: var(--df-s5);
+  align-self: center;
+  width: min(760px, 100%);
+}
+.df-composition-center-hero-status-card .df-rail-motion {
+  --df-rail-motion-scale: 1.06;
+}
+.df-composition-center-hero-status-card .df-rail {
+  justify-content: center;
+}
+.df-composition-center-hero-status-card .df-slot-body {
+  flex: 0 1 auto;
+}
+.df-composition-center-hero-status-card .df-card-body {
+  align-self: center;
+  width: min(760px, 100%);
+}
+.df-composition-center-hero-chat .df-rail-motion {
+  --df-rail-motion-y: -6px;
+  --df-rail-motion-scale: 1.06;
+}
+.df-composition-center-hero-chat .df-chat {
+  justify-content: center;
+}
+.df-composition-center-hero-code .df-rail-motion {
+  --df-rail-motion-scale: 1.05;
+}
+.df-composition-center-hero-code .df-codepanel {
+  align-self: center;
+  width: min(760px, 100%);
+}
+.df-composition-center-hero-terminal-playback .df-rail-motion {
+  --df-rail-motion-scale: 1.05;
+}
+.df-composition-center-hero-terminal-playback .df-play-panel {
+  align-self: center;
+  width: min(760px, 100%);
+}
+.df-composition-center-hero-metric-card .df-rail-motion {
+  --df-rail-motion-scale: 1.12;
+}
+.df-composition-center-hero-metric-card .df-metric-panel {
+  align-self: center;
+  width: min(680px, 100%);
+}
+.df-composition-center-hero-screen .df-rail-motion {
+  --df-rail-motion-scale: 1.06;
+}
+.df-composition-center-hero-screen .df-screen-stack {
+  justify-content: center;
+}
 .df-chrome-stack {
   position: relative;
   flex: 0 0 auto;
@@ -197,9 +274,19 @@ svg { display: block; width: 100%; height: 100%; }
 }
 `;
 
-export function sceneShell(index: number, railContents: string, railClass = ''): string {
+export function centerHeroSceneClass(
+  scene: { cinematic?: { composition?: string } },
+  sceneType: string,
+): string {
+  return scene.cinematic?.composition === 'center-hero'
+    ? `df-composition-center-hero df-composition-center-hero-${sceneType}`
+    : '';
+}
+
+export function sceneShell(index: number, railContents: string, railClass = '', sceneClass = ''): string {
+  const sceneClasses = ['df-scene', sceneClass].filter(Boolean).join(' ');
   const railClasses = ['df-rail', railClass].filter(Boolean).join(' ');
-  return `<div class="df-scene" data-scene="${index}">
+  return `<div class="${sceneClasses}" data-scene="${index}">
   <div class="df-scene-motion">
     <div class="df-rail-motion">
       <div class="${railClasses}">
