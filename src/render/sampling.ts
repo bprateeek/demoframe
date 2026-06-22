@@ -47,6 +47,15 @@ function presetNames(name: MotionPresetName | undefined): MotionPresetName[] {
   return name ? [name] : MOTION_PRESET_NAMES;
 }
 
+function sceneCinematicMotion(scene: TimelineScene): MotionPresetName | undefined {
+  const cinematic = scene.data.cinematic;
+  if (!cinematic || typeof cinematic !== 'object') return undefined;
+  const motion = (cinematic as { motion?: unknown }).motion;
+  return typeof motion === 'string' && MOTION_PRESET_NAMES.includes(motion as MotionPresetName)
+    ? (motion as MotionPresetName)
+    : undefined;
+}
+
 export function motionPeakTimes(timeline: Timeline, presetName?: MotionPresetName): number[] {
   const times: number[] = [];
   for (const scene of timeline.scenes) {
@@ -80,6 +89,16 @@ export function timelineMotionWindows(timeline: Timeline, presetName?: MotionPre
         });
       }
     }
+  }
+  return windows;
+}
+
+export function timelineCinematicMotionWindows(timeline: Timeline): TimelineMotionWindow[] {
+  const windows: TimelineMotionWindow[] = [];
+  for (const scene of timeline.scenes) {
+    const name = sceneCinematicMotion(scene);
+    if (!name || !isMotionSceneEligible(scene.type, name)) continue;
+    windows.push(...timelineMotionWindows(timeline, name).filter((window) => window.sceneIndex === scene.index));
   }
   return windows;
 }

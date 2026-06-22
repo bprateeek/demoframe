@@ -6,7 +6,7 @@ import {
   MOTION_PRESET_REGISTRY,
   type MotionPresetName,
 } from '../templates/motion/presets.js';
-import { motionPeakTimes, previewSampleTimes, timelineMotionWindows } from './sampling.js';
+import { motionPeakTimes, previewSampleTimes, timelineCinematicMotionWindows, timelineMotionWindows } from './sampling.js';
 import { resolveTimeline } from './timeline.js';
 
 describe('previewSampleTimes', () => {
@@ -124,6 +124,39 @@ describe('motion preset sampling', () => {
         window: 'settle',
         start: 1.8,
         end: 3.2,
+        easing: 'ease-in-out-cubic',
+      },
+    ]);
+  });
+
+  it('derives active cinematic windows only from scenes that opt into motion', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        scenes: [
+          { type: 'typing', duration: 5, text: 'Plain' },
+          { type: 'code', duration: 5, code: 'const launch = true;', reveal: 'none', cinematic: { motion: 'float-in' } },
+        ],
+      }),
+    );
+
+    expect(timelineCinematicMotionWindows(timeline)).toEqual([
+      {
+        sceneIndex: 1,
+        sceneType: 'code',
+        preset: 'float-in',
+        window: 'entrance',
+        start: 5,
+        end: 7.1,
+        easing: 'ease-out-cubic',
+      },
+      {
+        sceneIndex: 1,
+        sceneType: 'code',
+        preset: 'float-in',
+        window: 'settle',
+        start: 7.1,
+        end: 8.6,
         easing: 'ease-in-out-cubic',
       },
     ]);
