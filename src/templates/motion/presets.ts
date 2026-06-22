@@ -14,6 +14,19 @@ export interface MotionWindowPreset {
   easing: MotionEasingName;
 }
 
+export interface MotionWrapperState {
+  x: number;
+  y: number;
+  scale: number;
+  opacity: number;
+}
+
+export interface MotionWrapperTrack {
+  from: MotionWrapperState;
+  settle: MotionWrapperState;
+  to: MotionWrapperState;
+}
+
 export interface MotionPreset {
   eligibleSceneTypes: readonly MotionSceneType[];
   windows: Partial<Record<MotionWindowName, MotionWindowPreset>>;
@@ -21,6 +34,10 @@ export interface MotionPreset {
   easing: {
     primary: MotionEasingName;
     secondary?: MotionEasingName;
+  };
+  wrappers?: {
+    scene?: MotionWrapperTrack;
+    rail?: MotionWrapperTrack;
   };
 }
 
@@ -42,6 +59,18 @@ export const MOTION_PRESET_REGISTRY = {
     },
     peakSampleOffsets: [0.18, 0.42, 0.72],
     easing: { primary: 'ease-out-cubic', secondary: 'ease-in-out-cubic' },
+    wrappers: {
+      scene: {
+        from: { x: 0, y: 18, scale: 0.985, opacity: 0.94 },
+        settle: { x: 0, y: -2, scale: 1.003, opacity: 1 },
+        to: { x: 0, y: 0, scale: 1, opacity: 1 },
+      },
+      rail: {
+        from: { x: 0, y: 6, scale: 1, opacity: 1 },
+        settle: { x: 0, y: -1, scale: 1, opacity: 1 },
+        to: { x: 0, y: 0, scale: 1, opacity: 1 },
+      },
+    },
   },
   rise: {
     eligibleSceneTypes: ['typing', 'steps', 'status-card', 'code', 'chat', 'metric-card', 'screen'],
