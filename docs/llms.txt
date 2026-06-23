@@ -25,7 +25,8 @@ skills/demoframe/SKILL.md in the package.
   repo root is found.
 - `demoframe schema`: print the JSON Schema for configs. The schema is pre-1.0
   and changes between versions; read it instead of relying on memorized fields.
-- `demoframe check <config> [--strict] [--autonomous] [--allow-raw-screenshots]`: validate without
+- `demoframe check <config> [--strict] [--autonomous] [--allow-raw-screenshots]
+  [--for github-readme,x-post,linkedin,product-hunt]`: validate without
   rendering. Exit 0 = valid; exit 1 if there are errors. Errors and warnings print
   with stable finding codes in the API and human messages in the CLI. A missing,
   TODO-filled, inferred, or otherwise unconfirmed brief is an error by default.
@@ -38,7 +39,9 @@ skills/demoframe/SKILL.md in the package.
   raw demo. When brief.intent is abstract, any screenshot scene is an error unless
   brief.screenshotPolicy is raw-intentional, and rendered scenes must include
   visible product payload from brief.product, brief.verbatimCopy, or a metric/callout
-  value; theme.logo alone is not enough. Missing referenced assets are hard errors. Warnings cover privacy findings (emails/tokens/URLs
+  value; theme.logo alone is not enough. --for applies the same destination presets
+  as render for validation, so preset-adjusted policy errors (for example transparent
+  MP4/WebM) fail before preview/render. Missing referenced assets are hard errors. Warnings cover privacy findings (emails/tokens/URLs
   in copy), README legibility, brief quality mismatches, and screenshots likely to blow the GIF size budget. Fast (<1s without
   screenshot assets); run after every config edit.
 - `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]
@@ -68,13 +71,16 @@ skills/demoframe/SKILL.md in the package.
   formats can still remain because promotion only overwrites current managed
   filenames. --asset-out is copied after promotion, so a copy failure can leave
   outDir updated.
-- `demoframe preview <config> [-o dir] [--autonomous] [--assumption text]`: stills only, no encode. Writes
+- `demoframe preview <config> [-o dir] [--autonomous] [--assumption text]
+  [--for github-readme,x-post,linkedin,product-hunt]`: stills only, no encode. Writes
   semantic per-scene stills (scene_<i>_<slug>.png), key moments
   (moment_<i>_tap/cta/celebrate.png), final_readme_size.png, and
   final_github_dark/light.png composites. Transparent configs also write
   final_transparent_checkerboard.png. Faster iteration than render. It refuses
   the same unconfirmed brief gate as render unless --autonomous is passed; it
-  echoes inferred assumptions but does not persist a report.
+  echoes inferred assumptions but does not persist a report. --for uses the same
+  destination preset settings as render; when multiple presets are supplied, preview
+  writes stills for the highest-quality preset, matching render's preview target.
 - `demoframe doctor`: environment report. `demoframe install-browser`: explicit
   Chromium download (otherwise automatic on first render).
 - `demoframe serve <config> [-p port]`: live preview server with a scrubber (for humans).

@@ -12,6 +12,7 @@ import {
   resolveFrameCapture,
   type DemoConfig,
 } from '../config/schema.js';
+import { applyPreset } from '../config/presets.js';
 import { briefGateFinding, briefWarnings, screenshotRuntimeShare } from '../qa/brief.js';
 import { sceneTextLeaves } from '../qa/sceneText.js';
 import { resolveTimeline } from '../render/timeline.js';
@@ -41,6 +42,22 @@ type AssetKind = 'screenshot' | 'logo' | 'font' | 'avatar';
 
 function finding(code: string, message: string, details?: Record<string, unknown>): CheckFinding {
   return details ? { code, message, details } : { code, message };
+}
+
+function findingKey(item: CheckFinding): string {
+  return `${item.code}\0${item.message}`;
+}
+
+function addFinding(target: Map<string, CheckFinding>, item: CheckFinding): void {
+  target.set(findingKey(item), item);
+}
+
+function prefixFinding(item: CheckFinding, preset: string): CheckFinding {
+  return {
+    ...item,
+    message: `preset ${preset}: ${item.message}`,
+    details: { ...item.details, preset },
+  };
 }
 
 function referencedAssets(loaded: LoadedConfig): Array<{ at: string; file: string; kind: AssetKind }> {
@@ -292,6 +309,42 @@ function abstractPayloadErrors(config: DemoConfig): CheckFinding[] {
   ];
 }
 
+async function addDestinationPresetFindings(
+  loaded: LoadedConfig,
+  opts: CheckOptions,
+  errors: CheckFinding[],
+  warnings: CheckFinding[],
+  notices: CheckFinding[],
+): Promise<void> {
+  if (!opts.forDestinations?.length) return;
+
+  const errorSet = new Map<string, CheckFinding>();
+  const warningSet = new Map<string, CheckFinding>();
+  const noticeSet = new Map<string, CheckFinding>();
+  for (const error of errors) addFinding(errorSet, error);
+  for (const warning of warnings) addFinding(warningSet, warning);
+  for (const notice of notices) addFinding(noticeSet, notice);
+
+  for (const preset of opts.forDestinations) {
+    const applied = applyPreset(loaded.config, preset);
+    const checked = await runCheckLoaded(
+      { ...loaded, config: applied.config },
+      {
+        allowRawScreenshots: opts.allowRawScreenshots,
+        allowInferred: opts.allowInferred,
+        skipBrief: true,
+      },
+    );
+    for (const error of checked.errors) addFinding(errorSet, prefixFinding(error, preset));
+    for (const warning of checked.warnings) addFinding(warningSet, prefixFinding(warning, preset));
+    for (const notice of checked.notices) addFinding(noticeSet, prefixFinding(notice, preset));
+  }
+
+  errors.splice(0, errors.length, ...errorSet.values());
+  warnings.splice(0, warnings.length, ...warningSet.values());
+  notices.splice(0, notices.length, ...noticeSet.values());
+}
+
 export async function runCheckLoaded(
   loaded: LoadedConfig,
   opts: CheckOptions = {},
@@ -444,6 +497,8 @@ export async function runCheckLoaded(
       );
     }
   });
+
+  await addDestinationPresetFindings(loaded, opts, errors, warnings, notices);
 
   return { loaded, errors, warnings, notices, briefGate };
 }

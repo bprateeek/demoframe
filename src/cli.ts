@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import { createRequire } from 'node:module';
 import { ConfigError } from './config/load.js';
+import { applyPreset, parsePresetNames } from './config/presets.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -38,12 +39,18 @@ program
     'permit a frameless all-screenshot demo (bug report, before/after); demotes that error to a warning',
     false,
   )
-  .action(async (config: string, opts: { strict: boolean; autonomous: boolean; allowRawScreenshots: boolean }) => {
+  .option(
+    '--for <destination>',
+    'destination preset(s), comma-separated: github-readme, x-post, linkedin, or product-hunt',
+  )
+  .action(async (config: string, opts: { strict: boolean; autonomous: boolean; allowRawScreenshots: boolean; for?: string }) => {
     try {
       const { runCheck } = await import('./commands/check.js');
+      const presets = parsePresetNames(opts.for);
       const result = await runCheck(config, {
         allowRawScreenshots: opts.allowRawScreenshots,
         allowInferred: opts.autonomous,
+        forDestinations: presets,
       });
       const scenes = result.loaded.config.scenes;
       const total = scenes.reduce((sum, s) => sum + s.duration, 0);
@@ -51,6 +58,11 @@ program
         `${result.errors.length > 0 ? 'fail' : 'ok'}: ${scenes.length} scene${scenes.length === 1 ? '' : 's'}, ${total.toFixed(1)}s ` +
           `at ${result.loaded.config.output.fps}fps (${result.loaded.config.frame.type} frame)`,
       );
+      for (const preset of presets) {
+        for (const change of applyPreset(result.loaded.config, preset).changes) {
+          console.log(`  ! preset ${preset} overrides ${change}`);
+        }
+      }
       if (result.errors.length > 0) {
         console.log(`\n${result.errors.length} error${result.errors.length === 1 ? '' : 's'}:`);
         for (const e of result.errors) console.log(`  x ${e.message}`);
@@ -144,7 +156,11 @@ program
   .option('--no-download', 'fail if Chromium is missing instead of downloading it')
   .option('--autonomous', 'allow an unconfirmed brief and label the preview run as inferred', false)
   .option('--assumption <text>', 'record an assumption for an autonomous/inferred preview', collectAssumption, [] as string[])
-  .action(async (config: string, opts: { out: string; download: boolean; autonomous: boolean; assumption: string[] }) => {
+  .option(
+    '--for <destination>',
+    'destination preset(s), comma-separated: github-readme, x-post, linkedin, or product-hunt',
+  )
+  .action(async (config: string, opts: { out: string; download: boolean; autonomous: boolean; assumption: string[]; for?: string }) => {
     try {
       const { runPreview } = await import('./commands/preview.js');
       await runPreview(config, { ...opts, assumptions: opts.assumption });
