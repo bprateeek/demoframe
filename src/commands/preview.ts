@@ -10,6 +10,8 @@ import { applyCrop, computeAlphaBox, type AlphaBox } from '../render/crop.js';
 import { previewSampleTimes, TAP_PRESS_SAMPLE_OFFSET } from '../render/sampling.js';
 import { measureLayout, type LayoutFinding } from '../qa/layout.js';
 import { briefSummary, resolveInferredAssumptions } from '../qa/brief.js';
+import { applyPreset, parsePresetNames } from '../config/presets.js';
+import type { DemoConfig } from '../config/schema.js';
 
 const GITHUB_DARK = '#0d1117';
 const GITHUB_LIGHT = '#ffffff';
@@ -85,6 +87,19 @@ export interface PreviewArtifacts {
   layout: LayoutFinding[];
 }
 
+interface PreviewTarget {
+  preset?: string;
+  config: DemoConfig;
+  changes: string[];
+}
+
+function canonicalPreviewTarget(targets: PreviewTarget[]): PreviewTarget {
+  const rank = { draft: 0, standard: 1, high: 2 } as const;
+  return targets.reduce((best, target) =>
+    rank[target.config.output.quality] > rank[best.config.output.quality] ? target : best,
+  );
+}
+
 export async function writePreviewArtifacts(
   loaded: LoadedConfig,
   outDir: string,
@@ -158,11 +173,23 @@ export async function writePreviewStills(loaded: LoadedConfig, outDir: string): 
 
 export async function runPreview(
   configFile: string,
-  opts: { out: string; download?: boolean; autonomous?: boolean; assumptions?: string[] },
+  opts: { out: string; download?: boolean; autonomous?: boolean; assumptions?: string[]; for?: string },
 ): Promise<void> {
+  const presets = parsePresetNames(opts.for);
   const { loaded, errors, warnings, notices } = await runCheck(configFile, {
     allowInferred: opts.autonomous,
+    forDestinations: presets,
   });
+  const targets: PreviewTarget[] =
+    presets.length > 0
+      ? presets.map((preset) => {
+          const applied = applyPreset(loaded.config, preset);
+          return { preset, config: applied.config, changes: applied.changes };
+        })
+      : [{ config: loaded.config, changes: [] }];
+  for (const target of targets) {
+    for (const change of target.changes) console.log(`  ! preset ${target.preset} overrides ${change}`);
+  }
   for (const e of errors) console.log(`  x ${e.message}`);
   for (const w of warnings) console.log(`  ! ${w.message}`);
   for (const n of notices) console.log(`  i ${n.message}`);
@@ -184,7 +211,11 @@ export async function runPreview(
   await ensureChromium(opts.download !== false);
 
   const outDir = path.resolve(opts.out);
-  const { files: written, layout } = await writePreviewArtifacts(loaded, outDir);
+  const previewTarget = canonicalPreviewTarget(targets);
+  if (previewTarget.preset) {
+    console.log(`\nusing preset ${previewTarget.preset} for preview stills`);
+  }
+  const { files: written, layout } = await writePreviewArtifacts({ ...loaded, config: previewTarget.config }, outDir);
 
   console.log(`\nwrote ${written.length} previews to ${outDir}:`);
   for (const file of written) console.log(`  ${path.basename(file)}`);

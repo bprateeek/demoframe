@@ -93,6 +93,10 @@ demoframe preview demo.yml    # key stills only, no encode
 demoframe serve demo.yml      # live preview with a time scrubber
 ```
 
+For destination-specific output, pass the same `--for github-readme|x-post|linkedin|product-hunt`
+flag to `check`, `preview`, and `render` so validation and stills use the same
+format, width, fps, budget, and quality that the final render will use.
+
 Use `--autonomous` only when there is explicitly no human to interview, and add
 repeatable `--assumption "..."` entries on `preview`/`render` to record what
 was inferred. The brief gate becomes a notice; missing assets and other real
@@ -243,9 +247,10 @@ warns. Transparent MP4/WebM is a policy error because alpha is not reliably
 useful for the target destinations. Use `frame.outside: "#hex"` when you need a
 solid fallback for video.
 
-Rendering for a specific destination? `render --for github-readme | x-post |
-linkedin | product-hunt` sets format, width, fps, budget, and quality in one
-flag, overriding only those `output` values and printing what it changed.
+Rendering for a specific destination? `check --for`, `preview --for`, and
+`render --for github-readme | x-post | linkedin | product-hunt` set format,
+width, fps, budget, and quality in one flag, overriding only those `output`
+values and printing what changed.
 Destination presets never change `output.motionBlur`.
 
 `output.motionBlur` defaults to `off`, which uses `directCapture` for every

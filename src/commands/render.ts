@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, statSync } from 'node:fs';
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { runCheck, runCheckLoaded, type CheckFinding } from './check.js';
+import { runCheck, type CheckFinding } from './check.js';
 import { ensureChromium } from '../env/install.js';
 import { ensureGifski } from '../env/gifski.js';
 import { writePreviewArtifacts } from './preview.js';
@@ -25,7 +25,7 @@ import {
   type MotionBlur,
   type OutputFormat,
 } from '../config/schema.js';
-import { applyPreset } from '../config/presets.js';
+import { applyPreset, parsePresetNames } from '../config/presets.js';
 import {
   inspectGif,
   inspectMp4,
@@ -94,15 +94,6 @@ function addFinding(target: Map<string, CheckFinding>, item: CheckFinding): void
   target.set(findingKey(item), item);
 }
 
-function prefixFinding(item: CheckFinding, preset: string | undefined): CheckFinding {
-  if (!preset) return item;
-  return {
-    ...item,
-    message: `preset ${preset}: ${item.message}`,
-    details: { ...item.details, preset },
-  };
-}
-
 function reportFinding(item: CheckFinding): { code: string; message: string } {
   return { code: item.code, message: item.message };
 }
@@ -118,14 +109,6 @@ function ladderSteps(fps: number, width: number): LadderStep[] {
   return steps.filter(
     (step, i) => i === 0 || steps.findIndex((s) => s.fps === step.fps && s.width === step.width) === i,
   );
-}
-
-function parsePresets(value: string | undefined): string[] {
-  if (!value) return [];
-  return value
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean);
 }
 
 export function renderInputKey(
@@ -325,7 +308,7 @@ export async function runRender(
   },
 ): Promise<void> {
   const encoderProfile = parseEncoderProfile(opts.encoderProfile);
-  const presets = parsePresets(opts.for);
+  const presets = parsePresetNames(opts.for);
   const baseCheck = await runCheck(configFile, {
     allowRawScreenshots: opts.allowRawScreenshots,
     allowInferred: opts.autonomous,
@@ -362,19 +345,6 @@ export async function runRender(
 
   for (const target of targets) {
     for (const change of target.changes) console.log(`  ! preset ${target.preset} overrides ${change}`);
-    const checked = await runCheckLoaded(
-      { ...loaded, config: target.config },
-      { allowRawScreenshots: opts.allowRawScreenshots, allowInferred: opts.autonomous, skipBrief: true },
-    );
-    for (const error of checked.errors) {
-      addFinding(errorSet, prefixFinding(error, target.preset));
-    }
-    for (const warning of checked.warnings) {
-      addFinding(warningSet, prefixFinding(warning, target.preset));
-    }
-    for (const notice of checked.notices) {
-      addFinding(noticeSet, prefixFinding(notice, target.preset));
-    }
   }
   const errors = [...errorSet.values()];
   const warnings = [...warningSet.values()];

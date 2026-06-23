@@ -82,7 +82,10 @@ before the loop restarts.
    `demo.yml` with a TODO `brief:` stub (`--list` shows templates). Get the authoritative schema with
    `npx demoframe schema` (JSON Schema on stdout); the schema is pre-1.0, so
    read it instead of relying on memorized field names.
-2. **Validate.** `npx demoframe check demo.yml` after every edit. It prints
+2. **Validate.** `npx demoframe check demo.yml` after every edit. Rendering for
+   a specific destination? Pass the same `--for github-readme|x-post|linkedin|product-hunt`
+   to `check`, `preview`, and `render` so preset width/fps/quality/format policy
+   is validated before visual QA. It prints
    errors (which block rendering, including missing assets and an unconfirmed
    brief), warnings (privacy findings, oversized screenshots,
    screenshot-dominant configs), and notices (explicit autonomous brief gates).

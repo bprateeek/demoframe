@@ -367,6 +367,19 @@ scenes:
     expect(hasMessage(errors, 'transparent output is a policy error for mp4/webm')).toBe(true);
   });
 
+  it('checks destination-adjusted configs for --for targets', async () => {
+    const file = writeConfig(`
+output: { format: webp }
+frame: { type: phone, outside: transparent }
+scenes:
+  - { type: typing, duration: 3, text: hi }
+`);
+    const { errors } = await runCheck(file, { forDestinations: ['x-post'], skipBrief: true });
+    expect(errors.find((finding) => finding.code === 'transparent.mp4')?.message).toContain(
+      'preset x-post: transparent output is a policy error',
+    );
+  });
+
   it('warns about transparent gif, frameless cutouts, and ignored margins', async () => {
     const transparentGif = writeConfig(`
 output: { format: gif }

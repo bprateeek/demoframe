@@ -30,6 +30,14 @@ export interface AppliedPreset {
   changes: string[];
 }
 
+export function parsePresetNames(value: string | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 const describeFormat = (format: DemoConfig['output']['format']): string =>
   Array.isArray(format) ? format.join('+') : format;
 

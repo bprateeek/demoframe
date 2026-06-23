@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { demoConfigSchema } from './schema.js';
-import { applyPreset, PRESET_NAMES, PRESETS } from './presets.js';
+import { applyPreset, parsePresetNames, PRESET_NAMES, PRESETS } from './presets.js';
 import { ConfigError } from './load.js';
 
 const parse = (output: Record<string, unknown> = {}) =>
@@ -11,6 +11,11 @@ const parse = (output: Record<string, unknown> = {}) =>
   });
 
 describe('applyPreset', () => {
+  it('parses comma-separated preset names for CLI flags', () => {
+    expect(parsePresetNames(undefined)).toEqual([]);
+    expect(parsePresetNames('github-readme, x-post,,linkedin ')).toEqual(['github-readme', 'x-post', 'linkedin']);
+  });
+
   it('overrides every differing output field and lists the changes', () => {
     const { config, changes } = applyPreset(
       parse({ format: 'gif', width: 480, fps: 15, motionBlur: 'cinematic' }),
