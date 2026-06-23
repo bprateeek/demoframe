@@ -36,7 +36,9 @@ skills/demoframe/SKILL.md in the package.
   screenshot is a hard error ("screenshots pasted in a frame") that also makes render
   refuse; pass --allow-raw-screenshots to demote it to a warning for an intentional
   raw demo. When brief.intent is abstract, any screenshot scene is an error unless
-  brief.screenshotPolicy is raw-intentional. Missing referenced assets are hard errors. Warnings cover privacy findings (emails/tokens/URLs
+  brief.screenshotPolicy is raw-intentional, and rendered scenes must include
+  visible product payload from brief.product, brief.verbatimCopy, or a metric/callout
+  value; theme.logo alone is not enough. Missing referenced assets are hard errors. Warnings cover privacy findings (emails/tokens/URLs
   in copy), README legibility, brief quality mismatches, and screenshots likely to blow the GIF size budget. Fast (<1s without
   screenshot assets); run after every config edit.
 - `demoframe render <config> [-o dir] [--keep-frames] [--no-download] [--no-stills]

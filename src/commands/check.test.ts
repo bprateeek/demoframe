@@ -91,10 +91,11 @@ scenes:
     const file = writeConfig(`
 brief:
   intent: abstract
+  product: DemoFlow
   screenshotPolicy: reconstruct
 frame: { type: browser }
 scenes:
-  - { type: typing, duration: 4, text: hi }
+  - { type: typing, duration: 4, text: DemoFlow launch }
   - { type: screenshot, duration: 2, src: a.png }
 `);
     const { errors, warnings } = await runCheck(file, { skipBrief: true });
@@ -110,14 +111,16 @@ scenes:
     const file = writeConfig(`
 brief:
   intent: abstract
+  product: DemoFlow
   screenshotPolicy: raw-intentional
 frame: { type: browser }
 scenes:
-  - { type: typing, duration: 4, text: hi }
+  - { type: typing, duration: 4, text: DemoFlow launch }
   - { type: screenshot, duration: 2, src: a.png }
 `);
     const { errors } = await runCheck(file, { skipBrief: true });
     expect(errors.map((finding) => finding.code)).not.toContain('screenshot.abstractScene');
+    expect(errors.map((finding) => finding.code)).not.toContain('abstract.noPayload');
   });
 
   it('keeps the screenshot dominance warning for hybrid briefs', async () => {
@@ -133,6 +136,107 @@ scenes:
     const { errors, warnings } = await runCheck(file, { skipBrief: true });
     expect(errors.map((finding) => finding.code)).not.toContain('screenshot.abstractScene');
     expect(hasMessage(warnings, 'of the runtime')).toBe(true);
+  });
+
+  it('errors when an abstract brief has no visible product payload', async () => {
+    const file = writeConfig(`
+brief:
+  intent: abstract
+  product: DemoFlow
+  verbatimCopy: ["Launch approved"]
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 3, text: Polished abstract motion }
+`);
+    const { errors } = await runCheck(file, { skipBrief: true });
+    const finding = errors.find((item) => item.code === 'abstract.noPayload');
+    expect(finding?.details).toMatchObject({ signalCount: 0, strongSignalCount: 0 });
+  });
+
+  it('accepts abstract briefs when product aliases appear in scene text', async () => {
+    const file = writeConfig(`
+brief:
+  intent: abstract
+  product: DemoFlow
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 3, text: Demo Flow ships the launch card }
+`);
+    const { errors } = await runCheck(file, { skipBrief: true });
+    expect(errors.map((finding) => finding.code)).not.toContain('abstract.noPayload');
+  });
+
+  it('does not match short product names inside unrelated words', async () => {
+    const file = writeConfig(`
+brief:
+  intent: abstract
+  product: AI
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 3, text: Aiming higher with polished motion }
+`);
+    const { errors } = await runCheck(file, { skipBrief: true });
+    expect(errors.map((finding) => finding.code)).toContain('abstract.noPayload');
+  });
+
+  it('accepts abstract briefs when verbatim copy appears in scene text', async () => {
+    const file = writeConfig(`
+brief:
+  intent: abstract
+  verbatimCopy: ["Launch approved"]
+frame: { type: browser }
+scenes:
+  - { type: status-card, duration: 3, title: Launch approved, cta: { label: Open report } }
+  - { type: hold, duration: 1 }
+`);
+    const { errors } = await runCheck(file, { skipBrief: true });
+    expect(errors.map((finding) => finding.code)).not.toContain('abstract.noPayload');
+  });
+
+  it('accepts abstract briefs when metric or callout values are visible', async () => {
+    const metric = writeConfig(`
+brief: { intent: abstract }
+frame: { type: phone }
+scenes:
+  - type: metric-card
+    duration: 3
+    metrics:
+      - { label: Conversion, value: 98, suffix: "%" }
+`);
+    expect((await runCheck(metric, { skipBrief: true })).errors.map((finding) => finding.code)).not.toContain(
+      'abstract.noPayload',
+    );
+
+    const callout = writeConfig(`
+brief: { intent: abstract }
+frame: { type: none }
+scenes:
+  - type: screen
+    duration: 3
+    blocks:
+      - { block: callout, variant: hero-stat, value: { value: 1284, prefix: "$" }, label: Revenue }
+`);
+    expect((await runCheck(callout, { skipBrief: true })).errors.map((finding) => finding.code)).not.toContain(
+      'abstract.noPayload',
+    );
+  });
+
+  it('does not treat theme.logo alone as enough abstract payload', async () => {
+    const file = writeConfig(`
+brief:
+  intent: abstract
+theme: { logo: a.png }
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 3, text: Polished abstract motion }
+`);
+    const { errors } = await runCheck(file, { skipBrief: true });
+    const finding = errors.find((item) => item.code === 'abstract.noPayload');
+    expect(finding?.details).toMatchObject({
+      signalCount: 1,
+      strongSignalCount: 0,
+      signals: [{ source: 'theme.logo', strength: 'weak' }],
+    });
   });
 
   it('fails check loading when a screenshot has cinematic without raw-intentional policy', async () => {
