@@ -152,6 +152,29 @@ function motionBlurFindings(config: DemoConfig): { warnings: CheckFinding[]; not
   return { warnings, notices };
 }
 
+function screenshotIntentErrors(config: DemoConfig): CheckFinding[] {
+  const intent = config.brief?.intent ?? 'product';
+  if (intent !== 'abstract' || config.brief?.screenshotPolicy === 'raw-intentional') return [];
+
+  const sceneIndexes = config.scenes
+    .map((scene, index) => (scene.type === 'screenshot' ? index : undefined))
+    .filter((index): index is number => index !== undefined);
+  if (sceneIndexes.length === 0) return [];
+
+  return [
+    finding(
+      'screenshot.abstractScene',
+      'brief.intent: abstract cannot use screenshot scenes unless brief.screenshotPolicy is raw-intentional. ' +
+        'Rebuild the product signal as synthetic abstract scenes, or mark the screenshot use as intentionally raw.',
+      {
+        intent,
+        screenshotPolicy: config.brief?.screenshotPolicy,
+        sceneIndexes,
+      },
+    ),
+  ];
+}
+
 export async function runCheckLoaded(
   loaded: LoadedConfig,
   opts: CheckOptions = {},
@@ -252,6 +275,7 @@ export async function runCheckLoaded(
 
   warnings.push(...(await screenshotSizeWarnings(loaded)));
   warnings.push(...readmeLegibilityWarnings(loaded));
+  errors.push(...screenshotIntentErrors(loaded.config));
   if (!opts.skipBrief) {
     briefGate = briefGateFinding(loaded.config);
     if (briefGate) {

@@ -24,6 +24,7 @@ const CATEGORY_DEFAULTS: Record<string, string> = {
 
 const BRIEF_STUB = `brief:
   # mode: user-confirmed   # set after interviewing; use --autonomous only for inferred/headless runs
+  # intent: product         # product | abstract | hybrid
   audience: "TODO: who is this for"
   source: "TODO: screenshots / app under demo"
   # screenshotPolicy: reconstruct   # reconstruct | simplify | raw-intentional
