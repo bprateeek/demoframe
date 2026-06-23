@@ -45,7 +45,7 @@ Useful surfaces for agents:
 - `AGENTS.md` is the reconstruct-first brief + interview, for any agent
 - `demoframe install-agent-instructions` writes that guidance into the nearest git-root `AGENTS.md`; `init` runs it by default
 - `demoframe schema` prints the JSON Schema for configs; `docs/llms.txt` explains the full contract
-- `npx demoframe-mcp` is an MCP server exposing `get_schema`, `validate_config`, `render_demo`, and `get_report`
+- `npx demoframe-mcp` is an MCP server exposing `get_schema`, `validate_config`, `list_templates`, `preview_demo`, `render_demo`, and `get_report`
 - `skills/demoframe/SKILL.md` (shipped in the package) teaches Claude Code the full authoring loop
 - `demoframe check` catches privacy, asset, and config issues before rendering; it errors on a pasted-screenshot demo
 - `report.json` and the preview stills written by every render close the feedback loop

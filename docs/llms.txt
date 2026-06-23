@@ -6,7 +6,7 @@ tool owns the pixels. Rendering is deterministic and local; the only network
 use is the one-time, checksum-pinned download of Chromium and gifski.
 
 An MCP server is included: `demoframe-mcp` (stdio) exposes get_schema,
-validate_config, render_demo, get_report. A Claude Code skill ships at
+validate_config, list_templates, preview_demo, render_demo, get_report. A Claude Code skill ships at
 skills/demoframe/SKILL.md in the package.
 
 ## Commands
@@ -84,6 +84,20 @@ skills/demoframe/SKILL.md in the package.
 - `demoframe doctor`: environment report. `demoframe install-browser`: explicit
   Chromium download (otherwise automatic on first render).
 - `demoframe serve <config> [-p port]`: live preview server with a scrubber (for humans).
+
+## MCP tools
+
+- `get_schema`: return schema/demoframe.schema.json.
+- `validate_config`: structured check result; accepts `for`, `strict`,
+  `autonomous`, and `allowRawScreenshots`.
+- `list_templates`: return bundled gallery templates with categories, frames,
+  scenes, and descriptions.
+- `preview_demo`: run destination-aware preview still generation; accepts `for`,
+  `autonomous`, `assumptions`, and `noDownload`, and returns written still paths.
+- `render_demo`: run render with CLI parity for `for`, `strict`,
+  `allowRawScreenshots`, `assetOut`, `autonomous`, `assumptions`, and
+  `encoderProfile`; returns report.json.
+- `get_report`: read a previous report.json.
 
 ## report.json shape
 
