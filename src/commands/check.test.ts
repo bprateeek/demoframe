@@ -87,6 +87,54 @@ scenes:
     expect(warnings.some((w) => w.message.includes('of the runtime') || w.message.includes('pasted'))).toBe(false);
   });
 
+  it('errors when an abstract brief uses screenshot scenes without raw-intentional policy', async () => {
+    const file = writeConfig(`
+brief:
+  intent: abstract
+  screenshotPolicy: reconstruct
+frame: { type: browser }
+scenes:
+  - { type: typing, duration: 4, text: hi }
+  - { type: screenshot, duration: 2, src: a.png }
+`);
+    const { errors, warnings } = await runCheck(file, { skipBrief: true });
+    expect(errors.find((finding) => finding.code === 'screenshot.abstractScene')?.details).toMatchObject({
+      intent: 'abstract',
+      screenshotPolicy: 'reconstruct',
+      sceneIndexes: [1],
+    });
+    expect(hasMessage(warnings, 'of the runtime')).toBe(false);
+  });
+
+  it('allows abstract screenshot scenes when screenshotPolicy is raw-intentional', async () => {
+    const file = writeConfig(`
+brief:
+  intent: abstract
+  screenshotPolicy: raw-intentional
+frame: { type: browser }
+scenes:
+  - { type: typing, duration: 4, text: hi }
+  - { type: screenshot, duration: 2, src: a.png }
+`);
+    const { errors } = await runCheck(file, { skipBrief: true });
+    expect(errors.map((finding) => finding.code)).not.toContain('screenshot.abstractScene');
+  });
+
+  it('keeps the screenshot dominance warning for hybrid briefs', async () => {
+    const file = writeConfig(`
+brief:
+  intent: hybrid
+  screenshotPolicy: reconstruct
+frame: { type: browser }
+scenes:
+  - { type: typing, duration: 1, text: hi }
+  - { type: screenshot, duration: 3, src: a.png }
+`);
+    const { errors, warnings } = await runCheck(file, { skipBrief: true });
+    expect(errors.map((finding) => finding.code)).not.toContain('screenshot.abstractScene');
+    expect(hasMessage(warnings, 'of the runtime')).toBe(true);
+  });
+
   it('fails check loading when a screenshot has cinematic without raw-intentional policy', async () => {
     const file = writeConfig(`
 brief:

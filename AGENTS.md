@@ -24,7 +24,9 @@ This is enforced, not just advised: a frameless demo whose every content scene
 is a raw screenshot ("screenshots pasted in a frame") makes `demoframe check`
 and `demoframe render` **fail**. Pass `--allow-raw-screenshots` only when a raw
 demo is genuinely the subject (a bug report, a before/after proof, a dashboard
-layout).
+layout). For `brief.intent: abstract`, any screenshot scene must be explicitly
+raw-intentional via `brief.screenshotPolicy: raw-intentional`; abstract demos
+do not get to paste screenshots either.
 
 ## Interview first (required before authoring)
 
@@ -41,7 +43,7 @@ Ask the user before writing any config:
 Record the interview in a top-level `brief:` block before the scenes. Required
 fields are `audience`, `source`, `screenshotPolicy`, and `placement`;
 recommended fields are `arc` and `climax`; optional fields include `brand`,
-`product`, `repo`, and `verbatimCopy`. Set `mode: user-confirmed` only after
+`intent`, `product`, `repo`, and `verbatimCopy`. Set `mode: user-confirmed` only after
 the user has answered the interview and confirmed the scene mapping. A missing,
 empty, TODO-filled, inferred, or otherwise unconfirmed brief makes
 `demoframe check`, `preview`, and `render` fail unless the run explicitly passes
@@ -50,6 +52,7 @@ empty, TODO-filled, inferred, or otherwise unconfirmed brief makes
 ```yaml
 brief:
   mode: user-confirmed
+  intent: product
   audience: README visitors evaluating an agent workflow
   source: Screenshots of the mobile ask, VPS work screen, and GitHub PR result
   screenshotPolicy: reconstruct
@@ -119,8 +122,9 @@ the copy in `node_modules`. Paste this so it gets the rule:
 ## Demos (demoframe)
 Screenshots are reference, not ingredients: reconstruct the flow as synthetic
 demoframe scenes (typing/steps/status-card/chat/screen), never paste screenshots into a
-frame. Interview first (narrative arc, climax, destination, brand, names, exact
-copy, what to keep vs simplify) and record it in the top-level `brief:` block.
+frame. For `brief.intent: abstract`, screenshot scenes require
+`brief.screenshotPolicy: raw-intentional`. Interview first (narrative arc,
+climax, destination, brand, names, exact copy, what to keep vs simplify) and record it in the top-level `brief:` block.
 Set `brief.mode: user-confirmed` only after confirmation; otherwise check,
 preview, and render fail unless `--autonomous` is explicit, in which case the
 output is labeled inferred and assumptions should be recorded. `demoframe check`/`render` reject a frameless all-screenshot demo;
