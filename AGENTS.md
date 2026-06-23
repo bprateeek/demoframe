@@ -26,7 +26,9 @@ and `demoframe render` **fail**. Pass `--allow-raw-screenshots` only when a raw
 demo is genuinely the subject (a bug report, a before/after proof, a dashboard
 layout). For `brief.intent: abstract`, any screenshot scene must be explicitly
 raw-intentional via `brief.screenshotPolicy: raw-intentional`; abstract demos
-do not get to paste screenshots either.
+do not get to paste screenshots either. Abstract demos also need visible
+product payload: show `brief.product`, `brief.verbatimCopy`, or a
+metric/callout value in a rendered scene; `theme.logo` alone is not enough.
 
 ## Interview first (required before authoring)
 
@@ -123,7 +125,8 @@ the copy in `node_modules`. Paste this so it gets the rule:
 Screenshots are reference, not ingredients: reconstruct the flow as synthetic
 demoframe scenes (typing/steps/status-card/chat/screen), never paste screenshots into a
 frame. For `brief.intent: abstract`, screenshot scenes require
-`brief.screenshotPolicy: raw-intentional`. Interview first (narrative arc,
+`brief.screenshotPolicy: raw-intentional`, and visible product payload from
+`brief.product`, `brief.verbatimCopy`, or a metric/callout value. Interview first (narrative arc,
 climax, destination, brand, names, exact copy, what to keep vs simplify) and record it in the top-level `brief:` block.
 Set `brief.mode: user-confirmed` only after confirmation; otherwise check,
 preview, and render fail unless `--autonomous` is explicit, in which case the

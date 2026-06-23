@@ -13,6 +13,8 @@ import {
   type DemoConfig,
 } from '../config/schema.js';
 import { briefGateFinding, briefWarnings, screenshotRuntimeShare } from '../qa/brief.js';
+import { sceneTextLeaves } from '../qa/sceneText.js';
+import { resolveTimeline } from '../render/timeline.js';
 
 export interface CheckFinding {
   code: string;
@@ -175,6 +177,121 @@ function screenshotIntentErrors(config: DemoConfig): CheckFinding[] {
   ];
 }
 
+interface AbstractPayloadSignal {
+  strength: 'strong' | 'weak';
+  source: 'product' | 'verbatimCopy' | 'metric-value' | 'callout-value' | 'theme.logo';
+  sceneIndex?: number;
+  path?: string;
+  match?: string;
+}
+
+function normalizePayloadText(value: string): string {
+  return value.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function compactPayloadText(value: string): string {
+  return normalizePayloadText(value).replace(/[^a-z0-9]+/g, '');
+}
+
+function isPayloadAlnum(value: string | undefined): boolean {
+  return value !== undefined && /[a-z0-9]/.test(value);
+}
+
+function payloadTextHasBoundedNeedle(text: string, needle: string): boolean {
+  let fromIndex = 0;
+  while (fromIndex <= text.length) {
+    const index = text.indexOf(needle, fromIndex);
+    if (index === -1) return false;
+    const before = text[index - 1];
+    const after = text[index + needle.length];
+    if (!isPayloadAlnum(before) && !isPayloadAlnum(after)) return true;
+    fromIndex = index + 1;
+  }
+  return false;
+}
+
+function payloadTextIncludes(text: string, needle: string): boolean {
+  const normalizedNeedle = normalizePayloadText(needle);
+  if (!normalizedNeedle) return false;
+  if (payloadTextHasBoundedNeedle(normalizePayloadText(text), normalizedNeedle)) return true;
+
+  const compactNeedle = compactPayloadText(needle);
+  return compactNeedle.length >= 3 && compactPayloadText(text).includes(compactNeedle);
+}
+
+function productAliases(product: string | undefined): string[] {
+  if (!product) return [];
+  const aliases = new Set<string>();
+  const add = (value: string) => {
+    const normalized = normalizePayloadText(value);
+    if (normalized.length >= 2) aliases.add(normalized);
+  };
+
+  add(product);
+  add(product.replace(/[-_/]+/g, ' '));
+  add(product.replace(/[-_/]+/g, ''));
+  for (const part of product.split(/\baka\b|[|/,;()]+/i)) add(part);
+  return [...aliases];
+}
+
+function abstractPayloadSignals(config: DemoConfig): AbstractPayloadSignal[] {
+  const signals: AbstractPayloadSignal[] = [];
+  const seen = new Set<string>();
+  const renderedSceneIndexes = [...new Set(resolveTimeline(config).scenes.map((scene) => scene.renderIndex))];
+  const aliases = productAliases(config.brief?.product);
+  const verbatimCopy = (config.brief?.verbatimCopy ?? []).filter((item) => item.trim().length > 0);
+
+  const addSignal = (signal: AbstractPayloadSignal) => {
+    const key = [signal.strength, signal.source, signal.sceneIndex ?? '', signal.path ?? '', signal.match ?? ''].join('\0');
+    if (seen.has(key)) return;
+    seen.add(key);
+    signals.push(signal);
+  };
+
+  if (config.theme.logo) addSignal({ strength: 'weak', source: 'theme.logo' });
+
+  for (const sceneIndex of renderedSceneIndexes) {
+    for (const leaf of sceneTextLeaves(config.scenes[sceneIndex])) {
+      if (leaf.kind === 'metric-value' || leaf.kind === 'callout-value') {
+        addSignal({ strength: 'strong', source: leaf.kind, sceneIndex, path: leaf.path, match: leaf.text });
+      }
+      for (const alias of aliases) {
+        if (payloadTextIncludes(leaf.text, alias)) {
+          addSignal({ strength: 'strong', source: 'product', sceneIndex, path: leaf.path, match: alias });
+        }
+      }
+      for (const copy of verbatimCopy) {
+        if (payloadTextIncludes(leaf.text, copy)) {
+          addSignal({ strength: 'strong', source: 'verbatimCopy', sceneIndex, path: leaf.path, match: copy });
+        }
+      }
+    }
+  }
+
+  return signals;
+}
+
+function abstractPayloadErrors(config: DemoConfig): CheckFinding[] {
+  if ((config.brief?.intent ?? 'product') !== 'abstract') return [];
+
+  const signals = abstractPayloadSignals(config);
+  const strongSignals = signals.filter((signal) => signal.strength === 'strong');
+  if (strongSignals.length > 0 || signals.length >= 2) return [];
+
+  return [
+    finding(
+      'abstract.noPayload',
+      'brief.intent: abstract needs visible product payload: include brief.product or verbatimCopy in scene text, ' +
+        'or include a metric/callout value. theme.logo alone is not enough.',
+      {
+        signalCount: signals.length,
+        strongSignalCount: strongSignals.length,
+        signals,
+      },
+    ),
+  ];
+}
+
 export async function runCheckLoaded(
   loaded: LoadedConfig,
   opts: CheckOptions = {},
@@ -276,6 +393,7 @@ export async function runCheckLoaded(
   warnings.push(...(await screenshotSizeWarnings(loaded)));
   warnings.push(...readmeLegibilityWarnings(loaded));
   errors.push(...screenshotIntentErrors(loaded.config));
+  errors.push(...abstractPayloadErrors(loaded.config));
   if (!opts.skipBrief) {
     briefGate = briefGateFinding(loaded.config);
     if (briefGate) {

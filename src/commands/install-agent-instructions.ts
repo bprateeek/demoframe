@@ -31,7 +31,7 @@ ${questions}
 
 Record the answers in the top-level brief block, set \`brief.mode: user-confirmed\` only after the user has confirmed the story and screen-to-scene mapping, and fill audience/source/screenshotPolicy/placement/arc/climax. An inferred brief is not a bypass: \`demoframe check\`, \`demoframe preview\`, and \`demoframe render\` refuse unconfirmed briefs unless the run explicitly passes \`--autonomous\` (or MCP \`autonomous: true\`), which labels the output as \`mode: inferred\` and records assumptions.
 
-\`demoframe check\`/\`render\` reject a frameless all-screenshot demo; \`--allow-raw-screenshots\` is only for an intentional raw demo such as a bug report or before/after proof. For \`brief.intent: abstract\`, screenshot scenes require \`brief.screenshotPolicy: raw-intentional\`.
+\`demoframe check\`/\`render\` reject a frameless all-screenshot demo; \`--allow-raw-screenshots\` is only for an intentional raw demo such as a bug report or before/after proof. For \`brief.intent: abstract\`, screenshot scenes require \`brief.screenshotPolicy: raw-intentional\`, and rendered scenes need visible product payload from \`brief.product\`, \`brief.verbatimCopy\`, or a metric/callout value.
 ${END}`;
 }
 
