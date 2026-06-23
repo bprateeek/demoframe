@@ -59,6 +59,7 @@ server.registerTool(
         totalDurationS: scenes.reduce((sum, s) => sum + s.duration, 0),
         frame: loaded.config.frame.type,
         briefMode: summary.mode,
+        briefIntent: summary.intent,
         confirmed: summary.confirmed,
         errors,
         warnings,

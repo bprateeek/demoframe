@@ -33,6 +33,7 @@ describe('brief QA helpers', () => {
     const summary = briefSummary(parse());
     expect(summary).toEqual({
       present: false,
+      intent: 'product',
       confirmed: false,
       requiredComplete: false,
       recommendedComplete: false,
@@ -72,8 +73,20 @@ describe('brief QA helpers', () => {
     expect(full.requiredComplete).toBe(true);
     expect(full.recommendedComplete).toBe(true);
     expect(full.mode).toBe('user-confirmed');
+    expect(full.intent).toBe('product');
     expect(full.confirmed).toBe(true);
     expect(briefWarnings(parse({ brief: filledBrief }))).toEqual([]);
+  });
+
+  it('resolves brief intent without affecting confirmation completeness', () => {
+    const explicit = briefSummary(parse({ brief: { ...filledBrief, intent: 'abstract' } }));
+    expect(explicit.intent).toBe('abstract');
+    expect(explicit.confirmed).toBe(true);
+
+    const inferredDefault = briefSummary(parse({ brief: { mode: 'inferred' } }));
+    expect(inferredDefault.intent).toBe('product');
+    expect(inferredDefault.confirmed).toBe(false);
+    expect(inferredDefault.missingRequired).toEqual(['audience', 'source', 'screenshotPolicy', 'placement']);
   });
 
   it('normalizes placements and calculates screenshot runtime share', () => {
