@@ -32,6 +32,7 @@ describe('demoConfigSchema', () => {
       ...minimal,
       brief: {
         mode: 'user-confirmed',
+        intent: 'hybrid',
         audience: 'Maintainers evaluating the README demo',
         source: 'Synthetic story from product screenshots',
         screenshotPolicy: 'reconstruct',
@@ -45,11 +46,13 @@ describe('demoConfigSchema', () => {
         assumptions: ['Confirmed by maintainer'],
       },
     });
+    expect(full.brief?.intent).toBe('hybrid');
     expect(full.brief?.placement).toEqual(['github-readme', 'x-post']);
     expect(full.brief?.assumptions).toEqual(['Confirmed by maintainer']);
 
     const partial = demoConfigSchema.parse({ ...minimal, brief: { audience: 'Agents' } });
     expect(partial.brief?.audience).toBe('Agents');
+    expect(partial.brief?.intent).toBe('product');
     const trimmed = demoConfigSchema.parse({ ...minimal, brief: { assumptions: ['  inferred accent  '] } });
     expect(trimmed.brief?.assumptions).toEqual(['inferred accent']);
 
@@ -62,10 +65,17 @@ describe('demoConfigSchema', () => {
     expect(
       demoConfigSchema.parse({
         ...minimal,
-        brief: { mode: 'inferred', screenshotPolicy: 'simplify', placement: 'product-hunt', brand: { frame: 'browser', mode: 'dark' } },
+        brief: { mode: 'inferred', intent: 'abstract', screenshotPolicy: 'simplify', placement: 'product-hunt', brand: { frame: 'browser', mode: 'dark' } },
       }).brief?.placement,
     ).toBe('product-hunt');
+    expect(
+      demoConfigSchema.parse({
+        ...minimal,
+        brief: { intent: 'abstract' },
+      }).brief?.intent,
+    ).toBe('abstract');
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { mode: 'confirmed' } }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ ...minimal, brief: { intent: 'decorative' } }).success).toBe(false);
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { screenshotPolicy: 'raw' } }).success).toBe(false);
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { placement: 'website-hero' } }).success).toBe(false);
     expect(demoConfigSchema.safeParse({ ...minimal, brief: { brand: { frame: 'tablet' } } }).success).toBe(false);

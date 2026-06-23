@@ -193,10 +193,12 @@ const frameSchema = z.discriminatedUnion('type', [
 export const FRAME_TYPE_NAMES = ['phone', 'browser', 'terminal', 'desktop', 'none'] as const;
 
 const placementValue = z.enum(DESTINATION_NAMES);
+const briefIntent = z.enum(['product', 'abstract', 'hybrid']);
 
 const briefSchema = z
   .object({
     mode: z.enum(['user-confirmed', 'inferred']).optional(),
+    intent: briefIntent.default('product'),
     audience: z.string().optional(),
     source: z.string().optional(),
     screenshotPolicy: z.enum(['reconstruct', 'simplify', 'raw-intentional']).optional(),
@@ -875,6 +877,7 @@ export const demoConfigSchema = z
 
 export type DemoConfig = z.infer<typeof demoConfigSchema>;
 export type Brief = NonNullable<DemoConfig['brief']>;
+export type BriefIntent = z.infer<typeof briefIntent>;
 export type Frame = DemoConfig['frame'];
 export type Scene = DemoConfig['scenes'][number];
 export type SceneFrameOverride = NonNullable<Scene['frame']>;

@@ -1,4 +1,4 @@
-import type { DemoConfig } from '../config/schema.js';
+import type { BriefIntent, DemoConfig } from '../config/schema.js';
 import { resolveTimeline } from '../render/timeline.js';
 import { resolveTheme } from '../templates/theme.js';
 
@@ -25,6 +25,7 @@ export interface BriefFinding {
 export interface BriefSummary {
   present: boolean;
   mode?: Brief['mode'];
+  intent: BriefIntent;
   confirmed: boolean;
   requiredComplete: boolean;
   recommendedComplete: boolean;
@@ -67,6 +68,7 @@ export function briefSummary(config: DemoConfig): BriefSummary {
   if (!brief) {
     return {
       present: false,
+      intent: 'product',
       confirmed: false,
       requiredComplete: false,
       recommendedComplete: false,
@@ -85,6 +87,7 @@ export function briefSummary(config: DemoConfig): BriefSummary {
   return {
     present: true,
     mode: brief.mode,
+    intent: brief.intent ?? 'product',
     confirmed:
       brief.mode === 'user-confirmed' &&
       missingRequired.length === 0 &&

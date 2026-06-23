@@ -530,6 +530,15 @@
                 "inferred"
               ]
             },
+            "intent": {
+              "type": "string",
+              "enum": [
+                "product",
+                "abstract",
+                "hybrid"
+              ],
+              "default": "product"
+            },
             "audience": {
               "type": "string"
             },
