@@ -2843,6 +2843,15 @@
                     ],
                     "default": "reveal"
                   },
+                  "layout": {
+                    "type": "string",
+                    "enum": [
+                      "stack",
+                      "hero",
+                      "split"
+                    ],
+                    "default": "stack"
+                  },
                   "focus": {
                     "type": "string",
                     "minLength": 1,

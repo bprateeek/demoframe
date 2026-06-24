@@ -307,12 +307,13 @@ scene or a trailing hold so it lands on the closing frame):
   suffix?<=12, decimals: 0-2 (0)}, chart?: {kind: bar|line, series: 2-16
   numbers >=0, labels?: same length as series, each<=12, color?: hex},
   caption?<=120 }  Counters tick up, bars/line reveal, labels fade in last.
-- screen: { motion?: reveal|focus|scroll (reveal), focus?: block name,
-  blocks: 1-8 fixed product UI blocks } Blocks use `block` as the discriminator:
-  app-header, stat-strip, chart-card (bar|line|area), card-grid, list, progress,
-  heatmap, callout. Blocks are asset-free: icons are built-in keys and avatars
-  are initials/color objects. `focus` must name a unique block when motion is
-  focus, and is invalid for reveal/scroll.
+- screen: { motion?: reveal|focus|scroll (reveal), layout?: stack|hero|split
+  (stack), focus?: block name, blocks: 1-8 fixed product UI blocks } Blocks use
+  `block` as the discriminator: app-header, stat-strip, chart-card
+  (bar|line|area), card-grid, list, progress, heatmap, callout. Blocks are
+  asset-free: icons are built-in keys and avatars are initials/color objects.
+  `focus` must name a unique block when motion is focus, and is invalid for
+  reveal/scroll.
 - hold: {} freezes the previous scene's final state (cannot be first).
 
 ## Authoring guidance
@@ -341,6 +342,9 @@ scene or a trailing hold so it lands on the closing frame):
   In v1 the resolved scope is timeline-wide whenever any effective scene
   cinematic opts in; render records this as `cinematic.ambient.scope: timeline`
   in report.json.
+- Use `screen.layout: hero` for one centered product result or launch stat,
+  `split` for a compact two-column product surface, and the default `stack` for
+  dense phone/dashboard flows.
 - More arcs: terminal-playback alone sells a CLI; chat (the ask) ->
   code with added/removed (the fix) -> status-card (the PR); metric-card
   closes a launch-post demo with numbers; screen reconstructs dense product

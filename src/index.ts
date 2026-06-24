@@ -13,6 +13,7 @@ export {
   resolveSceneCinematic,
   sceneSupportsCinematicDefault,
   CINEMATIC_COMPOSITION_NAMES,
+  SCREEN_LAYOUT_NAMES,
   PALETTE_KEYS,
   THEME_PRESET_NAMES,
 } from './config/schema.js';
@@ -27,6 +28,7 @@ export type {
   SceneCinematic,
   ConfigCinematic,
   CinematicCompositionName,
+  ScreenLayoutName,
   FrameCaptureMode,
   FrameCapturePlan,
   TerminalPlaybackScene,

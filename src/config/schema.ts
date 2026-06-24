@@ -637,10 +637,14 @@ const screenBlock = z.discriminatedUnion('block', [
   calloutBlock,
 ]);
 
+export const SCREEN_LAYOUT_NAMES = ['stack', 'hero', 'split'] as const;
+const screenLayout = z.enum(SCREEN_LAYOUT_NAMES);
+
 const screenScene = z.object({
   type: z.literal('screen'),
   ...sceneBase,
   motion: z.enum(['reveal', 'focus', 'scroll']).default('reveal'),
+  layout: screenLayout.default('stack'),
   focus: z.string().min(1).max(TEXT_LIMITS.blockName).optional(),
   blocks: z.array(screenBlock).min(1).max(8),
 });
@@ -909,6 +913,7 @@ export type AvatarSpec = z.infer<typeof avatarSpec>;
 export type MetricCardScene = z.infer<typeof metricCardScene>;
 export type MetricValue = z.infer<typeof metricValue>;
 export type ScreenScene = z.infer<typeof screenScene>;
+export type ScreenLayoutName = (typeof SCREEN_LAYOUT_NAMES)[number];
 export type ScreenBlock = z.infer<typeof screenBlock>;
 export type TermLineStyle = z.infer<typeof termLineStyle>;
 export type CodeLang = (typeof CODE_LANGS)[number];
