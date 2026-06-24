@@ -291,6 +291,46 @@ describe('buildDocument scene motion wrappers', () => {
     expect(doc.html).toContain('.df-composition-orbit-object .df-rail-motion::after');
     expect(doc.html).toContain('.df-composition-orbit-object-screen .df-screen-block');
   });
+
+  it('renders screen layout preset classes and CSS', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      scenes: [
+        {
+          type: 'screen',
+          duration: 2,
+          layout: 'hero',
+          blocks: [
+            { block: 'app-header', title: 'Hero layout', icon: 'spark' },
+            { block: 'callout', variant: 'hero-stat', value: { value: 42, suffix: '%' }, label: 'Conversion' },
+          ],
+        },
+        {
+          type: 'screen',
+          duration: 2,
+          layout: 'split',
+          blocks: [
+            { block: 'app-header', title: 'Split layout', icon: 'bolt' },
+            {
+              block: 'stat-strip',
+              tiles: [
+                { label: 'Runs', value: { value: 12 } },
+                { label: 'Pass', value: { value: 98, suffix: '%' } },
+              ],
+            },
+            { block: 'callout', variant: 'message', text: 'Two-column screen surface' },
+          ],
+        },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+
+    expect(doc.html).toContain('df-screen-stack df-screen-layout-hero');
+    expect(doc.html).toContain('df-screen-stack df-screen-layout-split');
+    expect(doc.html).toContain('.df-screen-layout-hero .df-callout-value');
+    expect(doc.html).toContain('.df-screen-layout-split .df-screen-app-header');
+    expect(doc.html).toContain('.df-frame-phone .df-screen-layout-split');
+  });
 });
 
 describe('buildDocument frame chrome layers (v0.7)', () => {

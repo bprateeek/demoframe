@@ -176,9 +176,9 @@ done/active/pending states), `status-card` (PR-style result screen with checks
 and a CTA), `terminal-playback` (typed command, spinner, streamed output, exit
 status), `code` (syntax-highlighted reveal with optional diff marks), `chat`
 (conversation bubbles with a typing indicator and optional per-role avatars),
-`metric-card` (animated counters with a bar/line chart), `screen` (stacked
-product UI blocks such as app headers, stats, charts, lists, progress, and
-callouts), `hold` (freeze the
+`metric-card` (animated counters with a bar/line chart), `screen` (product UI
+blocks with `stack`, `hero`, or `split` layouts for app headers, stats, charts,
+lists, progress, and callouts), `hold` (freeze the
 previous scene), and `screenshot` (a raw image with optional pan/zoom, a
 fallback for when the screenshot itself is the subject). One example config per
 scene type ships under `examples/`, including `examples/screen-dashboard`,

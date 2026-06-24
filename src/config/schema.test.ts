@@ -10,6 +10,7 @@ import {
   resolveAmbient,
   resolveFrameCapture,
   resolveSceneCinematic,
+  SCREEN_LAYOUT_NAMES,
 } from './schema.js';
 import { MOTION_PRESET_NAMES } from '../templates/motion/presets.js';
 
@@ -135,6 +136,35 @@ describe('demoConfigSchema', () => {
     expect(
       demoConfigSchema.parse({ ...minimal, output: { format: ['webm', 'mp4'] } }).output.format,
     ).toEqual(['webm', 'mp4']);
+  });
+
+  it('accepts named screen layouts and defaults to stack', () => {
+    const stack = demoConfigSchema.parse({
+      ...minimal,
+      scenes: [{ type: 'screen', duration: 3, blocks: [{ block: 'callout', variant: 'message', text: 'Stack' }] }],
+    });
+    expect(stack.scenes[0].type).toBe('screen');
+    if (stack.scenes[0].type === 'screen') expect(stack.scenes[0].layout).toBe('stack');
+
+    for (const layout of SCREEN_LAYOUT_NAMES) {
+      const config = demoConfigSchema.parse({
+        ...minimal,
+        scenes: [
+          { type: 'screen', duration: 3, layout, blocks: [{ block: 'callout', variant: 'message', text: layout }] },
+        ],
+      });
+      expect(config.scenes[0].type).toBe('screen');
+      if (config.scenes[0].type === 'screen') expect(config.scenes[0].layout).toBe(layout);
+    }
+
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [
+          { type: 'screen', duration: 3, layout: 'masonry', blocks: [{ block: 'callout', variant: 'message', text: 'Nope' }] },
+        ],
+      }).success,
+    ).toBe(false);
   });
 
   it('accepts explicit motion blur modes and rejects unknown modes', () => {
