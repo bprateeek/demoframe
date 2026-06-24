@@ -45,7 +45,8 @@ describe('motion preset sampling', () => {
   });
 
   it('keeps registry offsets and windows inside normalized timeline bounds', () => {
-    for (const preset of Object.values(MOTION_PRESET_REGISTRY)) {
+    for (const presetName of MOTION_PRESET_NAMES) {
+      const preset = MOTION_PRESET_REGISTRY[presetName];
       for (const offset of preset.peakSampleOffsets) {
         expect(offset).toBeGreaterThanOrEqual(0);
         expect(offset).toBeLessThanOrEqual(1);
@@ -56,6 +57,14 @@ describe('motion preset sampling', () => {
         expect(window.start).toBeLessThanOrEqual(window.end);
         expect(MOTION_EASING_NAMES).toContain(window.easing);
       }
+    }
+  });
+
+  it('backs every public motion preset with wrapper tracks', () => {
+    for (const presetName of MOTION_PRESET_NAMES) {
+      const preset = MOTION_PRESET_REGISTRY[presetName];
+      expect(preset.wrappers?.scene).toBeDefined();
+      expect(preset.wrappers?.rail).toBeDefined();
     }
   });
 
