@@ -28,3 +28,10 @@ Map source screenshots by intent, not layout:
 
 Keep one idea per scene. Use `motion: focus` when one block is the money shot,
 and `motion: scroll` only for intentionally tall product pages.
+
+## Premium Motion
+
+Use the `premium-hero` template when the demo needs a frameless README or launch
+hero before detailed product screens exist. Keep it asset-free, preserve exact
+product copy in the brief, and replace placeholder numbers with grounded product
+payload before rendering.

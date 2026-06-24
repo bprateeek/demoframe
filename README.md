@@ -73,7 +73,7 @@ demoframe render demo.yml     # validate -> frames -> GIF/WebP/MP4 + stills + re
 
 Or start from the template gallery: `demoframe init --list` shows curated
 configs (CLI release, code walkthrough, assistant chat, launch metrics,
-product dashboard, and the three starters); `demoframe init my-demo --template
+premium hero, product dashboard, and the three starters); `demoframe init my-demo --template
 cli-release` copies one. `demoframe init my-demo --category product` starts
 from the asset-free `product-dashboard` screen reconstruction template.
 Community templates are welcome as PRs adding a `templates/<name>/` directory
