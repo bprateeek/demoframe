@@ -4,10 +4,12 @@ import {
   isTransparentFrame,
   normalizeLogo,
   resolveAmbient,
+  resolveSceneCinematic,
   type DemoConfig,
   type Frame,
   type ChatScene,
   type AvatarSpec,
+  type Scene,
 } from '../config/schema.js';
 import { resolveTimeline, type Timeline } from '../render/timeline.js';
 import { sceneFrame } from '../render/chrome.js';
@@ -74,6 +76,12 @@ function ambientHtml(config: DemoConfig): string {
 </div>`;
 }
 
+function withResolvedSceneCinematic<T extends Scene>(config: DemoConfig, scene: T): T {
+  const cinematic = resolveSceneCinematic(config, scene);
+  if (!cinematic || cinematic === scene.cinematic) return scene;
+  return { ...scene, cinematic } as T;
+}
+
 export async function buildDocument(
   config: DemoConfig,
   baseDir: string,
@@ -90,14 +98,14 @@ export async function buildDocument(
     switch (scene.type) {
       case 'typing': {
         const prompt = mergedFrame.type === 'terminal' ? mergedFrame.prompt : '$';
-        sceneParts.push(typingHtml(scene, index, frameType, prompt));
+        sceneParts.push(typingHtml(withResolvedSceneCinematic(config, scene), index, frameType, prompt));
         break;
       }
       case 'steps':
-        sceneParts.push(stepsHtml(scene, index));
+        sceneParts.push(stepsHtml(withResolvedSceneCinematic(config, scene), index));
         break;
       case 'status-card':
-        sceneParts.push(statusCardHtml(scene, index));
+        sceneParts.push(statusCardHtml(withResolvedSceneCinematic(config, scene), index));
         break;
       case 'screenshot': {
         const dataUrl = await normalizeImageToDataUrl(path.resolve(baseDir, scene.src));
@@ -106,22 +114,22 @@ export async function buildDocument(
       }
       case 'terminal-playback': {
         const framePrompt = mergedFrame.type === 'terminal' ? mergedFrame.prompt : '$';
-        sceneParts.push(terminalPlaybackHtml(scene, index, frameType, framePrompt));
+        sceneParts.push(terminalPlaybackHtml(withResolvedSceneCinematic(config, scene), index, frameType, framePrompt));
         break;
       }
       case 'code':
-        sceneParts.push(await codeHtml(scene, index, resolvedTheme.mode));
+        sceneParts.push(await codeHtml(withResolvedSceneCinematic(config, scene), index, resolvedTheme.mode));
         break;
       case 'chat': {
         const avatars = await resolveChatAvatars(scene.avatars, baseDir);
-        sceneParts.push(chatHtml(scene, index, avatars));
+        sceneParts.push(chatHtml(withResolvedSceneCinematic(config, scene), index, avatars));
         break;
       }
       case 'metric-card':
-        sceneParts.push(metricCardHtml(scene, index));
+        sceneParts.push(metricCardHtml(withResolvedSceneCinematic(config, scene), index));
         break;
       case 'screen':
-        sceneParts.push(screenHtml(scene, index));
+        sceneParts.push(screenHtml(withResolvedSceneCinematic(config, scene), index));
         break;
       case 'hold':
         break;

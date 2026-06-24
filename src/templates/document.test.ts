@@ -35,6 +35,22 @@ describe('buildDocument overlay injection (v0.5)', () => {
     expect(cursorIndex).toBeGreaterThan(scenesIndex);
   });
 
+  it('applies top-level cinematic defaults to rendered content scenes', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      cinematic: { composition: 'center-hero', ambient: 'ember' },
+      scenes: [
+        { type: 'typing', duration: 2, text: 'build it' },
+        { type: 'screenshot', duration: 2, src: 'test/golden/hero_2.5.png' },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+
+    expect(doc.html).toContain('class="df-ambient df-ambient-ember"');
+    expect(doc.html).toContain('df-composition-center-hero-typing');
+    expect(doc.html).not.toContain('df-composition-center-hero-screenshot');
+  });
+
   it('injects overlay nodes and anchors when a scene uses tap or celebrate', async () => {
     const config = demoConfigSchema.parse({
       frame: { type: 'phone' },

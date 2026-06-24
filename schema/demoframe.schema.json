@@ -638,6 +638,73 @@
           },
           "additionalProperties": false
         },
+        "cinematic": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "composition": {
+                  "type": "string",
+                  "const": "center-hero"
+                },
+                "motion": {
+                  "type": "string",
+                  "const": "float-in"
+                },
+                "ambient": {
+                  "type": "string",
+                  "const": "ember"
+                }
+              },
+              "required": [
+                "composition"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "composition": {
+                  "type": "string",
+                  "const": "center-hero"
+                },
+                "motion": {
+                  "type": "string",
+                  "const": "float-in"
+                },
+                "ambient": {
+                  "type": "string",
+                  "const": "ember"
+                }
+              },
+              "required": [
+                "motion"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "composition": {
+                  "type": "string",
+                  "const": "center-hero"
+                },
+                "motion": {
+                  "type": "string",
+                  "const": "float-in"
+                },
+                "ambient": {
+                  "type": "string",
+                  "const": "ember"
+                }
+              },
+              "required": [
+                "ambient"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        },
         "scenes": {
           "type": "array",
           "items": {

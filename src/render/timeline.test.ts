@@ -82,6 +82,28 @@ describe('resolveTimeline', () => {
     expect(timeline.scenes[1].data).toEqual({ count: 1 });
   });
 
+  it('resolves top-level cinematic defaults into scene data', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'phone' },
+        cinematic: { composition: 'center-hero', motion: 'float-in' },
+        scenes: [
+          { type: 'typing', duration: 3, text: 'hi' },
+          { type: 'screenshot', duration: 2, src: 'hero.png' },
+          { type: 'hold', duration: 1 },
+        ],
+      }),
+    );
+
+    expect(timeline.scenes[0].data).toEqual({
+      text: 'hi',
+      send: false,
+      cinematic: { composition: 'center-hero', motion: 'float-in' },
+    });
+    expect(timeline.scenes[1].data).toEqual({ pan: 'none' });
+    expect(timeline.scenes[2].data).toEqual({});
+  });
+
   it('carries client data for the v0.3 scene types', () => {
     const timeline = resolveTimeline(
       demoConfigSchema.parse({

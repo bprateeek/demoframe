@@ -161,4 +161,19 @@ describe('motion preset sampling', () => {
       },
     ]);
   });
+
+  it('derives cinematic windows from top-level motion defaults', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        cinematic: { motion: 'float-in' },
+        scenes: [
+          { type: 'typing', duration: 5, text: 'Defaulted' },
+          { type: 'screenshot', duration: 5, src: 'test/golden/hero_2.5.png' },
+        ],
+      }),
+    );
+
+    expect(timelineCinematicMotionWindows(timeline).map((window) => window.sceneIndex)).toEqual([0, 0]);
+  });
 });
