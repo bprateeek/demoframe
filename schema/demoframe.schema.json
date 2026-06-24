@@ -649,7 +649,8 @@
                     "center-hero",
                     "floating-stage",
                     "macro-card",
-                    "path-journey"
+                    "path-journey",
+                    "orbit-object"
                   ]
                 },
                 "motion": {
@@ -675,7 +676,8 @@
                     "center-hero",
                     "floating-stage",
                     "macro-card",
-                    "path-journey"
+                    "path-journey",
+                    "orbit-object"
                   ]
                 },
                 "motion": {
@@ -701,7 +703,8 @@
                     "center-hero",
                     "floating-stage",
                     "macro-card",
-                    "path-journey"
+                    "path-journey",
+                    "orbit-object"
                   ]
                 },
                 "motion": {
@@ -796,7 +799,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -822,7 +826,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -848,7 +853,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -964,7 +970,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -990,7 +997,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1016,7 +1024,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1172,7 +1181,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1198,7 +1208,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1224,7 +1235,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1391,7 +1403,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1417,7 +1430,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1443,7 +1457,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1571,7 +1586,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1597,7 +1613,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1623,7 +1640,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1721,7 +1739,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1747,7 +1766,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1773,7 +1793,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1944,7 +1965,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1970,7 +1992,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -1996,7 +2019,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2155,7 +2179,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2181,7 +2206,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2207,7 +2233,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2395,7 +2422,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2421,7 +2449,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2447,7 +2476,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2631,7 +2661,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2657,7 +2688,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {
@@ -2683,7 +2715,8 @@
                               "center-hero",
                               "floating-stage",
                               "macro-card",
-                              "path-journey"
+                              "path-journey",
+                              "orbit-object"
                             ]
                           },
                           "motion": {

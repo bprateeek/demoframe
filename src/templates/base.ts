@@ -360,6 +360,80 @@ svg { display: block; width: 100%; height: 100%; }
   background: var(--df-accent);
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--df-accent) 14%, transparent);
 }
+.df-composition-orbit-object .df-rail-motion {
+  --df-rail-motion-y: -2px;
+  --df-rail-motion-scale: 1.04;
+  position: relative;
+  overflow: visible;
+}
+.df-composition-orbit-object .df-rail-motion::before,
+.df-composition-orbit-object .df-rail-motion::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--df-accent) 22%, transparent);
+  transform: translate(-50%, -50%) rotate(-10deg);
+  opacity: 0.52;
+  z-index: 0;
+}
+.df-composition-orbit-object .df-rail-motion::before {
+  width: min(76vw, 660px);
+  height: min(42vw, 360px);
+}
+.df-composition-orbit-object .df-rail-motion::after {
+  width: min(58vw, 500px);
+  height: min(30vw, 250px);
+  border-color: color-mix(in srgb, var(--df-info) 18%, transparent);
+  transform: translate(-50%, -50%) rotate(16deg);
+}
+.df-composition-orbit-object .df-rail {
+  position: relative;
+  z-index: 1;
+  justify-content: center;
+  padding: clamp(24px, 5vw, 58px);
+}
+.df-composition-orbit-object-typing .df-slot-footer {
+  align-self: center;
+  width: min(700px, 100%);
+  margin-top: 0;
+}
+.df-composition-orbit-object-steps .df-slot-body,
+.df-composition-orbit-object-status-card .df-card-body,
+.df-composition-orbit-object-chat .df-chat {
+  align-self: center;
+  flex: 0 1 auto;
+  width: min(700px, 100%);
+  border: 1px solid color-mix(in srgb, var(--df-accent) 16%, var(--df-border));
+  border-radius: var(--df-radius);
+  background: color-mix(in srgb, var(--df-card) 95%, transparent);
+  box-shadow: 0 26px 76px var(--df-shadow);
+}
+.df-composition-orbit-object-steps .df-slot-body,
+.df-composition-orbit-object-status-card .df-card-body,
+.df-composition-orbit-object-chat .df-chat {
+  padding: var(--df-s5);
+}
+.df-composition-orbit-object-code .df-codepanel,
+.df-composition-orbit-object-terminal-playback .df-play-panel,
+.df-composition-orbit-object-metric-card .df-metric-panel {
+  align-self: center;
+  width: min(700px, 100%);
+  border-color: color-mix(in srgb, var(--df-accent) 16%, var(--df-border));
+  box-shadow: 0 26px 76px var(--df-shadow);
+}
+.df-composition-orbit-object-screen .df-screen-stack {
+  align-self: center;
+  justify-content: center;
+  width: min(760px, 100%);
+  min-height: auto;
+}
+.df-composition-orbit-object-screen .df-screen-block {
+  border-color: color-mix(in srgb, var(--df-accent) 16%, var(--df-border));
+  box-shadow: 0 18px 54px var(--df-shadow);
+}
 .df-chrome-stack {
   position: relative;
   flex: 0 0 auto;
@@ -466,7 +540,8 @@ export function cinematicCompositionSceneClass(
     composition !== 'center-hero' &&
     composition !== 'floating-stage' &&
     composition !== 'macro-card' &&
-    composition !== 'path-journey'
+    composition !== 'path-journey' &&
+    composition !== 'orbit-object'
   ) {
     return '';
   }

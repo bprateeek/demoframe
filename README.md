@@ -167,7 +167,7 @@ global frame type: for example, a browser demo can show `frame.url:
 `"https://github.com/acme/repo/pull/42"` on the PR result scene.
 
 Top-level `cinematic` sets composition (`center-hero`, `floating-stage`,
-`macro-card`, or `path-journey`), motion, and ambient defaults for
+`macro-card`, `path-journey`, or `orbit-object`), motion, and ambient defaults for
 non-screenshot content scenes; scene-level `cinematic` blocks override it.
 
 **Scenes**: `typing` (animated typing with caret), `steps` (progress rows with
