@@ -11,6 +11,7 @@ import {
   resolveFrameCapture,
   resolveSceneCinematic,
 } from './schema.js';
+import { MOTION_PRESET_NAMES } from '../templates/motion/presets.js';
 
 const minimal = {
   frame: { type: 'phone' },
@@ -165,6 +166,15 @@ describe('demoConfigSchema', () => {
       ambient: 'ember',
     });
     expect(hasCinematicFields(config)).toBe(true);
+
+    for (const motion of MOTION_PRESET_NAMES) {
+      expect(
+        demoConfigSchema.parse({
+          ...minimal,
+          scenes: [{ type: 'typing', duration: 3, text: 'hello', cinematic: { motion } }],
+        }).scenes[0].cinematic?.motion,
+      ).toBe(motion);
+    }
 
     expect(
       demoConfigSchema.parse({

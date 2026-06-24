@@ -335,6 +335,8 @@ scene or a trailing hold so it lands on the closing frame):
   object. Use `path-journey` for step-by-step flows where the path itself
   should read visually, and `orbit-object` when the object should feel centered
   inside a subtle orbital stage.
+- `cinematic.motion` supports `float-in` for a gentle staged entrance and
+  `rise` for a simpler upward reveal.
 - `cinematic.ambient: ember` adds a restrained ambient layer inside the frame.
   In v1 the resolved scope is timeline-wide whenever any effective scene
   cinematic opts in; render records this as `cinematic.ambient.scope: timeline`

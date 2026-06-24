@@ -43,7 +43,7 @@ export function previewSampleTimes(timeline: Timeline): number[] {
   return uniqueRoundedTimes(times.map((t) => clampTimelineTime(timeline, t)));
 }
 
-function presetNames(name: MotionPresetName | undefined): MotionPresetName[] {
+function presetNames(name: MotionPresetName | undefined): readonly MotionPresetName[] {
   return name ? [name] : MOTION_PRESET_NAMES;
 }
 

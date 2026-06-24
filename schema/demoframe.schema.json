@@ -655,7 +655,10 @@
                 },
                 "motion": {
                   "type": "string",
-                  "const": "float-in"
+                  "enum": [
+                    "float-in",
+                    "rise"
+                  ]
                 },
                 "ambient": {
                   "type": "string",
@@ -682,7 +685,10 @@
                 },
                 "motion": {
                   "type": "string",
-                  "const": "float-in"
+                  "enum": [
+                    "float-in",
+                    "rise"
+                  ]
                 },
                 "ambient": {
                   "type": "string",
@@ -709,7 +715,10 @@
                 },
                 "motion": {
                   "type": "string",
-                  "const": "float-in"
+                  "enum": [
+                    "float-in",
+                    "rise"
+                  ]
                 },
                 "ambient": {
                   "type": "string",
@@ -805,7 +814,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -832,7 +844,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -859,7 +874,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -976,7 +994,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1003,7 +1024,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1030,7 +1054,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1187,7 +1214,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1214,7 +1244,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1241,7 +1274,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1409,7 +1445,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1436,7 +1475,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1463,7 +1505,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1592,7 +1637,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1619,7 +1667,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1646,7 +1697,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1745,7 +1799,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1772,7 +1829,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1799,7 +1859,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1971,7 +2034,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -1998,7 +2064,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2025,7 +2094,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2185,7 +2257,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2212,7 +2287,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2239,7 +2317,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2428,7 +2509,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2455,7 +2539,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2482,7 +2569,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2667,7 +2757,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2694,7 +2787,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",
@@ -2721,7 +2817,10 @@
                           },
                           "motion": {
                             "type": "string",
-                            "const": "float-in"
+                            "enum": [
+                              "float-in",
+                              "rise"
+                            ]
                           },
                           "ambient": {
                             "type": "string",

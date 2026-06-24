@@ -1,6 +1,16 @@
-import type { Scene } from '../../config/schema.js';
+export const MOTION_SCENE_TYPES = [
+  'typing',
+  'steps',
+  'status-card',
+  'terminal-playback',
+  'code',
+  'chat',
+  'metric-card',
+  'screen',
+  'screenshot',
+] as const;
 
-export type MotionSceneType = Exclude<Scene['type'], 'hold'>;
+export type MotionSceneType = (typeof MOTION_SCENE_TYPES)[number];
 
 export const MOTION_EASING_NAMES = ['linear', 'ease-out-cubic', 'ease-in-out-cubic'] as const;
 
@@ -80,18 +90,30 @@ export const MOTION_PRESET_REGISTRY = {
     },
     peakSampleOffsets: [0.15, 0.42, 0.64],
     easing: { primary: 'ease-out-cubic', secondary: 'ease-in-out-cubic' },
+    wrappers: {
+      scene: {
+        from: { x: 0, y: 28, scale: 0.99, opacity: 0.9 },
+        settle: { x: 0, y: -1, scale: 1.001, opacity: 1 },
+        to: { x: 0, y: 0, scale: 1, opacity: 1 },
+      },
+      rail: {
+        from: { x: 0, y: 10, scale: 1, opacity: 1 },
+        settle: { x: 0, y: -1, scale: 1, opacity: 1 },
+        to: { x: 0, y: 0, scale: 1, opacity: 1 },
+      },
+    },
   },
 } as const satisfies Record<string, MotionPreset>;
 
 export type MotionPresetName = keyof typeof MOTION_PRESET_REGISTRY;
 
-export const MOTION_PRESET_NAMES = Object.keys(MOTION_PRESET_REGISTRY) as MotionPresetName[];
+export const MOTION_PRESET_NAMES = ['float-in', 'rise'] as const satisfies readonly MotionPresetName[];
 
 export function motionPreset(name: MotionPresetName): MotionPreset {
   return MOTION_PRESET_REGISTRY[name];
 }
 
-export function isMotionSceneEligible(sceneType: Scene['type'], presetName: MotionPresetName): sceneType is MotionSceneType {
+export function isMotionSceneEligible(sceneType: string, presetName: MotionPresetName): sceneType is MotionSceneType {
   if (sceneType === 'hold') return false;
-  return motionPreset(presetName).eligibleSceneTypes.includes(sceneType);
+  return (motionPreset(presetName).eligibleSceneTypes as readonly string[]).includes(sceneType);
 }

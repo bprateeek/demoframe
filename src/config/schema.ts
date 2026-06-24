@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DESTINATION_NAMES } from './destinations.js';
+import { MOTION_PRESET_NAMES } from '../templates/motion/presets.js';
 
 export const TEXT_LIMITS = {
   typingText: 220,
@@ -240,7 +241,7 @@ export const CINEMATIC_COMPOSITION_NAMES = [
   'orbit-object',
 ] as const;
 const cinematicComposition = z.enum(CINEMATIC_COMPOSITION_NAMES);
-const cinematicMotion = z.literal('float-in');
+const cinematicMotion = z.enum(MOTION_PRESET_NAMES);
 const cinematicAmbient = z.literal('ember');
 
 const cinematicSchema = z.union([
