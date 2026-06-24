@@ -31,6 +31,8 @@ ${questions}
 
 Record the answers in the top-level brief block, set \`brief.mode: user-confirmed\` only after the user has confirmed the story and screen-to-scene mapping, and fill audience/source/screenshotPolicy/placement/arc/climax. An inferred brief is not a bypass: \`demoframe check\`, \`demoframe preview\`, and \`demoframe render\` refuse unconfirmed briefs unless the run explicitly passes \`--autonomous\` (or MCP \`autonomous: true\`), which labels the output as \`mode: inferred\` and records assumptions.
 
+For reconstructed demos, include product identity (\`brief.product\` or \`brief.repo\`) and \`brief.verbatimCopy\` exact UI copy; confirmed briefs stay valid without them but \`demoframe check\` warns because generic demos are harder to trust.
+
 Before writing scenes, do repo reconnaissance: read the closest README/app metadata/routes/examples, identify product vocabulary, exact copy, success state, destination, frame, and privacy risks. Then make a mapping for each source signal:
 
 \`\`\`md

@@ -36,6 +36,9 @@ the user has answered the interview and confirmed the screen-to-scene mapping.
 Missing, empty, placeholder, inferred, or otherwise unconfirmed brief fields
 make `demoframe check`, `preview`, and `render` fail unless you explicitly pass
 `--autonomous` (or MCP `autonomous: true`), which labels the output as inferred.
+For reconstructed demos, `product`/`repo` and `verbatimCopy` are still optional
+schema fields, but confirmed briefs warn when product identity or exact copy is
+missing.
 
 ```yaml
 brief:
