@@ -224,6 +224,56 @@ svg { display: block; width: 100%; height: 100%; }
   width: min(820px, 100%);
   min-height: auto;
 }
+.df-composition-macro-card .df-rail-motion {
+  --df-rail-motion-scale: 1.08;
+}
+.df-composition-macro-card .df-rail {
+  justify-content: center;
+  padding: clamp(22px, 4.8vw, 56px);
+}
+.df-composition-macro-card-typing .df-slot-footer {
+  align-self: center;
+  width: min(640px, 100%);
+  margin-top: 0;
+}
+.df-composition-macro-card-steps .df-slot-body,
+.df-composition-macro-card-status-card .df-card-body,
+.df-composition-macro-card-chat .df-chat {
+  align-self: center;
+  flex: 0 1 auto;
+  width: min(640px, 100%);
+  border: 1px solid var(--df-border);
+  border-radius: var(--df-radius);
+  background: var(--df-card);
+  box-shadow: 0 28px 80px var(--df-shadow);
+}
+.df-composition-macro-card-steps .df-slot-body,
+.df-composition-macro-card-status-card .df-card-body,
+.df-composition-macro-card-chat .df-chat {
+  padding: var(--df-s5);
+}
+.df-composition-macro-card-status-card .df-card-title {
+  font-size: clamp(30px, 5vw, 44px);
+}
+.df-composition-macro-card-status-card .df-cta {
+  min-width: min(70%, 420px);
+}
+.df-composition-macro-card-code .df-codepanel,
+.df-composition-macro-card-terminal-playback .df-play-panel,
+.df-composition-macro-card-metric-card .df-metric-panel {
+  align-self: center;
+  width: min(640px, 100%);
+  box-shadow: 0 28px 80px var(--df-shadow);
+}
+.df-composition-macro-card-metric-card .df-metric-value {
+  font-size: clamp(30px, 5vw, 46px);
+}
+.df-composition-macro-card-screen .df-screen-stack {
+  align-self: center;
+  justify-content: center;
+  width: min(660px, 100%);
+  min-height: auto;
+}
 .df-chrome-stack {
   position: relative;
   flex: 0 0 auto;
@@ -326,7 +376,7 @@ export function cinematicCompositionSceneClass(
   sceneType: string,
 ): string {
   const composition = scene.cinematic?.composition;
-  if (composition !== 'center-hero' && composition !== 'floating-stage') return '';
+  if (composition !== 'center-hero' && composition !== 'floating-stage' && composition !== 'macro-card') return '';
   return `df-composition-${composition} df-composition-${composition}-${sceneType}`;
 }
 
