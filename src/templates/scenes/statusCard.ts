@@ -1,6 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
-import { centerHeroSceneClass, sceneShell } from '../base.js';
+import { cinematicCompositionSceneClass, sceneShell } from '../base.js';
 import type { StatusCardScene } from '../../config/schema.js';
 
 export const statusCardCss = `
@@ -136,6 +136,6 @@ export function statusCardHtml(scene: StatusCardScene, index: number): string {
       ${caption}
     </div>`,
     '',
-    centerHeroSceneClass(scene, 'status-card'),
+    cinematicCompositionSceneClass(scene, 'status-card'),
   );
 }

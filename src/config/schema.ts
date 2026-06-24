@@ -232,7 +232,8 @@ const sceneFrameOverride = z
   })
   .strict();
 
-const cinematicComposition = z.literal('center-hero');
+export const CINEMATIC_COMPOSITION_NAMES = ['center-hero', 'floating-stage'] as const;
+const cinematicComposition = z.enum(CINEMATIC_COMPOSITION_NAMES);
 const cinematicMotion = z.literal('float-in');
 const cinematicAmbient = z.literal('ember');
 
@@ -884,6 +885,7 @@ export type Scene = DemoConfig['scenes'][number];
 export type SceneFrameOverride = NonNullable<Scene['frame']>;
 export type SceneCinematic = NonNullable<Scene['cinematic']>;
 export type ConfigCinematic = NonNullable<DemoConfig['cinematic']>;
+export type CinematicCompositionName = (typeof CINEMATIC_COMPOSITION_NAMES)[number];
 export type Theme = DemoConfig['theme'];
 export type Output = DemoConfig['output'];
 export type TypingScene = z.infer<typeof typingScene>;

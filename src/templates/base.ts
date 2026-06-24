@@ -177,6 +177,53 @@ svg { display: block; width: 100%; height: 100%; }
 .df-composition-center-hero-screen .df-screen-stack {
   justify-content: center;
 }
+.df-composition-floating-stage .df-rail-motion {
+  --df-rail-motion-y: -4px;
+  --df-rail-motion-scale: 1.02;
+}
+.df-composition-floating-stage .df-rail {
+  justify-content: center;
+  padding: clamp(28px, 5.4vw, 64px);
+}
+.df-composition-floating-stage-typing .df-slot-footer {
+  align-self: center;
+  width: min(720px, 100%);
+  margin-top: 0;
+}
+.df-composition-floating-stage-steps .df-slot-body,
+.df-composition-floating-stage-status-card .df-card-body,
+.df-composition-floating-stage-chat .df-chat {
+  align-self: center;
+  flex: 0 1 auto;
+  width: min(760px, 100%);
+  border: 1px solid var(--df-border);
+  border-radius: var(--df-radius);
+  background: color-mix(in srgb, var(--df-card) 92%, transparent);
+  box-shadow: 0 24px 70px var(--df-shadow);
+}
+.df-composition-floating-stage-steps .df-slot-body {
+  padding: var(--df-s5);
+}
+.df-composition-floating-stage-status-card .df-card-body {
+  padding: var(--df-s5);
+}
+.df-composition-floating-stage-chat .df-chat {
+  justify-content: center;
+  padding: var(--df-s4);
+}
+.df-composition-floating-stage-code .df-codepanel,
+.df-composition-floating-stage-terminal-playback .df-play-panel,
+.df-composition-floating-stage-metric-card .df-metric-panel {
+  align-self: center;
+  width: min(760px, 100%);
+  box-shadow: 0 24px 70px var(--df-shadow);
+}
+.df-composition-floating-stage-screen .df-screen-stack {
+  align-self: center;
+  justify-content: center;
+  width: min(820px, 100%);
+  min-height: auto;
+}
 .df-chrome-stack {
   position: relative;
   flex: 0 0 auto;
@@ -274,13 +321,20 @@ svg { display: block; width: 100%; height: 100%; }
 }
 `;
 
+export function cinematicCompositionSceneClass(
+  scene: { cinematic?: { composition?: string } },
+  sceneType: string,
+): string {
+  const composition = scene.cinematic?.composition;
+  if (composition !== 'center-hero' && composition !== 'floating-stage') return '';
+  return `df-composition-${composition} df-composition-${composition}-${sceneType}`;
+}
+
 export function centerHeroSceneClass(
   scene: { cinematic?: { composition?: string } },
   sceneType: string,
 ): string {
-  return scene.cinematic?.composition === 'center-hero'
-    ? `df-composition-center-hero df-composition-center-hero-${sceneType}`
-    : '';
+  return cinematicCompositionSceneClass(scene, sceneType);
 }
 
 export function sceneShell(index: number, railContents: string, railClass = '', sceneClass = ''): string {

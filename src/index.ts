@@ -12,6 +12,7 @@ export {
   hasCinematicFields,
   resolveSceneCinematic,
   sceneSupportsCinematicDefault,
+  CINEMATIC_COMPOSITION_NAMES,
   PALETTE_KEYS,
   THEME_PRESET_NAMES,
 } from './config/schema.js';
@@ -25,6 +26,7 @@ export type {
   MotionBlur,
   SceneCinematic,
   ConfigCinematic,
+  CinematicCompositionName,
   FrameCaptureMode,
   FrameCapturePlan,
   TerminalPlaybackScene,

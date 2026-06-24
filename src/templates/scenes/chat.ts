@@ -1,5 +1,5 @@
 import { escapeHtml } from '../html.js';
-import { centerHeroSceneClass, sceneShell } from '../base.js';
+import { cinematicCompositionSceneClass, sceneShell } from '../base.js';
 import type { ChatScene } from '../../config/schema.js';
 
 export const chatCss = `
@@ -119,6 +119,6 @@ export function chatHtml(scene: ChatScene, index: number, avatars?: ResolvedAvat
       ${messages}
     </div>`,
     '',
-    centerHeroSceneClass(scene, 'chat'),
+    cinematicCompositionSceneClass(scene, 'chat'),
   );
 }

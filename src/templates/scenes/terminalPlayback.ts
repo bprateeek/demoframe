@@ -1,6 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
-import { centerHeroSceneClass, sceneShell } from '../base.js';
+import { cinematicCompositionSceneClass, sceneShell } from '../base.js';
 import { normalizeTermLines, type TerminalPlaybackScene } from '../../config/schema.js';
 
 export const terminalPlaybackCss = `
@@ -41,7 +41,7 @@ export function terminalPlaybackHtml(
   frameType: string,
   framePrompt: string,
 ): string {
-  const compositionClass = centerHeroSceneClass(scene, 'terminal-playback');
+  const compositionClass = cinematicCompositionSceneClass(scene, 'terminal-playback');
   const prompt = escapeHtml(scene.prompt ?? framePrompt);
   const lines = normalizeTermLines(scene.output)
     .map(

@@ -1,5 +1,5 @@
 import { blockHtml } from '../blocks/index.js';
-import { centerHeroSceneClass, sceneShell } from '../base.js';
+import { cinematicCompositionSceneClass, sceneShell } from '../base.js';
 import type { ScreenScene } from '../../config/schema.js';
 
 export const screenCss = `
@@ -24,7 +24,7 @@ export const screenCss = `
 
 export function screenHtml(scene: ScreenScene, index: number): string {
   const blocks = scene.blocks.map((block, blockIndex) => blockHtml(block, blockIndex)).join('\n');
-  const compositionClass = scene.motion === 'reveal' ? centerHeroSceneClass(scene, 'screen') : '';
+  const compositionClass = scene.motion === 'reveal' ? cinematicCompositionSceneClass(scene, 'screen') : '';
   return sceneShell(
     index,
     `    <div class="df-screen-stack">
