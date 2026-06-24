@@ -329,6 +329,9 @@ scene or a trailing hold so it lands on the closing frame):
   `cinematic` blocks override it, holds inherit the held scene, and screenshots
   stay explicit-only through scene-level cinematic plus raw-intentional brief
   policy.
+- `cinematic.composition` supports `center-hero` for direct hero emphasis and
+  `floating-stage` for a centered floating product surface inside a larger
+  stage.
 - `cinematic.ambient: ember` adds a restrained ambient layer inside the frame.
   In v1 the resolved scope is timeline-wide whenever any effective scene
   cinematic opts in; render records this as `cinematic.ambient.scope: timeline`

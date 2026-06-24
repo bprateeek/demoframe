@@ -187,6 +187,34 @@ describe('buildDocument scene motion wrappers', () => {
     expect(doc.html.match(/class="df-scene[^"]*df-composition-center-hero-screen/g)).toHaveLength(1);
     expect(doc.html).toContain('.df-composition-center-hero-status-card .df-rail-motion');
   });
+
+  it('adds floating-stage composition classes and CSS for supported scenes', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      cinematic: { composition: 'floating-stage' },
+      scenes: [
+        { type: 'status-card', duration: 2, title: 'Ready' },
+        {
+          type: 'screen',
+          duration: 2,
+          blocks: [{ block: 'callout', variant: 'message', text: 'Floating stage' }],
+        },
+        {
+          type: 'screen',
+          duration: 2,
+          motion: 'focus',
+          focus: 'money',
+          blocks: [{ name: 'money', block: 'callout', variant: 'message', text: 'Focus stays opt-in' }],
+        },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+
+    expect(doc.html).toContain('df-composition-floating-stage-status-card');
+    expect(doc.html).toContain('df-composition-floating-stage-screen');
+    expect(doc.html.match(/class="df-scene[^"]*df-composition-floating-stage-screen/g)).toHaveLength(1);
+    expect(doc.html).toContain('.df-composition-floating-stage-status-card .df-card-body');
+  });
 });
 
 describe('buildDocument frame chrome layers (v0.7)', () => {

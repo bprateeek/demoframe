@@ -13,7 +13,7 @@ theme:
     border: "#dce4ef"
     shadow: "rgba(24, 32, 51, 0.14)"
 frame: { type: none, width: 854, height: 480, outside: "#f7f9fc", shadow: false }
-cinematic: { composition: center-hero, motion: float-in, ambient: ember }
+cinematic: { composition: floating-stage, motion: float-in, ambient: ember }
 scenes:
   - type: screen
     duration: 5.8

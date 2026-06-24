@@ -165,6 +165,13 @@ describe('demoConfigSchema', () => {
       ambient: 'ember',
     });
     expect(hasCinematicFields(config)).toBe(true);
+
+    expect(
+      demoConfigSchema.parse({
+        ...minimal,
+        cinematic: { composition: 'floating-stage' },
+      }).cinematic?.composition,
+    ).toBe('floating-stage');
   });
 
   it('accepts top-level cinematic defaults for non-screenshot content scenes', () => {
@@ -201,6 +208,12 @@ describe('demoConfigSchema', () => {
       demoConfigSchema.safeParse({
         ...minimal,
         cinematic: { motion: 'zoom' },
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        cinematic: { composition: 'macro-card' },
       }).success,
     ).toBe(false);
     expect(

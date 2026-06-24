@@ -1,6 +1,6 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
-import { centerHeroSceneClass, sceneShell } from '../base.js';
+import { cinematicCompositionSceneClass, sceneShell } from '../base.js';
 import type { StepsScene } from '../../config/schema.js';
 
 export const stepsCss = `
@@ -88,6 +88,6 @@ export function stepsHtml(scene: StepsScene, index: number): string {
       ${items}
     </div>`,
     '',
-    centerHeroSceneClass(scene, 'steps'),
+    cinematicCompositionSceneClass(scene, 'steps'),
   );
 }

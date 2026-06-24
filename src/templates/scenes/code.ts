@@ -1,7 +1,7 @@
 import { escapeHtml } from '../html.js';
 import { icons } from '../icons.js';
 import { highlightCode } from '../highlight.js';
-import { centerHeroSceneClass, sceneShell } from '../base.js';
+import { cinematicCompositionSceneClass, sceneShell } from '../base.js';
 import type { CodeScene } from '../../config/schema.js';
 
 export const codeCss = `
@@ -77,6 +77,6 @@ export async function codeHtml(scene: CodeScene, index: number, mode: 'light' | 
       </div>
     </div>`,
     '',
-    centerHeroSceneClass(scene, 'code'),
+    cinematicCompositionSceneClass(scene, 'code'),
   );
 }
