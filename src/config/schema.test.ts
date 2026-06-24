@@ -178,6 +178,12 @@ describe('demoConfigSchema', () => {
         cinematic: { composition: 'macro-card' },
       }).cinematic?.composition,
     ).toBe('macro-card');
+    expect(
+      demoConfigSchema.parse({
+        ...minimal,
+        cinematic: { composition: 'path-journey' },
+      }).cinematic?.composition,
+    ).toBe('path-journey');
   });
 
   it('accepts top-level cinematic defaults for non-screenshot content scenes', () => {
@@ -219,7 +225,7 @@ describe('demoConfigSchema', () => {
     expect(
       demoConfigSchema.safeParse({
         ...minimal,
-        cinematic: { composition: 'path-journey' },
+        cinematic: { composition: 'orbit-object' },
       }).success,
     ).toBe(false);
     expect(

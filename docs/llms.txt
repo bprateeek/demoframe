@@ -332,7 +332,8 @@ scene or a trailing hold so it lands on the closing frame):
 - `cinematic.composition` supports `center-hero` for direct hero emphasis,
   `floating-stage` for a centered floating product surface inside a larger
   stage, and `macro-card` when one result card or panel should become the hero
-  object.
+  object. Use `path-journey` for step-by-step flows where the path itself
+  should read visually.
 - `cinematic.ambient: ember` adds a restrained ambient layer inside the frame.
   In v1 the resolved scope is timeline-wide whenever any effective scene
   cinematic opts in; render records this as `cinematic.ambient.scope: timeline`

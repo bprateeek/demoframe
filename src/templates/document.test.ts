@@ -238,6 +238,37 @@ describe('buildDocument scene motion wrappers', () => {
     expect(doc.html).toContain('.df-composition-macro-card-status-card .df-card-title');
     expect(doc.html).toContain('.df-composition-macro-card-metric-card .df-metric-value');
   });
+
+  it('adds path-journey composition classes and path CSS for steps and screen scenes', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      cinematic: { composition: 'path-journey' },
+      scenes: [
+        {
+          type: 'steps',
+          duration: 2,
+          items: [
+            { label: 'Ask', state: 'done' },
+            { label: 'Build', state: 'active' },
+          ],
+        },
+        {
+          type: 'screen',
+          duration: 2,
+          blocks: [
+            { block: 'app-header', title: 'Journey', icon: 'spark' },
+            { block: 'callout', variant: 'message', text: 'Path visible' },
+          ],
+        },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+
+    expect(doc.html).toContain('df-composition-path-journey-steps');
+    expect(doc.html).toContain('df-composition-path-journey-screen');
+    expect(doc.html).toContain('.df-composition-path-journey-steps .df-steps-list::before');
+    expect(doc.html).toContain('.df-composition-path-journey-screen .df-screen-block::before');
+  });
 });
 
 describe('buildDocument frame chrome layers (v0.7)', () => {
