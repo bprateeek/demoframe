@@ -274,6 +274,92 @@ svg { display: block; width: 100%; height: 100%; }
   width: min(660px, 100%);
   min-height: auto;
 }
+.df-composition-path-journey .df-rail-motion {
+  --df-rail-motion-y: -2px;
+  --df-rail-motion-scale: 1.03;
+}
+.df-composition-path-journey .df-rail {
+  justify-content: center;
+  padding: clamp(24px, 5vw, 58px);
+}
+.df-composition-path-journey-typing .df-slot-footer {
+  align-self: center;
+  width: min(700px, 100%);
+  margin-top: 0;
+}
+.df-composition-path-journey-steps .df-steps-list {
+  align-self: center;
+  flex: 0 1 auto;
+  width: min(780px, 100%);
+  position: relative;
+  padding: var(--df-s5) var(--df-s5) var(--df-s4) calc(var(--df-s6) + 20px);
+  border: 1px solid var(--df-border);
+  border-radius: var(--df-radius);
+  background: color-mix(in srgb, var(--df-card) 94%, transparent);
+  box-shadow: 0 20px 58px var(--df-shadow);
+}
+.df-composition-path-journey-steps .df-steps-list::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--df-s5) + 11px);
+  top: calc(var(--df-s5) + 34px);
+  bottom: var(--df-s4);
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--df-accent), color-mix(in srgb, var(--df-info) 65%, var(--df-accent)));
+  opacity: 0.46;
+}
+.df-composition-path-journey-steps .df-steps-header,
+.df-composition-path-journey-steps .df-step {
+  position: relative;
+  z-index: 1;
+}
+.df-composition-path-journey-status-card .df-card-body,
+.df-composition-path-journey-chat .df-chat {
+  align-self: center;
+  flex: 0 1 auto;
+  width: min(720px, 100%);
+}
+.df-composition-path-journey-code .df-codepanel,
+.df-composition-path-journey-terminal-playback .df-play-panel,
+.df-composition-path-journey-metric-card .df-metric-panel {
+  align-self: center;
+  width: min(720px, 100%);
+}
+.df-composition-path-journey-screen .df-screen-stack {
+  align-self: center;
+  justify-content: center;
+  width: min(800px, 100%);
+  min-height: auto;
+  position: relative;
+  padding-left: 26px;
+}
+.df-composition-path-journey-screen .df-screen-stack::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 42px;
+  bottom: 42px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--df-accent), color-mix(in srgb, var(--df-info) 65%, var(--df-accent)));
+  opacity: 0.42;
+}
+.df-composition-path-journey-screen .df-screen-block {
+  position: relative;
+  z-index: 1;
+}
+.df-composition-path-journey-screen .df-screen-block::before {
+  content: "";
+  position: absolute;
+  left: -26px;
+  top: calc(50% - 5px);
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--df-accent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--df-accent) 14%, transparent);
+}
 .df-chrome-stack {
   position: relative;
   flex: 0 0 auto;
@@ -376,7 +462,14 @@ export function cinematicCompositionSceneClass(
   sceneType: string,
 ): string {
   const composition = scene.cinematic?.composition;
-  if (composition !== 'center-hero' && composition !== 'floating-stage' && composition !== 'macro-card') return '';
+  if (
+    composition !== 'center-hero' &&
+    composition !== 'floating-stage' &&
+    composition !== 'macro-card' &&
+    composition !== 'path-journey'
+  ) {
+    return '';
+  }
   return `df-composition-${composition} df-composition-${composition}-${sceneType}`;
 }
 
