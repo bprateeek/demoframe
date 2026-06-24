@@ -10,6 +10,8 @@ export {
   resolveFrameCapture,
   normalizeLogo,
   hasCinematicFields,
+  resolveSceneCinematic,
+  sceneSupportsCinematicDefault,
   PALETTE_KEYS,
   THEME_PRESET_NAMES,
 } from './config/schema.js';
@@ -22,6 +24,7 @@ export type {
   OutputFormat,
   MotionBlur,
   SceneCinematic,
+  ConfigCinematic,
   FrameCaptureMode,
   FrameCapturePlan,
   TerminalPlaybackScene,

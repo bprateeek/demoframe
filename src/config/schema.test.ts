@@ -7,7 +7,9 @@ import {
   normalizeLogo,
   normalizeTermLines,
   outputFormats,
+  resolveAmbient,
   resolveFrameCapture,
+  resolveSceneCinematic,
 } from './schema.js';
 
 const minimal = {
@@ -165,7 +167,42 @@ describe('demoConfigSchema', () => {
     expect(hasCinematicFields(config)).toBe(true);
   });
 
+  it('accepts top-level cinematic defaults for non-screenshot content scenes', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      cinematic: { composition: 'center-hero', motion: 'float-in', ambient: 'ember' },
+      scenes: [
+        { type: 'typing', duration: 3, text: 'hello' },
+        { type: 'status-card', duration: 2, title: 'Done', cinematic: { composition: 'center-hero' } },
+        { type: 'screenshot', duration: 2, src: 'a.png' },
+      ],
+    });
+
+    expect(config.scenes[0].cinematic).toBeUndefined();
+    expect(resolveSceneCinematic(config, config.scenes[0])).toEqual({
+      composition: 'center-hero',
+      motion: 'float-in',
+      ambient: 'ember',
+    });
+    expect(resolveSceneCinematic(config, config.scenes[1])).toEqual({ composition: 'center-hero' });
+    expect(resolveSceneCinematic(config, config.scenes[2])).toBeUndefined();
+    expect(resolveAmbient(config)).toEqual({ type: 'ember', scope: 'timeline' });
+    expect(hasCinematicFields(config)).toBe(true);
+  });
+
   it('rejects empty or unknown cinematic blocks', () => {
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        cinematic: {},
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        cinematic: { motion: 'zoom' },
+      }).success,
+    ).toBe(false);
     expect(
       demoConfigSchema.safeParse({
         ...minimal,

@@ -657,6 +657,7 @@ export const demoConfigSchema = z
     theme: themeSchema,
     frame: frameSchema,
     brief: briefSchema.optional(),
+    cinematic: cinematicSchema.optional(),
     scenes: z.array(sceneSchema).min(1).max(12),
   })
   .superRefine((config, ctx) => {
@@ -882,6 +883,7 @@ export type Frame = DemoConfig['frame'];
 export type Scene = DemoConfig['scenes'][number];
 export type SceneFrameOverride = NonNullable<Scene['frame']>;
 export type SceneCinematic = NonNullable<Scene['cinematic']>;
+export type ConfigCinematic = NonNullable<DemoConfig['cinematic']>;
 export type Theme = DemoConfig['theme'];
 export type Output = DemoConfig['output'];
 export type TypingScene = z.infer<typeof typingScene>;
@@ -921,8 +923,17 @@ export function normalizeTermLines(output: TerminalPlaybackScene['output']): Nor
   );
 }
 
+export function sceneSupportsCinematicDefault(scene: Pick<Scene, 'type'>): boolean {
+  return scene.type !== 'hold' && scene.type !== 'screenshot';
+}
+
+export function resolveSceneCinematic(config: DemoConfig, scene: Scene): SceneCinematic | undefined {
+  if (scene.cinematic) return scene.cinematic;
+  return config.cinematic && sceneSupportsCinematicDefault(scene) ? config.cinematic : undefined;
+}
+
 export function hasCinematicFields(config: DemoConfig): boolean {
-  return config.scenes.some((scene) => scene.cinematic !== undefined);
+  return config.cinematic !== undefined || config.scenes.some((scene) => scene.cinematic !== undefined);
 }
 
 export interface ResolvedAmbient {
@@ -931,7 +942,7 @@ export interface ResolvedAmbient {
 }
 
 export function resolveAmbient(config: DemoConfig): ResolvedAmbient | undefined {
-  return config.scenes.some((scene) => scene.cinematic?.ambient === 'ember')
+  return config.scenes.some((scene) => resolveSceneCinematic(config, scene)?.ambient === 'ember')
     ? { type: 'ember', scope: 'timeline' }
     : undefined;
 }

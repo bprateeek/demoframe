@@ -152,7 +152,7 @@ clipped, final frame tells the story alone.
 
 Full JSON Schema: `demoframe schema` or schema/demoframe.schema.json (npm package root).
 
-Top level: { title?, output?, theme?, frame, brief?, scenes }
+Top level: { title?, output?, theme?, frame, brief?, cinematic?, scenes }
 
 output.motionBlur policy:
 - off: every format uses directCapture.
@@ -325,9 +325,14 @@ scene or a trailing hold so it lands on the closing frame):
   See examples/mobile-flow for all three.
 - Story arc that works: typing (the ask) -> steps (the work) -> status-card
   (the result) -> hold 1-1.5s so the ending reads before the loop.
+- Top-level `cinematic` sets defaults for non-screenshot content scenes. Scene
+  `cinematic` blocks override it, holds inherit the held scene, and screenshots
+  stay explicit-only through scene-level cinematic plus raw-intentional brief
+  policy.
 - `cinematic.ambient: ember` adds a restrained ambient layer inside the frame.
-  In v1 the resolved scope is timeline-wide whenever any scene opts in; render
-  records this as `cinematic.ambient.scope: timeline` in report.json.
+  In v1 the resolved scope is timeline-wide whenever any effective scene
+  cinematic opts in; render records this as `cinematic.ambient.scope: timeline`
+  in report.json.
 - More arcs: terminal-playback alone sells a CLI; chat (the ask) ->
   code with added/removed (the fix) -> status-card (the PR); metric-card
   closes a launch-post demo with numbers; screen reconstructs dense product

@@ -1,4 +1,4 @@
-import { normalizeTermLines, type DemoConfig, type Scene } from '../config/schema.js';
+import { normalizeTermLines, resolveSceneCinematic, type DemoConfig, type Scene } from '../config/schema.js';
 import { chromeSignature, renderFrame } from './chrome.js';
 
 export interface TimelineScene {
@@ -75,6 +75,7 @@ export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timel
   const scenes: TimelineScene[] = config.scenes.map((scene, index) => {
     const start = cursor;
     cursor += scene.duration;
+    const cinematic = resolveSceneCinematic(config, scene);
     return {
       index,
       type: scene.type,
@@ -87,7 +88,7 @@ export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timel
       transition: scene.transition,
       data: {
         ...clientData(scene),
-        ...(scene.cinematic ? { cinematic: scene.cinematic } : {}),
+        ...(cinematic ? { cinematic } : {}),
         ...(scene.celebrate ? { celebrate: true } : {}),
         ...('tap' in scene && scene.tap ? { tap: true } : {}),
       },

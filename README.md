@@ -166,6 +166,9 @@ global frame type: for example, a browser demo can show `frame.url:
 "https://vps.example/workspace"` on the work scene, then
 `"https://github.com/acme/repo/pull/42"` on the PR result scene.
 
+Top-level `cinematic` sets composition, motion, and ambient defaults for
+non-screenshot content scenes; scene-level `cinematic` blocks override it.
+
 **Scenes**: `typing` (animated typing with caret), `steps` (progress rows with
 done/active/pending states), `status-card` (PR-style result screen with checks
 and a CTA), `terminal-playback` (typed command, spinner, streamed output, exit
