@@ -1,0 +1,6 @@
+name: premium-hero
+description: Frameless premium motion hero with cinematic composition and ambience
+category: marketing
+frames: [none]
+scenes: [screen, hold]
+demoframeVersion: "0.10.0"

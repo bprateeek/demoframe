@@ -1,0 +1,38 @@
+title: Premium motion hero
+output: { format: webp, width: 854, fps: 24, budget: 4MB, displayWidth: 640, motionBlur: cinematic }
+theme:
+  accent: "#e2603a"
+  mode: light
+  font: inter
+  palette:
+    page: "#f7f9fc"
+    screen: "#f7f9fc"
+    card: "#ffffff"
+    text: "#182033"
+    muted: "#526176"
+    border: "#dce4ef"
+    shadow: "rgba(24, 32, 51, 0.14)"
+frame: { type: none, width: 854, height: 480, outside: "#f7f9fc", shadow: false }
+scenes:
+  - type: screen
+    duration: 5.8
+    motion: reveal
+    cinematic: { composition: center-hero, motion: float-in, ambient: ember }
+    blocks:
+      - { block: app-header, title: Premium demo ready, subtitle: "Synthetic hero, no screenshots", icon: spark }
+      - block: stat-strip
+        tiles:
+          - { label: Width, value: { value: 854, suffix: px } }
+          - { label: FPS, value: { value: 24 } }
+          - { label: Assets, value: { value: 0 } }
+      - block: card-grid
+        cards:
+          - { title: Rebuilt UI, value: synthetic, desc: "Screenshots stay reference", badge: clean, icon: check }
+          - { title: Motion blur, value: cinematic, desc: "Subframes on choreography", badge: WebP, icon: spark }
+      - block: callout
+        name: launch
+        variant: message
+        text: "Premium motion hero ready for the README."
+  - type: hold
+    duration: 1.4
+    celebrate: true
