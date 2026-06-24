@@ -215,6 +215,29 @@ describe('buildDocument scene motion wrappers', () => {
     expect(doc.html.match(/class="df-scene[^"]*df-composition-floating-stage-screen/g)).toHaveLength(1);
     expect(doc.html).toContain('.df-composition-floating-stage-status-card .df-card-body');
   });
+
+  it('adds macro-card composition classes and CSS for supported scenes', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      cinematic: { composition: 'macro-card' },
+      scenes: [
+        { type: 'metric-card', duration: 2, metrics: [{ label: 'Wins', value: 42 }] },
+        { type: 'status-card', duration: 2, title: 'Ready', cta: { label: 'Ship it' } },
+        {
+          type: 'screen',
+          duration: 2,
+          blocks: [{ block: 'callout', variant: 'message', text: 'Macro card' }],
+        },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+
+    expect(doc.html).toContain('df-composition-macro-card-metric-card');
+    expect(doc.html).toContain('df-composition-macro-card-status-card');
+    expect(doc.html).toContain('df-composition-macro-card-screen');
+    expect(doc.html).toContain('.df-composition-macro-card-status-card .df-card-title');
+    expect(doc.html).toContain('.df-composition-macro-card-metric-card .df-metric-value');
+  });
 });
 
 describe('buildDocument frame chrome layers (v0.7)', () => {

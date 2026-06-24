@@ -647,7 +647,8 @@
                   "type": "string",
                   "enum": [
                     "center-hero",
-                    "floating-stage"
+                    "floating-stage",
+                    "macro-card"
                   ]
                 },
                 "motion": {
@@ -671,7 +672,8 @@
                   "type": "string",
                   "enum": [
                     "center-hero",
-                    "floating-stage"
+                    "floating-stage",
+                    "macro-card"
                   ]
                 },
                 "motion": {
@@ -695,7 +697,8 @@
                   "type": "string",
                   "enum": [
                     "center-hero",
-                    "floating-stage"
+                    "floating-stage",
+                    "macro-card"
                   ]
                 },
                 "motion": {
@@ -788,7 +791,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -812,7 +816,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -836,7 +841,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -950,7 +956,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -974,7 +981,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -998,7 +1006,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1152,7 +1161,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1176,7 +1186,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1200,7 +1211,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1365,7 +1377,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1389,7 +1402,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1413,7 +1427,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1539,7 +1554,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1563,7 +1579,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1587,7 +1604,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1683,7 +1701,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1707,7 +1726,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1731,7 +1751,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1900,7 +1921,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1924,7 +1946,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -1948,7 +1971,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2105,7 +2129,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2129,7 +2154,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2153,7 +2179,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2339,7 +2366,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2363,7 +2391,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2387,7 +2416,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2569,7 +2599,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2593,7 +2624,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {
@@ -2617,7 +2649,8 @@
                             "type": "string",
                             "enum": [
                               "center-hero",
-                              "floating-stage"
+                              "floating-stage",
+                              "macro-card"
                             ]
                           },
                           "motion": {

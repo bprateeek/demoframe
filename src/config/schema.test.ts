@@ -172,6 +172,12 @@ describe('demoConfigSchema', () => {
         cinematic: { composition: 'floating-stage' },
       }).cinematic?.composition,
     ).toBe('floating-stage');
+    expect(
+      demoConfigSchema.parse({
+        ...minimal,
+        cinematic: { composition: 'macro-card' },
+      }).cinematic?.composition,
+    ).toBe('macro-card');
   });
 
   it('accepts top-level cinematic defaults for non-screenshot content scenes', () => {
@@ -213,7 +219,7 @@ describe('demoConfigSchema', () => {
     expect(
       demoConfigSchema.safeParse({
         ...minimal,
-        cinematic: { composition: 'macro-card' },
+        cinematic: { composition: 'path-journey' },
       }).success,
     ).toBe(false);
     expect(
