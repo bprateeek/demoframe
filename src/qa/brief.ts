@@ -150,6 +150,24 @@ export function briefWarnings(config: DemoConfig, opts: BriefWarningOptions = {}
     return [];
   }
 
+  const summary = briefSummary(config);
+  if (summary.confirmed && brief.screenshotPolicy !== 'raw-intentional') {
+    if (!filledText(brief.product) && !filledText(brief.repo)) {
+      warnings.push({
+        code: 'brief.identityMissing',
+        message:
+          'brief: confirmed reconstruction is missing product identity; add brief.product or brief.repo so product names survive simplification',
+      });
+    }
+    if (!brief.verbatimCopy?.some((item) => filledText(item))) {
+      warnings.push({
+        code: 'brief.verbatimCopyMissing',
+        message:
+          'brief: confirmed reconstruction has no verbatimCopy; add exact button labels, titles, or status text that should appear unchanged',
+      });
+    }
+  }
+
   if (brief.screenshotPolicy) {
     const screenshotShare = screenshotRuntimeShare(config);
     const hasScreenshots = config.scenes.some((scene) => scene.type === 'screenshot');

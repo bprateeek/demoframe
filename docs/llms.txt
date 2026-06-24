@@ -172,6 +172,10 @@ check/preview/render error when the brief is missing, inferred, incomplete, or
 not marked user-confirmed. --autonomous is the explicit opt-out for headless
 inference; it demotes only brief.unconfirmed/brief.incomplete to notices and
 labels reports as inferred.
+Confirmed non-raw reconstruction briefs warn when they omit both brief.product
+and brief.repo, or when brief.verbatimCopy has no exact UI copy. These warnings
+do not block normal check/render unless --strict is enabled; they exist to keep
+agent-authored demos from becoming generic.
 
 brief fields:
 - mode user-confirmed|inferred: user-confirmed means the user answered the

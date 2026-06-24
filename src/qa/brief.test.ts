@@ -26,6 +26,9 @@ const filledBrief = {
   placement: 'github-readme',
   arc: 'Ask, automate, publish',
   climax: 'Green publish card',
+  product: 'DemoFlow',
+  repo: 'bprateeek/demoframe',
+  verbatimCopy: ['Publish draft'],
 } as const;
 
 describe('brief QA helpers', () => {
@@ -118,6 +121,33 @@ describe('brief QA helpers', () => {
       brief: { ...filledBrief, screenshotPolicy: 'raw-intentional' },
     });
     expect(briefWarnings(noScreenshots).some((warning) => warning.message.includes('raw-intentional'))).toBe(true);
+  });
+
+  it('warns when a confirmed reconstruction brief lacks identity or verbatim copy', () => {
+    const sparseBrief = {
+      mode: 'user-confirmed',
+      audience: 'README visitors',
+      source: 'Synthetic product flow',
+      screenshotPolicy: 'reconstruct',
+      placement: 'github-readme',
+      arc: 'Ask, work, result',
+      climax: 'Final card',
+    } as const;
+    const sparse = parse({
+      brief: sparseBrief,
+    });
+    expect(briefWarnings(sparse).map((warning) => warning.code)).toEqual([
+      'brief.identityMissing',
+      'brief.verbatimCopyMissing',
+    ]);
+
+    const raw = parse({
+      brief: {
+        ...sparseBrief,
+        screenshotPolicy: 'raw-intentional',
+      },
+    });
+    expect(briefWarnings(raw).map((warning) => warning.code)).not.toContain('brief.identityMissing');
   });
 
   it('warns on brand mismatches and placement/preset mismatch', () => {

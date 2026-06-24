@@ -50,6 +50,9 @@ the user has answered the interview and confirmed the scene mapping. A missing,
 empty, TODO-filled, inferred, or otherwise unconfirmed brief makes
 `demoframe check`, `preview`, and `render` fail unless the run explicitly passes
 `--autonomous` (or MCP `autonomous: true`), which labels the output as inferred.
+Confirmed reconstruction briefs that omit both `product` and `repo`, or omit
+`verbatimCopy`, stay valid but warn because agents need product names and exact
+UI copy to reconstruct rather than genericize the demo.
 
 ```yaml
 brief:
