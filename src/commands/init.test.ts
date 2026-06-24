@@ -127,6 +127,8 @@ describe('runInit', () => {
     const written = readFileSync(file, 'utf8');
     expect((written.match(/<!-- demoframe:start -->/g) ?? []).length).toBe(1);
     expect(written).toContain('brief.mode: user-confirmed');
+    expect(written).toContain('repo reconnaissance');
+    expect(written).toContain('source signal -> intent -> scene -> preserve / simplify / remove / copy');
     expect(written).not.toContain('stale');
     expect(existsSync(path.join(nested, 'AGENTS.md'))).toBe(false);
   });

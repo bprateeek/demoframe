@@ -72,6 +72,32 @@ with no human, pass `--autonomous`, record assumptions with `--assumption` or
 `brief.assumptions`, and expect `report.json` to say `mode: inferred` and
 `confirmed: false`.
 
+## Reconnaissance before scenes
+
+Before authoring YAML, inspect the repo like a product designer with a terminal:
+
+- Read the nearest app README, package/app metadata, route names, and any
+  screenshots or example configs that reveal product vocabulary.
+- Identify the audience, core workflow, primary object names, success state,
+  and exact UI copy worth preserving.
+- Decide the frame and destination from the actual surface being demonstrated,
+  not from the screenshot dimensions alone.
+- Note privacy risks before writing scenes: emails, customer names, internal
+  URLs, API tokens, or production data should be replaced with synthetic copy.
+
+Record the result as a short scene-mapping note before rendering. Use this
+format for each source signal:
+
+```md
+source signal -> intent -> scene -> preserve / simplify / remove / copy
+Mobile ask screenshot -> user requests help -> typing -> preserve "Ship report" / simplify chrome / remove avatars / copy button label
+CI log -> workspace verifies result -> terminal-playback -> preserve command + final pass line / simplify middle output / remove hostnames / copy "All checks passed"
+GitHub PR page -> result is ready -> status-card -> preserve PR title + checks / simplify file list / remove timestamps / copy "Ready for review"
+```
+
+Only start scenes after the mapping proves every screenshot is being
+reconstructed, simplified, or intentionally marked raw.
+
 Density rules: one idea per scene, short labels, at most ~4 step items, generous
 whitespace, a single warm accent, 8 to 12s total, and a `hold` on the ending
 before the loop restarts.
@@ -130,7 +156,8 @@ demoframe scenes (typing/steps/status-card/chat/screen), never paste screenshots
 frame. For `brief.intent: abstract`, screenshot scenes require
 `brief.screenshotPolicy: raw-intentional`, and visible product payload from
 `brief.product`, `brief.verbatimCopy`, or a metric/callout value. Interview first (narrative arc,
-climax, destination, brand, names, exact copy, what to keep vs simplify) and record it in the top-level `brief:` block.
+climax, destination, brand, names, exact copy, what to keep vs simplify), then make a scene mapping:
+`source signal -> intent -> scene -> preserve / simplify / remove / copy`. Record the interview in the top-level `brief:` block.
 Set `brief.mode: user-confirmed` only after confirmation; otherwise check,
 preview, and render fail unless `--autonomous` is explicit, in which case the
 output is labeled inferred and assumptions should be recorded. `demoframe check`/`render` reject a frameless all-screenshot demo;

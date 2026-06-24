@@ -56,6 +56,26 @@ Then confirm the screen-to-scene mapping with the user before rendering. In auto
 
 **Density rules:** one idea per scene, short labels, at most ~4 step items, generous whitespace, a single warm accent, 8 to 12s total, and a `hold` on the ending before the loop restarts.
 
+## Repo reconnaissance and scene mapping
+
+Before writing scenes, inspect the repo and source material for product truth:
+
+- Read the nearest README, app/package metadata, route names, existing examples, and any screenshots or fixtures that reveal the workflow vocabulary.
+- Identify the audience, core action, primary object names, final success state, and exact copy that must survive reconstruction.
+- Decide the destination and frame from the actual story surface, not just the screenshot aspect ratio.
+- Flag privacy risks before authoring: emails, tokens, internal URLs, customer names, and production data need synthetic replacements.
+
+Then write a compact mapping for every source signal before rendering:
+
+```md
+source signal -> intent -> scene -> preserve / simplify / remove / copy
+Mobile ask screenshot -> user requests help -> typing -> preserve "Ship report" / simplify chrome / remove avatars / copy button label
+CI log -> workspace verifies result -> terminal-playback -> preserve command + final pass line / simplify middle output / remove hostnames / copy "All checks passed"
+GitHub PR page -> result is ready -> status-card -> preserve PR title + checks / simplify file list / remove timestamps / copy "Ready for review"
+```
+
+If a source signal cannot be mapped to a synthetic scene, either redesign the story or mark the screenshot as intentionally raw with `brief.screenshotPolicy: raw-intentional`.
+
 ## The loop
 
 0. **Author the brief.** Capture the interview in `brief:` first, then write the scene config from it. `init` scaffolds a TODO stub; fill it and set `mode: user-confirmed` before rendering, unless this is an explicit `--autonomous` run.
