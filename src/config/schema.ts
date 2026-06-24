@@ -232,7 +232,13 @@ const sceneFrameOverride = z
   })
   .strict();
 
-export const CINEMATIC_COMPOSITION_NAMES = ['center-hero', 'floating-stage', 'macro-card', 'path-journey'] as const;
+export const CINEMATIC_COMPOSITION_NAMES = [
+  'center-hero',
+  'floating-stage',
+  'macro-card',
+  'path-journey',
+  'orbit-object',
+] as const;
 const cinematicComposition = z.enum(CINEMATIC_COMPOSITION_NAMES);
 const cinematicMotion = z.literal('float-in');
 const cinematicAmbient = z.literal('ember');

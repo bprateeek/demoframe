@@ -184,6 +184,12 @@ describe('demoConfigSchema', () => {
         cinematic: { composition: 'path-journey' },
       }).cinematic?.composition,
     ).toBe('path-journey');
+    expect(
+      demoConfigSchema.parse({
+        ...minimal,
+        cinematic: { composition: 'orbit-object' },
+      }).cinematic?.composition,
+    ).toBe('orbit-object');
   });
 
   it('accepts top-level cinematic defaults for non-screenshot content scenes', () => {
@@ -225,7 +231,7 @@ describe('demoConfigSchema', () => {
     expect(
       demoConfigSchema.safeParse({
         ...minimal,
-        cinematic: { composition: 'orbit-object' },
+        cinematic: { composition: 'radial-focus' },
       }).success,
     ).toBe(false);
     expect(

@@ -269,6 +269,28 @@ describe('buildDocument scene motion wrappers', () => {
     expect(doc.html).toContain('.df-composition-path-journey-steps .df-steps-list::before');
     expect(doc.html).toContain('.df-composition-path-journey-screen .df-screen-block::before');
   });
+
+  it('adds orbit-object composition classes and orbit CSS for object scenes', async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'browser' },
+      cinematic: { composition: 'orbit-object' },
+      scenes: [
+        { type: 'metric-card', duration: 2, metrics: [{ label: 'Pulls', value: 12 }] },
+        {
+          type: 'screen',
+          duration: 2,
+          blocks: [{ block: 'callout', variant: 'message', text: 'Object centered' }],
+        },
+      ],
+    });
+    const doc = await buildDocument(config, baseDir);
+
+    expect(doc.html).toContain('df-composition-orbit-object-metric-card');
+    expect(doc.html).toContain('df-composition-orbit-object-screen');
+    expect(doc.html).toContain('.df-composition-orbit-object .df-rail-motion::before');
+    expect(doc.html).toContain('.df-composition-orbit-object .df-rail-motion::after');
+    expect(doc.html).toContain('.df-composition-orbit-object-screen .df-screen-block');
+  });
 });
 
 describe('buildDocument frame chrome layers (v0.7)', () => {
