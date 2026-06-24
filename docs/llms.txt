@@ -85,6 +85,30 @@ skills/demoframe/SKILL.md in the package.
   Chromium download (otherwise automatic on first render).
 - `demoframe serve <config> [-p port]`: live preview server with a scrubber (for humans).
 
+## Agent workflow
+
+Before writing YAML, do repo reconnaissance:
+
+- Read the closest README, app/package metadata, route names, existing demos,
+  and source screenshots to learn the product vocabulary.
+- Identify audience, core workflow, primary objects, final success state, exact
+  copy to preserve, and private data to replace.
+- Choose frame and destination from the story surface, not only screenshot
+  dimensions.
+
+Then create a scene mapping before rendering:
+
+```md
+source signal -> intent -> scene -> preserve / simplify / remove / copy
+mobile ask screenshot -> user request -> typing -> preserve product name / simplify chrome / remove avatars / copy button label
+terminal log -> work being done -> terminal-playback -> preserve command + pass line / simplify middle output / remove hostnames / copy "All checks passed"
+PR page -> final result -> status-card -> preserve title + checks / simplify files / remove timestamps / copy "Ready for review"
+```
+
+Every source signal must either map to a synthetic scene or be explicitly
+treated as an intentional raw screenshot with `brief.screenshotPolicy:
+raw-intentional`.
+
 ## MCP tools
 
 - `get_schema`: return schema/demoframe.schema.json.
