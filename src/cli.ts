@@ -136,7 +136,7 @@ program
   )
   .option('--asset-out <path>', 'copy the primary rendered asset to a file or directory')
   .option('--strict', 'treat check warnings and layout findings as render failures', false)
-  .option('--encoder-profile <profile>', 'encoder profile: legacy or modern', 'legacy')
+  .option('--encoder-profile <profile>', 'encoder profile: legacy or modern', 'modern')
   .option('--autonomous', 'allow an unconfirmed brief and label the report as inferred', false)
   .option('--assumption <text>', 'record an assumption for an autonomous/inferred render', collectAssumption, [] as string[])
   .action(async (config: string, opts: { out: string; keepFrames: boolean; download: boolean; stills: boolean; for?: string; assetOut?: string; strict: boolean; encoderProfile: string; allowRawScreenshots: boolean; autonomous: boolean; assumption: string[] }) => {

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { gifQuality, mp4Crf, parseEncoderProfile, webmCrf, webpQuality } from './profiles.js';
 
 describe('encoder profiles', () => {
-  it('defaults to legacy and validates explicit values', () => {
-    expect(parseEncoderProfile(undefined)).toBe('legacy');
+  it('defaults to modern and validates explicit values', () => {
+    expect(parseEncoderProfile(undefined)).toBe('modern');
     expect(parseEncoderProfile('legacy')).toBe('legacy');
     expect(parseEncoderProfile('modern')).toBe('modern');
     expect(() => parseEncoderProfile('cinematic')).toThrow(/legacy, modern/);

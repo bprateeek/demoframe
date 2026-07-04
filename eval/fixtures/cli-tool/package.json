@@ -1,0 +1,14 @@
+{
+  "name": "shipcheck",
+  "version": "0.3.0",
+  "description": "Pre-release checklists for your terminal. Add checks, run them, ship with confidence.",
+  "type": "module",
+  "bin": {
+    "shipcheck": "src/cli.js"
+  },
+  "scripts": {
+    "start": "node src/cli.js"
+  },
+  "keywords": ["release", "checklist", "cli", "shipping"],
+  "license": "MIT"
+}
