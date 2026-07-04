@@ -22,7 +22,7 @@ const QUALITY_RANK: Record<Output['quality'], number> = {
 };
 
 export function parseEncoderProfile(value: string | undefined): EncoderProfile {
-  if (!value) return 'legacy';
+  if (!value) return 'modern';
   if ((ENCODER_PROFILES as readonly string[]).includes(value)) return value as EncoderProfile;
   throw new Error(`--encoder-profile must be one of: ${ENCODER_PROFILES.join(', ')}`);
 }

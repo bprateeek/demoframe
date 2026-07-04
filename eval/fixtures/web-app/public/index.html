@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>pulseboard</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #0e1320; color: #e8ecf4; margin: 0; padding: 2rem; }
+  h1 { font-size: 1.2rem; letter-spacing: 0.04em; }
+  .uptime { color: #8aa0c4; margin-bottom: 1.5rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+  .card { background: #171e30; border: 1px solid #26304a; border-radius: 10px; padding: 1rem; }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 0.5rem; }
+  .up { background: #37d67a; }
+  .degraded { background: #f5a623; }
+  .down { background: #f0426b; }
+  .latency { color: #8aa0c4; font-size: 0.85rem; margin-top: 0.4rem; }
+</style>
+</head>
+<body>
+<h1>pulseboard</h1>
+<div class="uptime" id="uptime">loading…</div>
+<div class="grid" id="grid"></div>
+<script>
+async function refresh() {
+  const res = await fetch('/api/status');
+  const data = await res.json();
+  document.getElementById('uptime').textContent = `30-day uptime: ${data.uptimePct}%`;
+  document.getElementById('grid').innerHTML = data.services.map((s) => `
+    <div class="card">
+      <div><span class="dot ${s.status}"></span><strong>${s.name}</strong></div>
+      <div class="latency">${s.latencyMs} ms, ${s.status}</div>
+    </div>`).join('');
+}
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>

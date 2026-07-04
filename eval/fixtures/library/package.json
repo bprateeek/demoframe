@@ -1,0 +1,15 @@
+{
+  "name": "fuzzymatch",
+  "version": "2.0.1",
+  "description": "Fast fuzzy string matching for command palettes and pickers. Score, rank, and highlight in 2KB.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["fuzzy", "search", "match", "filter", "command-palette"],
+  "license": "MIT"
+}

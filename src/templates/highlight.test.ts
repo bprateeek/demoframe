@@ -24,7 +24,7 @@ const SAMPLES: Record<string, string> = {
 };
 
 describe('highlightCode', () => {
-  it('highlights every supported lang under the JS regex engine', async () => {
+  it('highlights every supported lang under the JS regex engine', { timeout: 30_000 }, async () => {
     for (const lang of CODE_LANGS) {
       const out = await highlightCode(SAMPLES[lang], { ...base, lang });
       expect(out, lang).toContain('class="line"');

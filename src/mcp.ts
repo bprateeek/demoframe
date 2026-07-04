@@ -147,7 +147,7 @@ server.registerTool(
       out: z.string().optional().describe('output directory (default "dist")'),
       autonomous: z.boolean().optional().describe('allow an unconfirmed brief and label the render as inferred'),
       assumptions: z.array(z.string()).optional().describe('assumptions to record for an autonomous/inferred render'),
-      encoderProfile: z.enum(['legacy', 'modern']).optional().describe('encoder profile to use (default "legacy")'),
+      encoderProfile: z.enum(['legacy', 'modern']).optional().describe('encoder profile to use (default "modern")'),
       for: destinationPresetsInput,
       strict: z.boolean().optional().describe('treat check warnings and layout findings as render failures'),
       allowRawScreenshots: z
