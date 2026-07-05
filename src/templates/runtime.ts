@@ -28,6 +28,7 @@ export function runtimeJs(timelineJson: string): string {
   const emberEls = ambientEl ? Array.from(ambientEl.querySelectorAll('.df-ember')) : [];
   const cursorEl = document.querySelector('.df-cursor');
   const burstEl = document.querySelector('.df-celebrate');
+  const dipEl = document.querySelector('.df-dip');
 
   function setChromeLayer(layer, opacity) {
     chromeEls.forEach((el) => {
@@ -475,29 +476,55 @@ export function runtimeJs(timelineJson: string): string {
     const act = T.scenes[a];
     T.scenes.forEach((s) => {
       const el = els[s.index];
-      if (el) el.style.opacity = 0;
+      // Transitions write style.transform on scene roots; clear it so a stale push
+      // translate never persists past its window.
+      if (el) { el.style.opacity = 0; el.style.transform = ''; }
     });
     chromeEls.forEach((el) => { el.style.opacity = 0; });
     const rScene = T.scenes[act.renderIndex];
     const lt = act.index === rScene.index ? t - act.start : rScene.duration;
     let curOpacity = 1;
     let prevChromeLayer = null;
+    let dipCover = 0;
     drawAmbient(t);
-    if (act.transition === 'crossfade' && a > 0) {
+    if (act.transition !== 'cut' && a > 0) {
       const fade = Math.min(T.fade, act.duration / 2);
       const fp = clamp((t - act.start) / fade, 0, 1);
       if (fp < 1) {
         const prevAct = T.scenes[a - 1];
         const prev = T.scenes[prevAct.renderIndex];
-        // Only fade when the previous render scene differs; a hold (or any scene)
-        // that re-renders the same DOM must not fade its own held frame back in.
+        // Only animate against the previous scene when it renders different DOM; a
+        // hold (or any scene) that re-renders the same frame must not fight itself.
         if (prev.index !== rScene.index) {
-          apply(prev, prev.duration, 1);
-          curOpacity = fp;
-          prevChromeLayer = prevAct.chromeLayer;
+          // Push tears sideways when the chrome differs across the pair, so fall
+          // back to a crossfade instead of sliding the header with the content.
+          let mode = act.transition;
+          if (mode === 'push' && prevAct.chromeLayer !== act.chromeLayer) mode = 'crossfade';
+          if (mode === 'crossfade') {
+            apply(prev, prev.duration, 1);
+            curOpacity = fp;
+            prevChromeLayer = prevAct.chromeLayer;
+          } else if (mode === 'push') {
+            const e = easeByName['ease-in-out-cubic'](fp);
+            const w = scenesEl ? scenesEl.getBoundingClientRect().width : window.innerWidth;
+            apply(prev, prev.duration, 1);
+            const prevEl = els[prev.index];
+            if (prevEl) prevEl.style.transform = 'translateX(' + (-w * e) + 'px)';
+            const inEl = els[rScene.index];
+            if (inEl) inEl.style.transform = 'translateX(' + (w * (1 - e)) + 'px)';
+          } else if (mode === 'dip-to-color') {
+            // Triangular cover: 0 at the ends, 1 at the midpoint where scenes swap.
+            dipCover = easeByName['ease-in-out-cubic'](1 - Math.abs(2 * fp - 1));
+            if (fp < 0.5) {
+              apply(prev, prev.duration, 1);
+              curOpacity = 0;
+              prevChromeLayer = prevAct.chromeLayer;
+            }
+          }
         }
       }
     }
+    if (dipEl) dipEl.style.opacity = String(dipCover);
     if (prevChromeLayer !== null && prevChromeLayer !== act.chromeLayer) {
       setChromeLayer(prevChromeLayer, 1);
       setChromeLayer(act.chromeLayer, curOpacity);

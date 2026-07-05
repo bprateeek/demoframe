@@ -3,6 +3,35 @@
 demoframe is pre-1.0: the config schema may change between minor versions.
 Breaking changes are always listed here.
 
+## 0.11.0
+
+Motion and transition grammar. A small, curated set of motion presets and
+scene transitions, all tuned by eye rather than exposed as a full animation
+API, so agents can add deliberate movement without a config explosion.
+
+### Added
+
+- Three `cinematic.motion` presets: `drift` (a slow ambient hold for a scene
+  meant to linger), `settle` (a crisp overshoot that snaps back), and
+  `dolly-in` (a hero push-in, eligible only on `status-card`, `metric-card`,
+  `screen`, and `screenshot`). They join the existing `float-in` and `rise`.
+- Two scene transitions: `push` (the incoming scene slides in from the right as
+  the outgoing exits left; softly falls back to a crossfade when the chrome
+  differs across the pair so the header never tears) and `dip-to-color` (dips
+  through the resolved theme background color at the midpoint, a clean reset
+  before a new section).
+- Transition windows now feed motion blur and preview/layout-QA sampling, so
+  the contact sheet and judge see the transition midpoint, and push/dip motion
+  is blurred like existing choreography (text-mutating scenes stay sharp, as
+  before).
+- The `launch-hero` gallery template showcases the new grammar: a `dolly-in`
+  hero, a `push` into the quickstart, and a `dip-to-color` into the proof.
+
+### Changed
+
+- Over-budget guidance now names `push` and `dip-to-color` alongside
+  `crossfade` as fades that inflate GIF size.
+
 ## 0.10.0
 
 Brief and interview governance. This release makes the authoring interview a

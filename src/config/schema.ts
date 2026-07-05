@@ -270,7 +270,7 @@ const cinematicSchema = z.union([
 
 const sceneBase = {
   duration: z.number().positive().max(30),
-  transition: z.enum(['cut', 'crossfade']).default('cut'),
+  transition: z.enum(['cut', 'crossfade', 'push', 'dip-to-color']).default('cut'),
   name: z.string().max(40).optional(),
   celebrate: z.boolean().default(false),
   frame: sceneFrameOverride.optional(),

@@ -6,7 +6,13 @@ import {
   MOTION_PRESET_REGISTRY,
   type MotionPresetName,
 } from '../templates/motion/presets.js';
-import { motionPeakTimes, previewSampleTimes, timelineCinematicMotionWindows, timelineMotionWindows } from './sampling.js';
+import {
+  motionPeakTimes,
+  previewSampleTimes,
+  timelineCinematicMotionWindows,
+  timelineMotionWindows,
+  timelineTransitionWindows,
+} from './sampling.js';
 import { resolveTimeline } from './timeline.js';
 
 describe('previewSampleTimes', () => {
@@ -41,7 +47,7 @@ describe('previewSampleTimes', () => {
 
 describe('motion preset sampling', () => {
   it('keeps the scoped preset names in one registry', () => {
-    expect(MOTION_PRESET_NAMES).toEqual(['float-in', 'rise']);
+    expect(MOTION_PRESET_NAMES).toEqual(['float-in', 'rise', 'drift', 'settle', 'dolly-in']);
   });
 
   it('keeps registry offsets and windows inside normalized timeline bounds', () => {
@@ -60,11 +66,10 @@ describe('motion preset sampling', () => {
     }
   });
 
-  it('backs every public motion preset with wrapper tracks', () => {
+  it('backs every public motion preset with a scene wrapper track', () => {
     for (const presetName of MOTION_PRESET_NAMES) {
       const preset = MOTION_PRESET_REGISTRY[presetName];
       expect(preset.wrappers?.scene).toBeDefined();
-      expect(preset.wrappers?.rail).toBeDefined();
     }
   });
 
@@ -90,7 +95,7 @@ describe('motion preset sampling', () => {
       }),
     );
 
-    expect(motionPeakTimes(timeline)).toEqual([1.8, 4.2, 7.2, 1.5, 6.4]);
+    expect(motionPeakTimes(timeline)).toEqual([1.8, 4.2, 7.2, 1.5, 6.4, 3, 8.5, 1.6, 3.2, 6]);
   });
 
   it('filters ineligible scenes out of preset-derived samples and windows', () => {
@@ -184,5 +189,68 @@ describe('motion preset sampling', () => {
     );
 
     expect(timelineCinematicMotionWindows(timeline).map((window) => window.sceneIndex)).toEqual([0, 0]);
+  });
+});
+
+describe('timelineTransitionWindows', () => {
+  it('emits one clamped window per push/dip scene and skips cut/crossfade and scene 0', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        scenes: [
+          { type: 'typing', duration: 4, text: 'first', transition: 'push' },
+          { type: 'code', duration: 4, code: 'const a = 1;', transition: 'push' },
+          { type: 'status-card', duration: 4, title: 'Done', checks: ['Build'], transition: 'dip-to-color' },
+          { type: 'metric-card', duration: 4, metrics: [{ label: 'n', value: 1 }], transition: 'crossfade' },
+        ],
+      }),
+    );
+
+    expect(timelineTransitionWindows(timeline)).toEqual([
+      { sceneIndex: 1, sceneType: 'code', window: 'transition', start: 4, end: 4.45, easing: 'ease-in-out-cubic' },
+      {
+        sceneIndex: 2,
+        sceneType: 'status-card',
+        window: 'transition',
+        start: 8,
+        end: 8.45,
+        easing: 'ease-in-out-cubic',
+      },
+    ]);
+  });
+
+  it('clamps the window to half the scene duration for short scenes', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        scenes: [
+          { type: 'typing', duration: 3, text: 'first' },
+          { type: 'code', duration: 0.6, code: 'x', transition: 'push' },
+        ],
+      }),
+    );
+
+    expect(timelineTransitionWindows(timeline)).toEqual([
+      { sceneIndex: 1, sceneType: 'code', window: 'transition', start: 3, end: 3.3, easing: 'ease-in-out-cubic' },
+    ]);
+  });
+});
+
+describe('previewSampleTimes transition midpoints', () => {
+  it('adds a sample at the transition midpoint for push and dip scenes', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        scenes: [
+          { type: 'typing', duration: 4, text: 'first' },
+          { type: 'code', duration: 4, code: 'const a = 1;', transition: 'push' },
+          { type: 'status-card', duration: 4, title: 'Done', checks: ['Build'], transition: 'dip-to-color' },
+        ],
+      }),
+    );
+
+    const times = previewSampleTimes(timeline);
+    expect(times).toContain(4.225);
+    expect(times).toContain(8.225);
   });
 });

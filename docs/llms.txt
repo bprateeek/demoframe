@@ -260,7 +260,10 @@ can switch to a GitHub PR URL/title for the result while keeping one browser
 frame.
 
 scenes: 1-12 entries, each with duration (seconds, <=30, total <=60),
-optional transition cut|crossfade (cut default; crossfade costs GIF size),
+optional transition cut|crossfade|push|dip-to-color (cut default; crossfade,
+push, and dip-to-color each cost GIF size like a fade; push slides the incoming
+scene in from the right and falls back to crossfade when chrome differs across
+the pair; dip-to-color dips through the theme background at the midpoint),
 and optional celebrate?: bool (a restrained success burst, a checkmark pop +
 ring + accent dots, anchored to the scene's CTA/result; put it on the final
 scene or a trailing hold so it lands on the closing frame):
@@ -336,8 +339,10 @@ scene or a trailing hold so it lands on the closing frame):
   object. Use `path-journey` for step-by-step flows where the path itself
   should read visually, and `orbit-object` when the object should feel centered
   inside a subtle orbital stage.
-- `cinematic.motion` supports `float-in` for a gentle staged entrance and
-  `rise` for a simpler upward reveal.
+- `cinematic.motion` supports `float-in` for a gentle staged entrance, `rise`
+  for a simpler upward reveal, `drift` for a slow ambient hold on a scene meant
+  to linger, `settle` for a crisp overshoot that snaps back, and `dolly-in` for
+  a hero push-in (eligible only on status-card/metric-card/screen/screenshot).
 - `cinematic.ambient: ember` adds a restrained ambient layer inside the frame.
   In v1 the resolved scope is timeline-wide whenever any effective scene
   cinematic opts in; render records this as `cinematic.ambient.scope: timeline`
@@ -360,8 +365,10 @@ scene or a trailing hold so it lands on the closing frame):
 - Keep total duration 8-15s for README heroes.
 - Respect the text limits; check enforces them. Shorter copy reads better at
   280px display width.
-- Default transition cut everywhere; one crossfade into the final scene is a
-  nice touch and usually affordable.
+- Default transition cut everywhere; one crossfade, push, or dip-to-color into
+  the final scene is a nice touch and usually affordable. Use push to step
+  forward between peer scenes and dip-to-color to reset the eye before a new
+  section; both cost GIF size, so keep them sparse.
 - Never put real emails, tokens, internal URLs, or customer data in copy;
   check will warn, --strict will fail.
 - Workflow: edit config -> check -> render -> parse report.json -> inspect

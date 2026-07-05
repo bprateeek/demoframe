@@ -185,7 +185,12 @@ export async function buildDocument(
       `<div class="df-celebrate-check">${icons.check}</div></div>`
     : '';
 
-  const scenesHtml = `${ambientHtml(config)}<div class="df-scenes" style="position:relative;z-index:1;flex:1;min-height:0;">${sceneParts.join('\n')}${cornerLogoHtml}${overlayHtml}</div>`;
+  // The dip-to-color cover lives inside the content container (never the viewport)
+  // so it stays within the already-opaque frame and does not expand the alpha crop.
+  const needsDip = timeline.scenes.some((s) => s.transition === 'dip-to-color');
+  const dipHtml = needsDip ? `<div class="df-dip" aria-hidden="true"></div>` : '';
+
+  const scenesHtml = `${ambientHtml(config)}<div class="df-scenes" style="position:relative;z-index:1;flex:1;min-height:0;">${sceneParts.join('\n')}${cornerLogoHtml}${overlayHtml}${dipHtml}</div>`;
 
   let frameHtml: string;
   switch (config.frame.type) {
