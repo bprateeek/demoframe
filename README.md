@@ -204,9 +204,9 @@ background color at the midpoint, a clean reset before a new section). Push and
 dip inflate the GIF palette like crossfade does; prefer cuts when size matters.
 
 **Theme**: accent color, light/dark mode, bundled Inter + JetBrains Mono
-fonts (pixel-stable across machines), optional background override. v0.4 adds
-`preset` (`github-dark`, `paper`, `midnight`, `candy`; explicit keys win),
-full `palette` control over the 11 named color slots, custom font files
+fonts (pixel-stable across machines), optional background override. Theming also
+includes `preset` (`github-dark`, `paper`, `midnight`, `candy`; explicit keys
+win), full `palette` control over the 11 named color slots, custom font files
 (`font: { sans: brand.woff2, mono: brand-mono.ttf }`, embedded at render),
 and a rendered `logo` (`header` places it in the frame's title bar, `corner`
 overlays a badge over the scenes).

@@ -1,0 +1,133 @@
+[
+  {
+    "fixture": "cli-tool",
+    "gates": {
+      "install": true,
+      "configFound": true,
+      "check": true,
+      "checkBlocking": [
+        "x brief: interview not confirmed. Ask the 7 interview questions, fill brief.mode: user-confirmed with audience/source/screenshotPolicy/placement/arc/climax, or pass --autonomous to label the output as inferred."
+      ],
+      "artifact": true,
+      "readmeEmbed": true,
+      "budget": true
+    },
+    "judge": {
+      "readability": 4,
+      "polish": 4,
+      "specificity": 5,
+      "brand": 4,
+      "placeholders": 5,
+      "overall": 4,
+      "verdict": "pass",
+      "notes": "Clean, legible terminal playback showing shipcheck's real add/run/done/exit-code flow with no leaked placeholders; the biggest weakness is that the 'light' variant only swaps the page background while the terminal itself stays dark, so the light/dark treatment isn't truly distinct."
+    },
+    "agent": {
+      "ok": true,
+      "timedOut": false,
+      "model": "claude-sonnet-5",
+      "turns": 31,
+      "costUsd": 0.7693871999999999,
+      "resultTail": "--autonomous` since I was told to work without asking questions, recording assumptions in the brief per demoframe's guidance.\n- Validated with `demoframe check`/`preview` (no errors/warnings, budget OK), then rendered with `demoframe render` → `dist/demo.gif` (109KB, 640×403, 17.5s).\n- Embedded it in `README.md` right under the tagline.\n\nWhat's next: nothing required, but if the maintainer wants a different narrative (e.g. showing `shipcheck list`), `demo/demo.yml` can be edited and re-rendered."
+    },
+    "budgetSource": "report",
+    "previews": [
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/cli-tool/dist/preview/scene_0_terminal-playback.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/cli-tool/dist/preview/scene_1_terminal-playback.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/cli-tool/dist/preview/scene_2_terminal-playback.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/cli-tool/dist/preview/scene_3_terminal-playback.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/cli-tool/dist/preview/final_readme_size.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/cli-tool/dist/preview/final_github_dark.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/cli-tool/dist/preview/final_github_light.png"
+    ],
+    "mechanicalPass": true,
+    "judgeModel": "claude-opus-4-8",
+    "pass": true
+  },
+  {
+    "fixture": "web-app",
+    "gates": {
+      "install": true,
+      "configFound": true,
+      "check": true,
+      "checkBlocking": [
+        "x brief: interview not confirmed. Ask the 7 interview questions, fill brief.mode: user-confirmed with audience/source/screenshotPolicy/placement/arc/climax, or pass --autonomous to label the output as inferred."
+      ],
+      "artifact": true,
+      "readmeEmbed": true,
+      "budget": true
+    },
+    "judge": {
+      "readability": 5,
+      "polish": 4,
+      "specificity": 5,
+      "brand": 4,
+      "placeholders": 5,
+      "overall": 4,
+      "notes": "Strong, product-specific dashboard with real pulseboard copy (uptime 99.97%, 4 services, api/web/worker/postgres latencies, degraded state). Biggest weaknesses: the celebrate transition frame shows overlapping 'All services checked'/'Status' text and a stray floating check over the api card, and a lone blue check on the status row slightly breaks the otherwise green brand.",
+      "verdict": "pass"
+    },
+    "agent": {
+      "ok": true,
+      "timedOut": false,
+      "model": "claude-sonnet-5",
+      "turns": 46,
+      "costUsd": 1.3502193000000002,
+      "resultTail": "es checked\" with a celebrate flourish and a \"View pulseboard\" CTA\n\nRan it with `--autonomous` (recording assumptions, since no live interview was possible) through `check` → `preview` (verified stills) → `render --for github-readme`, producing `public/demo.webp` (124KB, 640x427, 11.8s, loops forever) and embedding it under the tagline in `README.md`. Source config lives in `demo/demo.yml` for future edits, and `demoframe` also wrote an `AGENTS.md` with guidance for future demo work in this repo."
+    },
+    "budgetSource": "report",
+    "previews": [
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/web-app/demo/dist/preview/scene_0_steps.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/web-app/demo/dist/preview/scene_1_screen.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/web-app/demo/dist/preview/scene_2_status-card.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/web-app/demo/dist/preview/moment_2_celebrate.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/web-app/demo/dist/preview/final_readme_size.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/web-app/demo/dist/preview/final_github_dark.png",
+      "/var/folders/mk/3xb4x6c14c1840hr4km4lj700000gn/T/demoframe-eval-QHmrHs/web-app/demo/dist/preview/final_github_light.png"
+    ],
+    "mechanicalPass": true,
+    "judgeModel": "claude-opus-4-8",
+    "pass": true
+  },
+  {
+    "fixture": "library",
+    "gates": {
+      "install": true,
+      "configFound": true,
+      "check": true,
+      "checkBlocking": [
+        "x brief: interview not confirmed. Ask the 7 interview questions, fill brief.mode: user-confirmed with audience/source/screenshotPolicy/placement/arc/climax, or pass --autonomous to label the output as inferred."
+      ],
+      "artifact": true,
+      "readmeEmbed": true,
+      "budget": true
+    },
+    "judge": {
+      "readability": 5,
+      "polish": 3,
+      "specificity": 5,
+      "brand": 3,
+      "placeholders": 5,
+      "overall": 4,
+      "notes": "Content is highly specific to fuzzymatch (real API, copy, and 4ms/2KB claims) and text is crisply legible, but the composition leans on a default terminal chrome and the second still is nearly empty ('node sear'), while the mixed green/blue checkmarks give no single consistent accent color.",
+      "verdict": "pass"
+    },
+    "agent": {
+      "ok": true,
+      "timedOut": false,
+      "model": "claude-sonnet-5",
+      "turns": 46,
+      "costUsd": 1.5223230000000008,
+      "resultTail": "ets/demo.webp`** — the rendered 640px WebP (94KB, loops forever, 10.9s), validated via `demoframe check --autonomous` (0 errors/warnings) and preview stills at README width, GitHub dark, and GitHub light.\n- **`README.md`** — embedded the demo right under the tagline with descriptive alt text.\n\nSince there was no human to run the required interview, I used `--autonomous` and recorded the inferred brief/assumptions in `demo.yml`'s `brief.assumptions` per demoframe's own contract for headless runs."
+    },
+    "budgetSource": "proxy",
+    "previews": [
+      "/Users/prateek/Projects/demoframe/eval/results/2026-07-05T15-22-35/library/preview/extracted_12.png",
+      "/Users/prateek/Projects/demoframe/eval/results/2026-07-05T15-22-35/library/preview/extracted_35.png",
+      "/Users/prateek/Projects/demoframe/eval/results/2026-07-05T15-22-35/library/preview/extracted_62.png"
+    ],
+    "mechanicalPass": true,
+    "judgeModel": "claude-opus-4-8",
+    "pass": true
+  }
+]
