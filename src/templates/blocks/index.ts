@@ -160,6 +160,72 @@ export const blockCss = `
   align-self: center;
 }
 .df-callout-text { color: var(--df-text); font-size: var(--df-fs-lg); font-weight: 750; line-height: 1.35; }
+.df-badge-neutral { color: var(--df-muted); background: color-mix(in srgb, var(--df-muted) 14%, var(--df-card)); }
+.df-badge-success { color: var(--df-success); background: color-mix(in srgb, var(--df-success) 14%, var(--df-card)); }
+/* tone text leans toward the theme text color so it stays readable in both modes */
+.df-badge-warn { color: color-mix(in srgb, #d29922 78%, var(--df-text)); background: color-mix(in srgb, #d29922 16%, var(--df-card)); }
+.df-badge-error { color: color-mix(in srgb, #e5484d 82%, var(--df-text)); background: color-mix(in srgb, #e5484d 14%, var(--df-card)); }
+.df-screen-hero-object { background: none; border: none; box-shadow: none; }
+.df-hero-object {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--df-s3);
+  padding: var(--df-s6) var(--df-s5);
+}
+.df-hero-object .df-grid-badge { align-self: center; }
+.df-hero-title {
+  font-size: clamp(28px, 4.6vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1.1;
+  color: var(--df-text);
+}
+.df-hero-subtitle { color: var(--df-muted); font-size: var(--df-fs-lg); max-width: 34em; }
+.df-hero-tile {
+  width: 104px;
+  height: 104px;
+  border-radius: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--df-accent), color-mix(in srgb, var(--df-accent) 55%, #000));
+  box-shadow:
+    0 18px 50px color-mix(in srgb, var(--df-accent) 45%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--df-accent) 35%, var(--df-border));
+  margin-bottom: var(--df-s2);
+}
+.df-hero-tile .df-screen-icon { width: auto; height: auto; background: none; color: #fff; }
+.df-hero-tile .df-screen-icon svg { width: 52px; height: 52px; }
+.df-hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--df-s3);
+  padding: var(--df-s6) calc(var(--df-s6) + var(--df-s4));
+  border-radius: var(--df-radius-lg);
+  background: var(--df-card);
+  border: 1px solid color-mix(in srgb, var(--df-accent) 30%, var(--df-border));
+  box-shadow:
+    0 24px 80px color-mix(in srgb, var(--df-accent) 28%, transparent),
+    0 12px 34px var(--df-shadow);
+}
+.df-hero-code-chip .df-hero-chip-cmd {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--df-s3);
+  font-family: var(--df-font-mono);
+  font-size: clamp(20px, 2.8vw, 28px);
+  font-weight: 700;
+  color: var(--df-text);
+  background: color-mix(in srgb, var(--df-text) 5%, var(--df-card));
+  border: 1px solid color-mix(in srgb, var(--df-accent) 35%, var(--df-border));
+  border-radius: 16px;
+  padding: var(--df-s4) var(--df-s6);
+  box-shadow: 0 18px 60px color-mix(in srgb, var(--df-accent) 30%, transparent);
+}
+.df-hero-chip-prompt { color: var(--df-accent); }
 `;
 
 function iconHtml(key: string | undefined): string {
@@ -176,6 +242,14 @@ function iconHtml(key: string | undefined): string {
     bolt: icons.bolt,
   } as const;
   return `<span class="df-screen-icon">${map[key as keyof typeof map]}</span>`;
+}
+
+type BadgeSpec = string | { text: string; tone: 'neutral' | 'success' | 'warn' | 'error' };
+
+function badgeHtml(badge: BadgeSpec | undefined): string {
+  if (!badge) return '';
+  if (typeof badge === 'string') return `<div class="df-grid-badge">${escapeHtml(badge)}</div>`;
+  return `<div class="df-grid-badge df-badge-${badge.tone}">${escapeHtml(badge.text)}</div>`;
 }
 
 function counterHtml(value: MetricValue, className: string): string {
@@ -215,6 +289,32 @@ function blockInnerHtml(block: ScreenBlock): string {
     case 'chart-card':
       return `${block.title ? `<div class="df-chart-card-title">${escapeHtml(block.title)}</div>` : ''}
         <div class="df-chart">${chartSvg(block.chart)}${chartLabels(block)}</div>`;
+    case 'hero-object': {
+      const badge = badgeHtml(block.badge);
+      if (block.kind === 'code-chip') {
+        return `<div class="df-hero-object df-hero-code-chip">
+          <div class="df-hero-chip-cmd"><span class="df-hero-chip-prompt">$</span><span>${escapeHtml(block.title)}</span></div>
+          ${block.subtitle ? `<div class="df-hero-subtitle">${escapeHtml(block.subtitle)}</div>` : ''}
+          ${badge}
+        </div>`;
+      }
+      if (block.kind === 'logo-chip') {
+        return `<div class="df-hero-object df-hero-logo-chip">
+          <div class="df-hero-tile">${iconHtml(block.icon ?? 'spark')}</div>
+          <div class="df-hero-title">${escapeHtml(block.title)}</div>
+          ${block.subtitle ? `<div class="df-hero-subtitle">${escapeHtml(block.subtitle)}</div>` : ''}
+          ${badge}
+        </div>`;
+      }
+      return `<div class="df-hero-object df-hero-glow-card">
+        <div class="df-hero-card">
+          ${block.icon ? iconHtml(block.icon) : ''}
+          <div class="df-hero-title">${escapeHtml(block.title)}</div>
+          ${block.subtitle ? `<div class="df-hero-subtitle">${escapeHtml(block.subtitle)}</div>` : ''}
+          ${badge}
+        </div>
+      </div>`;
+    }
     case 'card-grid':
       return `<div class="df-card-grid">${block.cards
         .map(
@@ -224,7 +324,7 @@ function blockInnerHtml(block: ScreenBlock): string {
                 ${iconHtml(card.icon)}
                 <div class="df-grid-card-title">${escapeHtml(card.title)}</div>
               </div>
-              ${card.badge ? `<div class="df-grid-badge">${escapeHtml(card.badge)}</div>` : ''}
+              ${badgeHtml(card.badge)}
             </div>
             ${card.value ? `<div class="df-grid-card-value">${escapeHtml(card.value)}</div>` : ''}
             ${card.desc ? `<div class="df-grid-card-desc">${escapeHtml(card.desc)}</div>` : ''}

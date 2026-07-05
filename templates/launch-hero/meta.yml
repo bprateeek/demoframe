@@ -1,0 +1,6 @@
+name: launch-hero
+description: Object-focused abstract launch opener, hero-object blocks on a dark full-bleed stage
+category: marketing
+frames: [none]
+scenes: [screen, hold]
+demoframeVersion: "0.11.0"

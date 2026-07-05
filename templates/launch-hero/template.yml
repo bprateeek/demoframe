@@ -1,0 +1,63 @@
+# Launch hero: an object-focused abstract opener built from hero-object blocks.
+# Everything about "Atlas" is fictional placeholder content. Replace every
+# REPLACE-marked value with this repository's real product, copy, and numbers.
+title: Atlas launch hero
+output: { format: webp, width: 854, fps: 24, budget: 4MB, displayWidth: 640, motionBlur: cinematic }
+theme:
+  accent: "#2fb4a6" # REPLACE: brand accent
+  mode: dark
+  font: inter
+  palette:
+    page: "#0a1214"
+    screen: "#0a1214"
+    card: "#121f22"
+    text: "#eaf4f2"
+    muted: "#8fa6a2"
+    border: "#1f3236"
+    shadow: "rgba(2, 8, 9, 0.55)"
+frame: { type: none, width: 854, height: 480, outside: "#0a1214", shadow: false }
+cinematic: { composition: orbit-object, motion: float-in, ambient: ember }
+scenes:
+  # Scene 1: the object. Product mark, name, one line.
+  - type: screen
+    duration: 4.2
+    layout: hero
+    blocks:
+      # REPLACE: product name, one-line value proposition, launch badge
+      - block: hero-object
+        kind: logo-chip
+        icon: spark
+        title: Atlas
+        subtitle: Instant API mocks for local development
+        badge: { text: New, tone: success }
+  # Scene 2: the quickstart. The one command that gets someone to value.
+  - type: screen
+    duration: 4.2
+    transition: crossfade
+    layout: hero
+    cinematic: { composition: floating-stage, motion: rise }
+    blocks:
+      # REPLACE: this repository's real install or run command
+      - block: hero-object
+        kind: code-chip
+        title: npx atlas mock ./openapi.yml
+        subtitle: A realistic mock server from your spec in one command
+  # Scene 3: the proof. Numbers that make the claim credible.
+  - type: screen
+    duration: 4.6
+    transition: crossfade
+    cinematic: { composition: macro-card, motion: rise }
+    blocks:
+      # REPLACE: three metrics that are true for this product
+      - block: stat-strip
+        tiles:
+          - { label: Mock routes served, value: { value: 12400 }, delta: { value: 9, dir: up } }
+          - { label: Cold start, value: { value: 0.8, suffix: s, decimals: 1 } }
+          - { label: Spec formats, value: { value: 3 } }
+      # REPLACE: the closing line a maintainer would put in the README
+      - block: callout
+        name: closer
+        variant: message
+        text: "Point Atlas at your spec. Ship against reality."
+  - type: hold
+    duration: 1.4
