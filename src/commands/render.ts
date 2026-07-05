@@ -477,7 +477,7 @@ export async function runRender(
           if (!final.withinBudget) {
             console.log(
               `\n${format.toUpperCase()} is still over budget after the retry ladder. Suggestions: shorten scene durations, ` +
-                'use transition: cut instead of crossfade, avoid photographic screenshots, or switch to format: mp4.',
+                'use transition: cut instead of crossfade/push/dip-to-color, avoid photographic screenshots, or switch to format: mp4.',
             );
           }
         }

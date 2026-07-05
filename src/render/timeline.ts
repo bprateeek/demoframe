@@ -10,7 +10,7 @@ export interface TimelineScene {
   duration: number;
   renderIndex: number;
   chromeLayer: number;
-  transition: 'cut' | 'crossfade';
+  transition: Scene['transition'];
   data: Record<string, unknown>;
 }
 

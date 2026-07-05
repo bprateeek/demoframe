@@ -171,9 +171,12 @@ global frame type: for example, a browser demo can show `frame.url:
 `"https://github.com/acme/repo/pull/42"` on the PR result scene.
 
 Top-level `cinematic` sets composition (`center-hero`, `floating-stage`,
-`macro-card`, `path-journey`, or `orbit-object`), motion (`float-in` or `rise`),
-and ambient defaults for non-screenshot content scenes; scene-level `cinematic`
-blocks override it.
+`macro-card`, `path-journey`, or `orbit-object`), motion (`float-in`, `rise`,
+`drift`, `settle`, or `dolly-in`), and ambient defaults for non-screenshot
+content scenes; scene-level `cinematic` blocks override it. Motion presets:
+`float-in`/`rise` lift a scene into place, `drift` is a slow ambient hold for a
+scene you want to linger, `settle` is a crisp overshoot that snaps back, and
+`dolly-in` is a hero push-in for `status-card`/`metric-card`/`screen`/`screenshot`.
 
 **Scenes**: `typing` (animated typing with caret), `steps` (progress rows with
 done/active/pending states), `status-card` (PR-style result screen with checks
@@ -194,8 +197,11 @@ scene drops a touch cursor that taps the action; `celebrate: true` plays a
 restrained success burst at the climax; `chat.avatars` adds per-role avatars.
 See `examples/mobile-flow` for all three.
 
-**Transitions**: `cut` (default) and `crossfade`. Crossfades inflate GIF
-palettes; prefer cuts when size matters.
+**Transitions**: `cut` (default), `crossfade`, `push` (incoming scene slides in
+from the right as the outgoing exits left; falls back to a crossfade when the
+chrome differs across the pair), and `dip-to-color` (dips through the theme
+background color at the midpoint, a clean reset before a new section). Push and
+dip inflate the GIF palette like crossfade does; prefer cuts when size matters.
 
 **Theme**: accent color, light/dark mode, bundled Inter + JetBrains Mono
 fonts (pixel-stable across machines), optional background override. v0.4 adds

@@ -18,10 +18,12 @@ theme:
 frame: { type: none, width: 854, height: 480, outside: "#0a1214", shadow: false }
 cinematic: { composition: orbit-object, motion: float-in, ambient: ember }
 scenes:
-  # Scene 1: the object. Product mark, name, one line.
+  # Scene 1: the object. Product mark, name, one line. A slow dolly-in pushes the
+  # hero toward the viewer instead of the ambient float used elsewhere.
   - type: screen
     duration: 4.2
     layout: hero
+    cinematic: { composition: orbit-object, motion: dolly-in, ambient: ember }
     blocks:
       # REPLACE: product name, one-line value proposition, launch badge
       - block: hero-object
@@ -30,10 +32,11 @@ scenes:
         title: Atlas
         subtitle: Instant API mocks for local development
         badge: { text: New, tone: success }
-  # Scene 2: the quickstart. The one command that gets someone to value.
+  # Scene 2: the quickstart. The one command that gets someone to value. It
+  # pushes in from the right so the demo reads as a deliberate step forward.
   - type: screen
     duration: 4.2
-    transition: crossfade
+    transition: push
     layout: hero
     cinematic: { composition: floating-stage, motion: rise }
     blocks:
@@ -42,11 +45,12 @@ scenes:
         kind: code-chip
         title: npx atlas mock ./openapi.yml
         subtitle: A realistic mock server from your spec in one command
-  # Scene 3: the proof. Numbers that make the claim credible.
+  # Scene 3: the proof. Numbers that make the claim credible. A dip through the
+  # background color resets the eye before the metrics settle into place.
   - type: screen
     duration: 4.6
-    transition: crossfade
-    cinematic: { composition: macro-card, motion: rise }
+    transition: dip-to-color
+    cinematic: { composition: macro-card, motion: settle }
     blocks:
       # REPLACE: three metrics that are true for this product
       - block: stat-strip

@@ -5,7 +5,7 @@ import type { BuiltDocument } from '../templates/document.js';
 import type { FrameCaptureMode, MotionBlur, Output, OutputFormat } from '../config/schema.js';
 import { openRenderSession } from './browser.js';
 import { computeAlphaBox, cropPngFile } from './crop.js';
-import { timelineCinematicMotionWindows, type TimelineMotionWindow } from './sampling.js';
+import { timelineCinematicMotionWindows, timelineTransitionWindows, type TimelineMotionWindow } from './sampling.js';
 import type { Timeline, TimelineScene } from './timeline.js';
 
 export interface RenderedFrames {
@@ -225,7 +225,7 @@ async function blurredCapture(
   const files: string[] = [];
   const scale = session.scale;
   const subframesPerFrame = MOTION_BLUR_SUBFRAMES_BY_QUALITY[quality];
-  const windows = timelineCinematicMotionWindows(doc.timeline);
+  const windows = [...timelineCinematicMotionWindows(doc.timeline), ...timelineTransitionWindows(doc.timeline)];
   assertMotionBlurBounds({
     width: doc.viewport.width * scale,
     height: doc.viewport.height * scale,

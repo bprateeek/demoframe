@@ -92,7 +92,7 @@ If a source signal cannot be mapped to a synthetic scene, either redesign the st
    Chromium (~150MB, one-time) and gifski download automatically on first use; pass `--no-download` to fail instead.
 5. **Verify from report.json.** Check `brief.mode: user-confirmed` and `brief.confirmed: true` for normal runs, plus `brief.requiredComplete` and `brief.recommendedComplete`; then every output: `withinBudget` true, `loopsForever` true, `durationS` close to the designed total, dimensions as expected. The `attempts` array shows the retry ladder; more than one attempt means the config is near the budget edge.
 6. **Look at the stills.** Read the `dist/preview/` PNGs, or run `npx demoframe preview demo.yml --for <destination>` for a cheaper destination-matched pass before rendering. Check: text fully readable at README size, nothing clipped, the final frame tells the whole story on its own, dark composite looks intentional.
-7. **Self-correct and re-render.** Over budget: shorten scenes, replace `crossfade` with `cut`, avoid photographic screenshots, or switch to `webp`/`mp4`. Clipped or cramped text: shorten copy (limits are in the schema). Repeat until report and stills are clean.
+7. **Self-correct and re-render.** Over budget: shorten scenes, replace `crossfade`/`push`/`dip-to-color` with `cut`, avoid photographic screenshots, or switch to `webp`/`mp4`. Clipped or cramped text: shorten copy (limits are in the schema). Repeat until report and stills are clean.
 
 ## Authoring guidance
 
@@ -106,7 +106,7 @@ If a source signal cannot be mapped to a synthetic scene, either redesign the st
   - `chat.avatars: { assistant, user }` adds a per-role avatar to chat rows. Each is an image path or a `{ initials, color }` monogram (1 to 3 letters). App identity in the header still comes from `theme.logo`.
 - Keep total duration 8 to 15s for README heroes; the hard cap is 60s.
 - Prefer `webp` output for READMEs: same autoplay as GIF, much smaller, full color. Keep `gif` when the destination requires it. `webm` (VP9) beats `mp4` on size for destinations that accept it.
-- Default `transition: cut`; one crossfade into the final scene is usually affordable.
+- Default `transition: cut`; one `crossfade`, `push`, or `dip-to-color` into the final scene is usually affordable. `push` (incoming slides in from the right; auto-falls back to crossfade when chrome differs) steps forward between peer scenes; `dip-to-color` dips through the theme background to reset the eye before a new section. All three cost GIF size, so keep them sparse.
 - Never put real emails, tokens, internal URLs, or customer data in copy or screenshots. `check` warns; treat its privacy findings as blockers.
 - **Screenshot fallback:** `screenshot` scenes are for when the screenshot itself is the subject (a bug report, a before/after proof, a dashboard layout), not for polished launch assets. Clean UI shots beat photos; photos explode GIF size.
 

@@ -529,6 +529,14 @@ svg { display: block; width: 100%; height: 100%; }
   border-radius: 50%;
   background: var(--df-accent);
 }
+.df-dip {
+  position: absolute;
+  inset: 0;
+  background: var(--df-page);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+}
 `;
 
 export function cinematicCompositionSceneClass(

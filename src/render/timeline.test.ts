@@ -41,6 +41,21 @@ describe('resolveTimeline', () => {
     expect(timeline.scenes[1].data).toEqual({ count: 1 });
   });
 
+  it('passes each scene transition through to the timeline', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'browser' },
+        scenes: [
+          { type: 'typing', duration: 3, text: 'hi' },
+          { type: 'code', duration: 3, code: 'const a = 1;', transition: 'push' },
+          { type: 'status-card', duration: 3, title: 'Done', checks: ['Build'], transition: 'dip-to-color' },
+          { type: 'metric-card', duration: 3, metrics: [{ label: 'n', value: 1 }], transition: 'crossfade' },
+        ],
+      }),
+    );
+    expect(timeline.scenes.map((s) => s.transition)).toEqual(['cut', 'push', 'dip-to-color', 'crossfade']);
+  });
+
   it('carries tap and celebrate flags into scene data (v0.5)', () => {
     const timeline = resolveTimeline(
       demoConfigSchema.parse({

@@ -103,11 +103,77 @@ export const MOTION_PRESET_REGISTRY = {
       },
     },
   },
+  drift: {
+    // Slow ambient hold: a single full-duration window that never settles, so the
+    // scene keeps easing toward its target for the whole shot.
+    eligibleSceneTypes: [
+      'typing',
+      'steps',
+      'status-card',
+      'terminal-playback',
+      'code',
+      'chat',
+      'metric-card',
+      'screen',
+    ],
+    windows: {
+      entrance: { start: 0, end: 1, easing: 'linear' },
+    },
+    peakSampleOffsets: [0.3, 0.85],
+    easing: { primary: 'linear' },
+    wrappers: {
+      scene: {
+        from: { x: 0, y: 0, scale: 1, opacity: 1 },
+        settle: { x: 0, y: -6, scale: 1.006, opacity: 1 },
+        to: { x: 0, y: -6, scale: 1.006, opacity: 1 },
+      },
+    },
+  },
+  settle: {
+    // A crisper, springier cousin of float-in: a quick overshoot that snaps back.
+    eligibleSceneTypes: ['typing', 'steps', 'status-card', 'code', 'chat', 'metric-card', 'screen'],
+    windows: {
+      entrance: { start: 0, end: 0.32, easing: 'ease-out-cubic' },
+      settle: { start: 0.32, end: 0.6, easing: 'ease-in-out-cubic' },
+    },
+    peakSampleOffsets: [0.16, 0.32, 0.6],
+    easing: { primary: 'ease-out-cubic', secondary: 'ease-in-out-cubic' },
+    wrappers: {
+      scene: {
+        from: { x: 0, y: 14, scale: 0.992, opacity: 0.96 },
+        settle: { x: 0, y: -3, scale: 1.005, opacity: 1 },
+        to: { x: 0, y: 0, scale: 1, opacity: 1 },
+      },
+    },
+  },
+  'dolly-in': {
+    // Hero reveal: a push-in that keeps creeping forward after the entrance lands.
+    eligibleSceneTypes: ['status-card', 'metric-card', 'screen', 'screenshot'],
+    windows: {
+      entrance: { start: 0, end: 0.45, easing: 'ease-out-cubic' },
+      settle: { start: 0.45, end: 1, easing: 'ease-in-out-cubic' },
+    },
+    peakSampleOffsets: [0.22, 0.45, 0.95],
+    easing: { primary: 'ease-out-cubic', secondary: 'ease-in-out-cubic' },
+    wrappers: {
+      scene: {
+        from: { x: 0, y: 10, scale: 0.96, opacity: 0.9 },
+        settle: { x: 0, y: 0, scale: 1, opacity: 1 },
+        to: { x: 0, y: 0, scale: 1.018, opacity: 1 },
+      },
+    },
+  },
 } as const satisfies Record<string, MotionPreset>;
 
 export type MotionPresetName = keyof typeof MOTION_PRESET_REGISTRY;
 
-export const MOTION_PRESET_NAMES = ['float-in', 'rise'] as const satisfies readonly MotionPresetName[];
+export const MOTION_PRESET_NAMES = [
+  'float-in',
+  'rise',
+  'drift',
+  'settle',
+  'dolly-in',
+] as const satisfies readonly MotionPresetName[];
 
 export function motionPreset(name: MotionPresetName): MotionPreset {
   return MOTION_PRESET_REGISTRY[name];

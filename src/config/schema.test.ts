@@ -31,6 +31,22 @@ describe('demoConfigSchema', () => {
     expect(config.scenes[0].transition).toBe('cut');
   });
 
+  it('accepts every transition kind and rejects unknown ones', () => {
+    for (const transition of ['cut', 'crossfade', 'push', 'dip-to-color']) {
+      const config = demoConfigSchema.parse({
+        ...minimal,
+        scenes: [{ type: 'typing', duration: 3, text: 'hello', transition }],
+      });
+      expect(config.scenes[0].transition).toBe(transition);
+    }
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'typing', duration: 3, text: 'hello', transition: 'slide' }],
+      }).success,
+    ).toBe(false);
+  });
+
   it('accepts full and partial brief blocks while rejecting brief typos', () => {
     const full = demoConfigSchema.parse({
       ...minimal,

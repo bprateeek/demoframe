@@ -13,8 +13,11 @@ export const TAP_PRESS_SAMPLE_OFFSET = 0.94;
 export interface TimelineMotionWindow {
   sceneIndex: number;
   sceneType: TimelineScene['type'];
-  preset: MotionPresetName;
-  window: MotionWindowName;
+  // Absent for transition windows, which are not tied to a motion preset.
+  preset?: MotionPresetName;
+  // 'transition' names a scene-pair window (push/dip); it is deliberately not a
+  // MotionWindowName so presets cannot declare one via preset.windows.
+  window: MotionWindowName | 'transition';
   start: number;
   end: number;
   easing: MotionEasingName;
@@ -38,6 +41,9 @@ export function previewSampleTimes(timeline: Timeline): number[] {
     times.push(ts.start + ts.duration * 0.15, ts.start + ts.duration * 0.5, ts.start + ts.duration * 0.9);
     if (ts.data.tap) times.push(ts.start + ts.duration * TAP_PRESS_SAMPLE_OFFSET);
     if (ts.data.celebrate) times.push(ts.start + Math.min(0.2, ts.duration * 0.25));
+    if (ts.index > 0 && (ts.transition === 'push' || ts.transition === 'dip-to-color')) {
+      times.push(ts.start + Math.min(timeline.fade, ts.duration / 2) / 2);
+    }
   }
   times.push(Math.max(0, timeline.duration - 0.05));
   return uniqueRoundedTimes(times.map((t) => clampTimelineTime(timeline, t)));
@@ -89,6 +95,24 @@ export function timelineMotionWindows(timeline: Timeline, presetName?: MotionPre
         });
       }
     }
+  }
+  return windows;
+}
+
+export function timelineTransitionWindows(timeline: Timeline): TimelineMotionWindow[] {
+  const windows: TimelineMotionWindow[] = [];
+  for (const scene of timeline.scenes) {
+    if (scene.index === 0) continue;
+    if (scene.transition !== 'push' && scene.transition !== 'dip-to-color') continue;
+    const fade = Math.min(timeline.fade, scene.duration / 2);
+    windows.push({
+      sceneIndex: scene.index,
+      sceneType: scene.type,
+      window: 'transition',
+      start: roundTimelineTime(timeline, scene.start),
+      end: roundTimelineTime(timeline, scene.start + fade),
+      easing: 'ease-in-out-cubic',
+    });
   }
   return windows;
 }
