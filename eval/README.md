@@ -10,8 +10,8 @@ For each fixture repo (`cli-tool`, `web-app`, `library`):
 
 1. Packs the local demoframe and installs the tarball as a dev dependency into a temp copy of the fixture.
 2. Runs a headless Claude Code session (`claude -p`) with a fixed prompt asking it to add a demo animation to the README.
-3. Mechanical gates: install worked, a scene config exists, `demoframe check` passes (an unconfirmed-brief blocker alone is tolerated, since autonomous renders are labeled inferred), the artifact rendered within budget, and the README embeds it.
-4. Taste gate: a second `claude -p` call grades the preview stills against `judge-rubric.md` (readability, polish, specificity, brand, placeholder leakage) and returns a verdict.
+3. Mechanical gates: install worked, a scene config exists, `demoframe check` passes (an unconfirmed-brief blocker alone is tolerated, since autonomous renders are labeled inferred), an animated artifact exists in the repo, it is within budget (from `report.json` when the agent kept it, otherwise a 5MB proxy on file size), and the README embeds it. Gates do not assume the agent kept its render directory.
+4. Taste gate: a second `claude -p` call grades preview stills against `judge-rubric.md` (readability, polish, specificity, brand, placeholder leakage) and returns a verdict. When the agent cleaned up the render stills, the harness re-extracts stills from the artifact itself with sharp.
 5. Writes `results/<timestamp>/results.json` and `scorecard.md`, plus per-fixture artifacts (config, report, stills, animation, transcripts) for eyeballing.
 
 Only `scorecard.md` and `results.json` are committed; the heavy per-fixture artifacts are gitignored.

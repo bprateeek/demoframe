@@ -1,0 +1,74 @@
+[
+  {
+    "fixture": "cli-tool",
+    "gates": {
+      "install": true,
+      "configFound": true,
+      "check": true,
+      "checkBlocking": [
+        "x brief: interview not confirmed. Ask the 7 interview questions, fill brief.mode: user-confirmed with audience/source/screenshotPolicy/placement/arc/climax, or pass --autonomous to label the output as inferred."
+      ],
+      "artifact": false,
+      "budget": false,
+      "readmeEmbed": false
+    },
+    "judge": null,
+    "agent": {
+      "ok": true,
+      "timedOut": false,
+      "turns": 40,
+      "costUsd": 3.3412170000000003,
+      "resultTail": "firms the output is within the 4MB github-readme budget, loops forever, and matches the designed duration; I inspected all preview stills including the README-size and GitHub light/dark composites, and text is readable at embed size.\n\n**Files changed:** `demo/demo.yml` (the demo config, kept so the animation is regenerable), `demo/shipcheck.webp` (the animation), and `README.md` (embed under the intro plus a one-line regeneration note). The intermediate `demo/dist/` render output was cleaned up."
+    },
+    "mechanicalPass": false,
+    "pass": false
+  },
+  {
+    "fixture": "web-app",
+    "gates": {
+      "install": true,
+      "configFound": true,
+      "check": true,
+      "checkBlocking": [
+        "x brief: interview not confirmed. Ask the 7 interview questions, fill brief.mode: user-confirmed with audience/source/screenshotPolicy/placement/arc/climax, or pass --autonomous to label the output as inferred."
+      ],
+      "artifact": false,
+      "budget": false,
+      "readmeEmbed": false
+    },
+    "judge": null,
+    "agent": {
+      "ok": true,
+      "timedOut": false,
+      "turns": 43,
+      "costUsd": 4.140356,
+      "resultTail": "ping meaning from the demo.\n- Health color is the signal on a status board, so I made sure the degraded worker card gets no green badge or icon, only muted text.\n\nThe scene config lives at `demo/demo.yml`; re-render any time with `npx demoframe render demo/demo.yml --for github-readme --autonomous --asset-out demo/pulseboard-demo.webp`. I removed the intermediate `demo/dist/` render artifacts, and the final render's QA report confirmed the asset is within the 4MB GitHub budget and loops forever."
+    },
+    "mechanicalPass": false,
+    "pass": false
+  },
+  {
+    "fixture": "library",
+    "gates": {
+      "install": true,
+      "configFound": true,
+      "check": true,
+      "checkBlocking": [
+        "x brief: interview not confirmed. Ask the 7 interview questions, fill brief.mode: user-confirmed with audience/source/screenshotPolicy/placement/arc/climax, or pass --autonomous to label the output as inferred."
+      ],
+      "artifact": false,
+      "budget": false,
+      "readmeEmbed": false
+    },
+    "judge": null,
+    "agent": {
+      "ok": true,
+      "timedOut": false,
+      "turns": 70,
+      "costUsd": 6.029588000000002,
+      "resultTail": "size and dark/light composites. I iterated on the frame size once because the default browser frame left a large dead area below the content.\n\n**Files changed**: `README.md` (embed plus a one-line provenance note), new `demo/demo.yml` (the demoframe config, so the demo is reproducible with `npx demoframe render demo/demo.yml`), and new `demo/fuzzymatch-demo.webp` (the asset, 67 KB animated WebP, which GitHub autoplays like a GIF at a fraction of the size). Intermediate render output was deleted."
+    },
+    "mechanicalPass": false,
+    "pass": false
+  }
+]
