@@ -3093,8 +3093,36 @@
                                     "maxLength": 100
                                   },
                                   "badge": {
-                                    "type": "string",
-                                    "maxLength": 24
+                                    "anyOf": [
+                                      {
+                                        "type": "string",
+                                        "maxLength": 24
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "text": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 24
+                                          },
+                                          "tone": {
+                                            "type": "string",
+                                            "enum": [
+                                              "neutral",
+                                              "success",
+                                              "warn",
+                                              "error"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "text",
+                                          "tone"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    ]
                                   },
                                   "icon": {
                                     "type": "string",
@@ -3123,6 +3151,89 @@
                           "required": [
                             "block",
                             "cards"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "block": {
+                              "type": "string",
+                              "const": "hero-object"
+                            },
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32
+                            },
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "logo-chip",
+                                "glow-card",
+                                "code-chip"
+                              ]
+                            },
+                            "title": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80
+                            },
+                            "subtitle": {
+                              "type": "string",
+                              "maxLength": 100
+                            },
+                            "icon": {
+                              "type": "string",
+                              "enum": [
+                                "check",
+                                "code",
+                                "share",
+                                "paperclip",
+                                "mic",
+                                "arrow-up",
+                                "spark",
+                                "user",
+                                "bolt"
+                              ]
+                            },
+                            "badge": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 24
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "text": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 24
+                                    },
+                                    "tone": {
+                                      "type": "string",
+                                      "enum": [
+                                        "neutral",
+                                        "success",
+                                        "warn",
+                                        "error"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "text",
+                                    "tone"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "block",
+                            "kind",
+                            "title"
                           ],
                           "additionalProperties": false
                         },

@@ -156,7 +156,17 @@ before the loop restarts.
   `session: fresh` on a scene to clear it), a session taller than the frame
   pins to the bottom like a real terminal, and when `frame.height` is unset
   the frame auto-fits the session. Do not hand-tune `frame.height` to remove
-  dead space; leave it unset.
+  dead space; leave it unset. Avoid a `terminal-playback` scene inside a
+  browser or desktop frame for a single command; it renders as a small
+  floating panel in a mostly empty viewport. Use a terminal frame demo, or
+  skip the "start the server" beat and open on the product screen.
+- For launch or hero moments use the `hero-object` screen block
+  (`kind: logo-chip | glow-card | code-chip`) with `layout: hero` on a
+  `frame: none` stage plus `cinematic:` composition/motion/ambient; the
+  bundled `launch-hero` template shows the pattern. Badges accept a semantic
+  tone (`badge: { text: Degraded, tone: warn }`, tones `neutral | success |
+  warn | error`); never mark degraded or failing states with the plain
+  accent badge.
 
 ## Drop this into your own repo's AGENTS.md
 

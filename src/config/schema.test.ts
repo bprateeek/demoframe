@@ -138,6 +138,49 @@ describe('demoConfigSchema', () => {
     ).toEqual(['webm', 'mp4']);
   });
 
+  it('accepts hero-object blocks and semantic badge tones', () => {
+    const config = demoConfigSchema.parse({
+      ...minimal,
+      scenes: [
+        {
+          type: 'screen',
+          duration: 3,
+          layout: 'hero',
+          blocks: [
+            { block: 'hero-object', kind: 'logo-chip', icon: 'spark', title: 'Atlas', badge: { text: 'New', tone: 'success' } },
+            {
+              block: 'card-grid',
+              cards: [
+                { title: 'api', badge: 'Up' },
+                { title: 'worker', badge: { text: 'Degraded', tone: 'warn' } },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    expect(config.scenes[0].type).toBe('screen');
+
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [{ type: 'screen', duration: 3, blocks: [{ block: 'hero-object', kind: 'billboard', title: 'x' }] }],
+      }).success,
+    ).toBe(false);
+    expect(
+      demoConfigSchema.safeParse({
+        ...minimal,
+        scenes: [
+          {
+            type: 'screen',
+            duration: 3,
+            blocks: [{ block: 'card-grid', cards: [{ title: 'a', badge: { text: 'b', tone: 'loud' } }, { title: 'c' }] }],
+          },
+        ],
+      }).success,
+    ).toBe(false);
+  });
+
   it('accepts named screen layouts and defaults to stack', () => {
     const stack = demoConfigSchema.parse({
       ...minimal,

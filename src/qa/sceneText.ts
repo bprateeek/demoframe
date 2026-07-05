@@ -49,8 +49,13 @@ function screenBlockTextLeaves(block: ScreenBlock, blockIndex: number): SceneTex
         pushText(out, `${base}.cards[${index}].title`, card.title);
         pushText(out, `${base}.cards[${index}].value`, card.value);
         pushText(out, `${base}.cards[${index}].desc`, card.desc);
-        pushText(out, `${base}.cards[${index}].badge`, card.badge);
+        pushText(out, `${base}.cards[${index}].badge`, typeof card.badge === 'string' ? card.badge : card.badge?.text);
       });
+      break;
+    case 'hero-object':
+      pushText(out, `${base}.title`, block.title);
+      pushText(out, `${base}.subtitle`, block.subtitle);
+      pushText(out, `${base}.badge`, typeof block.badge === 'string' ? block.badge : block.badge?.text);
       break;
     case 'list':
       block.rows.forEach((row, index) => {

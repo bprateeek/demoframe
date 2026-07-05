@@ -548,6 +548,18 @@ const chartCardBlock = z
   })
   .strict();
 
+// A bare string keeps the accent-tinted badge; the object form picks a semantic
+// tone so status words like "Degraded" stop rendering in the brand color.
+const badgeValue = z.union([
+  z.string().max(24),
+  z
+    .object({
+      text: z.string().min(1).max(24),
+      tone: z.enum(['neutral', 'success', 'warn', 'error']),
+    })
+    .strict(),
+]);
+
 const cardGridBlock = z
   .object({
     block: z.literal('card-grid'),
@@ -559,13 +571,25 @@ const cardGridBlock = z
             title: z.string().min(1).max(TEXT_LIMITS.cardTitle),
             value: z.string().max(40).optional(),
             desc: z.string().max(TEXT_LIMITS.cardSubtitle).optional(),
-            badge: z.string().max(24).optional(),
+            badge: badgeValue.optional(),
             icon: builtInIcon.optional(),
           })
           .strict(),
       )
       .min(2)
       .max(6),
+  })
+  .strict();
+
+const heroObjectBlock = z
+  .object({
+    block: z.literal('hero-object'),
+    ...screenBlockBase,
+    kind: z.enum(['logo-chip', 'glow-card', 'code-chip']),
+    title: z.string().min(1).max(TEXT_LIMITS.cardTitle),
+    subtitle: z.string().max(TEXT_LIMITS.cardSubtitle).optional(),
+    icon: builtInIcon.optional(),
+    badge: badgeValue.optional(),
   })
   .strict();
 
@@ -632,6 +656,7 @@ const screenBlock = z.discriminatedUnion('block', [
   statStripBlock,
   chartCardBlock,
   cardGridBlock,
+  heroObjectBlock,
   listBlock,
   progressBlock,
   heatmapBlock,
