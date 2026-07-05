@@ -3,4 +3,4 @@ description: Object-focused abstract launch opener, hero-object blocks on a dark
 category: marketing
 frames: [none]
 scenes: [screen, hold]
-demoframeVersion: "0.11.0"
+demoframeVersion: "1.0.0"

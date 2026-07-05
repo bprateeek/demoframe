@@ -23,8 +23,9 @@ skills/demoframe/SKILL.md in the package.
 - `demoframe install-agent-instructions [dir]`: idempotently write/refresh the
   demoframe block in the nearest git-root AGENTS.md, falling back to dir when no
   repo root is found.
-- `demoframe schema`: print the JSON Schema for configs. The schema is pre-1.0
-  and changes between versions; read it instead of relying on memorized fields.
+- `demoframe schema`: print the JSON Schema for configs. It is the authoritative
+  source of truth for the config shape; read it instead of relying on memorized
+  fields.
 - `demoframe check <config> [--strict] [--autonomous] [--allow-raw-screenshots]
   [--for github-readme,x-post,linkedin,product-hunt]`: validate without
   rendering. Exit 0 = valid; exit 1 if there are errors. Errors and warnings print

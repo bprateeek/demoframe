@@ -1,13 +1,16 @@
 # Changelog
 
-demoframe is pre-1.0: the config schema may change between minor versions.
-Breaking changes are always listed here.
+As of 1.0.0 the config schema is stable: additive changes may land in minor
+versions, but breaking schema changes are reserved for a future major and are
+always listed here.
 
-## 0.11.0
+## 1.0.0
 
-Motion and transition grammar. A small, curated set of motion presets and
-scene transitions, all tuned by eye rather than exposed as a full animation
-API, so agents can add deliberate movement without a config explosion.
+First stable release. The config schema is now frozen under semver: your
+`demo.yml` files keep working across the 1.x line. This release also lands the
+motion and transition grammar, a curated set of motion presets and scene
+transitions, all tuned by eye rather than exposed as a full animation API, so
+agents can add deliberate movement without a config explosion.
 
 ### Added
 
