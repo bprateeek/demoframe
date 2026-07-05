@@ -1,6 +1,6 @@
 name: product-dashboard
-description: Asset-free product dashboard built from screen blocks
+description: Light full-bleed analytics dashboard staged from screen blocks, no assets
 category: product
-frames: [browser, none]
+frames: [none]
 scenes: [screen, hold]
-demoframeVersion: "0.7.0"
+demoframeVersion: "0.10.0"

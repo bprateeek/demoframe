@@ -76,6 +76,10 @@ configs (CLI release, code walkthrough, assistant chat, launch metrics,
 premium hero, product dashboard, and the three starters); `demoframe init my-demo --template
 cli-release` copies one. `demoframe init my-demo --category product` starts
 from the asset-free `product-dashboard` screen reconstruction template.
+`premium-hero` and `product-dashboard` show the premium path: full-bleed
+`frame: none` staging, cinematic composition and motion, ambient, and a
+two-scene claim-then-proof arc. Their content is a fictional product; replace
+every REPLACE-marked value with your repository's real copy and numbers.
 Community templates are welcome as PRs adding a `templates/<name>/` directory
 with `template.yml` and `meta.yml`.
 

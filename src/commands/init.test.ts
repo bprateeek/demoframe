@@ -92,7 +92,7 @@ describe('runInit', () => {
     await runInit(dir, { category: 'product' });
     const written = readFileSync(path.join(dir, 'demo.yml'), 'utf8');
     expect(written).toContain('type: screen');
-    expect(written).toContain('Product dashboard demo');
+    expect(written).toContain('Lumen product dashboard');
   });
 
   it('prints the reconstruct-first preamble and the interview questions', async () => {
