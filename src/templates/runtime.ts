@@ -213,6 +213,14 @@ export function runtimeJs(timelineJson: string): string {
         next.style.opacity = lt >= 0.94 * d ? 1 : 0;
         next.querySelector('.df-term-caret').style.opacity = Math.floor(lt * 2) % 2 ? 0 : 1;
       }
+      // A session taller than the frame pins to the bottom like a real terminal,
+      // so the newest lines (and the climax) stay visible instead of clipping.
+      const play = el.querySelector('.df-slot-header.df-play');
+      if (play) {
+        play.style.transform = '';
+        const over = play.getBoundingClientRect().bottom - (el.getBoundingClientRect().bottom - 16);
+        if (over > 0) play.style.transform = 'translateY(' + -over + 'px)';
+      }
     },
     code(el, s, lt) {
       const d = s.duration;
@@ -416,9 +424,16 @@ export function runtimeJs(timelineJson: string): string {
         let cy = host.height / 2;
         if (anchor) {
           const r = anchor.getBoundingClientRect();
-          cx = r.left - host.left + r.width / 2;
-          // Sit just above the element so the burst never occludes its label.
-          cy = r.top - host.top - 18;
+          if (anchor.getAttribute('data-celebrate-anchor') === 'right') {
+            // Line-based layouts (terminal exit) keep text above and below the
+            // anchor, so the burst sits in the empty space to its right.
+            cx = Math.min(r.left - host.left + r.width + 46, host.width - 42);
+            cy = r.top - host.top + r.height / 2;
+          } else {
+            cx = r.left - host.left + r.width / 2;
+            // Sit just above the element so the burst never occludes its label.
+            cy = r.top - host.top - 18;
+          }
         }
         const bp = clamp((t - act.start) / 0.5, 0, 1);
         const fadeIn = ease(clamp(bp / 0.12, 0, 1));

@@ -166,6 +166,14 @@ async function evalFixture(name, workRoot, tarball, resultsDir) {
       costUsd: parsed?.total_cost_usd ?? null,
       resultTail: typeof parsed?.result === 'string' ? parsed.result.slice(-500) : null,
     };
+    // Rate limits and auth failures surface as is_error with ~1 turn; the run
+    // says nothing about demoframe, so mark it unusable instead of failing gates.
+    if (parsed?.is_error) {
+      record.agent.unavailable = true;
+      console.log(`agent unavailable: ${String(parsed?.result ?? '').slice(0, 120)}`);
+      record.pass = false;
+      return record;
+    }
     if (!agent.ok) console.log(`agent exited non-zero${agent.timedOut ? ' (timeout)' : ''}`);
   }
 
@@ -258,6 +266,9 @@ function scorecard(records, stamp) {
   const lines = [
     `# demoframe agent eval, ${stamp}`,
     '',
+    ...(records.some((r) => r.agent?.unavailable)
+      ? ['**INVALID RUN**: the agent was unavailable (rate limit or auth); do not treat as a graded result.', '']
+      : []),
     `Prompt: ${AGENT_PROMPT}`,
     '',
     '| fixture | install | config | check | artifact | budget | readme | judge | pass |',

@@ -1947,6 +1947,14 @@
                   "prompt": {
                     "type": "string",
                     "maxLength": 16
+                  },
+                  "session": {
+                    "type": "string",
+                    "enum": [
+                      "continue",
+                      "fresh"
+                    ],
+                    "default": "continue"
                   }
                 },
                 "required": [
