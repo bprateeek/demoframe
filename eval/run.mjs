@@ -84,6 +84,29 @@ function findReports(dir) {
     .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
 }
 
+function findArtifacts(dir) {
+  return walk(dir)
+    .filter((f) => /\.(gif|webp|mp4|webm)$/i.test(f))
+    .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
+}
+
+const GITHUB_README_BUDGET_BYTES = 5 * 1024 * 1024;
+
+async function extractStills(artifact, outDir) {
+  if (!/\.(gif|webp)$/i.test(artifact)) return [];
+  const { default: sharp } = await import('sharp');
+  const meta = await sharp(artifact).metadata();
+  const pages = meta.pages ?? 1;
+  const picks = [...new Set([Math.floor(pages * 0.2), Math.floor(pages * 0.55), Math.max(0, pages - 2)])];
+  const stills = [];
+  for (const page of picks) {
+    const out = join(outDir, `extracted_${page}.png`);
+    await sharp(artifact, { page }).png().toFile(out);
+    stills.push(out);
+  }
+  return stills;
+}
+
 function extractJson(text) {
   const start = text.indexOf('{');
   if (start === -1) return null;
@@ -105,7 +128,7 @@ function classifyCheck(output) {
   return { blocking, briefOnly: blocking.length > 0 && blocking.every((l) => l.includes('brief')) };
 }
 
-function evalFixture(name, workRoot, tarball, resultsDir) {
+async function evalFixture(name, workRoot, tarball, resultsDir) {
   console.log(`\n=== fixture: ${name} ===`);
   const work = join(workRoot, name);
   cpSync(join(evalDir, 'fixtures', name), work, { recursive: true });
@@ -160,32 +183,47 @@ function evalFixture(name, workRoot, tarball, resultsDir) {
     record.gates.check = false;
   }
 
-  const reports = findReports(work);
-  let artifacts = [];
-  if (reports.length > 0) {
-    const reportPath = reports[0];
-    const report = JSON.parse(readFileSync(reportPath, 'utf8'));
-    copyFileSync(reportPath, join(fixtureResults, 'report.json'));
-    artifacts = (report.outputs ?? []).filter((o) => o.file && existsSync(o.file));
-    record.gates.artifact = artifacts.length > 0;
-    record.gates.budget = artifacts.length > 0 && artifacts.every((o) => o.withinBudget !== false);
-    for (const o of artifacts) {
-      copyFileSync(o.file, join(fixtureResults, basename(o.file)));
-    }
-    record.previews = (report.previews ?? [])
-      .map((p) => resolve(dirname(reportPath), p))
-      .filter((p) => existsSync(p));
-    const previewDir = join(fixtureResults, 'preview');
-    mkdirSync(previewDir, { recursive: true });
-    for (const p of record.previews) copyFileSync(p, join(previewDir, basename(p)));
-  } else {
-    record.gates.artifact = false;
-    record.gates.budget = false;
-  }
-
+  // Agents often clean up their render dir after copying the artifact out, so the
+  // artifact/budget gates work from the files the repo actually keeps; report.json
+  // and its preview stills are used when they survive, and stills are re-extracted
+  // from the artifact when they do not.
   const readmePath = join(work, 'README.md');
   const readme = existsSync(readmePath) ? readFileSync(readmePath, 'utf8') : '';
-  record.gates.readmeEmbed = artifacts.some((o) => readme.includes(basename(o.file)));
+  const artifactFiles = findArtifacts(work);
+  const embedded = artifactFiles.filter((f) => readme.includes(basename(f)));
+  record.gates.artifact = artifactFiles.length > 0;
+  record.gates.readmeEmbed = embedded.length > 0;
+  const kept = embedded.length > 0 ? embedded : artifactFiles;
+  for (const f of kept) copyFileSync(f, join(fixtureResults, basename(f)));
+
+  const reports = findReports(work);
+  let report = null;
+  if (reports.length > 0) {
+    report = JSON.parse(readFileSync(reports[0], 'utf8'));
+    copyFileSync(reports[0], join(fixtureResults, 'report.json'));
+  }
+  const reportedOutputs = (report?.outputs ?? []).filter((o) => o.file && existsSync(o.file));
+  if (reportedOutputs.length > 0) {
+    record.gates.budget = reportedOutputs.every((o) => o.withinBudget !== false);
+    record.budgetSource = 'report';
+  } else {
+    record.gates.budget = kept.length > 0 && kept.every((f) => statSync(f).size <= GITHUB_README_BUDGET_BYTES);
+    record.budgetSource = 'proxy';
+  }
+
+  record.previews = (report?.previews ?? [])
+    .map((p) => resolve(dirname(reports[0]), p))
+    .filter((p) => existsSync(p));
+  const previewDir = join(fixtureResults, 'preview');
+  mkdirSync(previewDir, { recursive: true });
+  for (const p of record.previews) copyFileSync(p, join(previewDir, basename(p)));
+  if (record.previews.length === 0 && kept.length > 0) {
+    try {
+      record.previews = await extractStills(kept[0], previewDir);
+    } catch (err) {
+      console.log(`still extraction failed: ${err.message}`);
+    }
+  }
 
   record.mechanicalPass =
     record.gates.install &&
@@ -263,7 +301,8 @@ if (!pack.ok) {
 const tarball = join(workRoot, pack.stdout.trim().split('\n').at(-1));
 
 const fixtures = opts.fixture ? [opts.fixture] : ['cli-tool', 'web-app', 'library'];
-const records = fixtures.map((f) => evalFixture(f, workRoot, tarball, resultsDir));
+const records = [];
+for (const f of fixtures) records.push(await evalFixture(f, workRoot, tarball, resultsDir));
 
 writeFileSync(join(resultsDir, 'results.json'), JSON.stringify(records, null, 2) + '\n');
 writeFileSync(join(resultsDir, 'scorecard.md'), scorecard(records, stamp));
