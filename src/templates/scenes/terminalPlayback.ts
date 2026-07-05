@@ -18,6 +18,9 @@ export const terminalPlaybackCss = `
 .df-play-exit-success { color: #3fb950; }
 .df-play-exit-error { color: #f85149; }
 .df-play-next { opacity: 0; }
+.df-play-shown { opacity: 1; }
+.df-play-hist-exit { display: inline-flex; align-items: center; gap: var(--df-s2); font-weight: 700; }
+.df-play-hist-exit svg { width: 15px; height: 15px; flex: 0 0 auto; }
 .df-play-center {
   flex: 1;
   min-height: 0;
@@ -35,11 +38,34 @@ export const terminalPlaybackCss = `
 }
 `;
 
+function historyHtml(history: TerminalPlaybackScene[], framePrompt: string): string {
+  return history
+    .map((scene) => {
+      const prompt = escapeHtml(scene.prompt ?? framePrompt);
+      const lines = normalizeTermLines(scene.output)
+        .map(
+          (line) =>
+            `<div class="df-play-line df-play-line-${line.style} df-play-shown">${escapeHtml(line.text)}</div>`,
+        )
+        .join('\n');
+      const exit = scene.exit
+        ? `<div class="df-play-status df-play-shown"><span class="df-play-hist-exit df-play-exit-${scene.exit.status}">${
+            scene.exit.status === 'success' ? icons.check : icons.cross
+          }${scene.exit.label ? `<span>${escapeHtml(scene.exit.label)}</span>` : ''}</span></div>`
+        : '';
+      return `<div class="df-term-line"><span class="df-term-prompt">${prompt}</span><span>${escapeHtml(scene.command)}</span></div>
+      ${lines}
+      ${exit}`;
+    })
+    .join('\n');
+}
+
 export function terminalPlaybackHtml(
   scene: TerminalPlaybackScene,
   index: number,
   frameType: string,
   framePrompt: string,
+  history: TerminalPlaybackScene[] = [],
 ): string {
   const compositionClass = cinematicCompositionSceneClass(scene, 'terminal-playback');
   const prompt = escapeHtml(scene.prompt ?? framePrompt);
@@ -53,11 +79,12 @@ export function terminalPlaybackHtml(
     ? `<span class="df-play-spin"><span class="df-play-spin-glyph">⠋</span><span>${escapeHtml(scene.spinner)}</span></span>`
     : '';
   const exit = scene.exit
-    ? `<span class="df-play-exit df-play-exit-${scene.exit.status}">${
+    ? `<span class="df-play-exit df-play-exit-${scene.exit.status}" data-celebrate-anchor="right">${
         scene.exit.status === 'success' ? icons.check : icons.cross
       }${scene.exit.label ? `<span>${escapeHtml(scene.exit.label)}</span>` : ''}</span>`
     : '';
-  const body = `<div class="df-term-line df-play-cmd"><span class="df-term-prompt">${prompt}</span><span class="df-play-typed"></span><span class="df-term-caret df-play-caret"></span></div>
+  const body = `${historyHtml(history, framePrompt)}
+      <div class="df-term-line df-play-cmd"><span class="df-term-prompt">${prompt}</span><span class="df-play-typed"></span><span class="df-term-caret df-play-caret"></span></div>
       ${lines}
       ${spinner || exit ? `<div class="df-play-status">${spinner}${exit}</div>` : ''}
       <div class="df-term-line df-play-next"><span class="df-term-prompt">${prompt}</span><span class="df-term-caret"></span></div>`;

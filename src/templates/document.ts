@@ -5,6 +5,7 @@ import {
   normalizeLogo,
   resolveAmbient,
   resolveSceneCinematic,
+  terminalSessionHistory,
   type DemoConfig,
   type Frame,
   type ChatScene,
@@ -114,7 +115,15 @@ export async function buildDocument(
       }
       case 'terminal-playback': {
         const framePrompt = mergedFrame.type === 'terminal' ? mergedFrame.prompt : '$';
-        sceneParts.push(terminalPlaybackHtml(withResolvedSceneCinematic(config, scene), index, frameType, framePrompt));
+        sceneParts.push(
+          terminalPlaybackHtml(
+            withResolvedSceneCinematic(config, scene),
+            index,
+            frameType,
+            framePrompt,
+            terminalSessionHistory(config.scenes, index),
+          ),
+        );
         break;
       }
       case 'code':
@@ -280,7 +289,7 @@ ${frameHtml}
 
   return {
     html,
-    viewport: captureViewport(config.frame),
+    viewport: captureViewport(config.frame, config.scenes),
     timeline,
     transparent: isTransparentFrame(config.frame),
     frameMargin: config.frame.margin ?? 0,

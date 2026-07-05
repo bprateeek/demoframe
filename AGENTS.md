@@ -151,6 +151,12 @@ before the loop restarts.
   desktop `title`/`subtitle`. Use this for handoffs like "VPS work screen" to
   "GitHub PR screen"; do not put `outside`, `shadow`, `margin`, or
   `deviceColor` on scenes.
+- Terminal demos behave like one session: consecutive `terminal-playback`
+  scenes keep earlier commands and output on screen as scrollback (set
+  `session: fresh` on a scene to clear it), a session taller than the frame
+  pins to the bottom like a real terminal, and when `frame.height` is unset
+  the frame auto-fits the session. Do not hand-tune `frame.height` to remove
+  dead space; leave it unset.
 
 ## Drop this into your own repo's AGENTS.md
 

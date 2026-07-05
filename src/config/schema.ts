@@ -370,6 +370,7 @@ const terminalPlaybackScene = z.object({
     })
     .optional(),
   prompt: z.string().max(16).optional(),
+  session: z.enum(['continue', 'fresh']).default('continue'),
 });
 
 export const CODE_LANGS = [
@@ -937,6 +938,25 @@ export function normalizeTermLines(output: TerminalPlaybackScene['output']): Nor
   );
 }
 
+// Terminal-playback scenes act like one terminal session by default: each scene's
+// settled command/output stays on screen as history for the next scene. A scene
+// with session: 'fresh', or any non-terminal scene in between, clears the session.
+export function terminalSessionHistory(scenes: Scene[], index: number): TerminalPlaybackScene[] {
+  const history: TerminalPlaybackScene[] = [];
+  for (let i = 0; i < index; i++) {
+    const scene = scenes[i];
+    if (scene.type === 'hold') continue;
+    if (scene.type !== 'terminal-playback' || scene.session === 'fresh') {
+      history.length = 0;
+      if (scene.type !== 'terminal-playback') continue;
+    }
+    history.push(scene);
+  }
+  const current = scenes[index];
+  if (current?.type === 'terminal-playback' && current.session === 'fresh') return [];
+  return history;
+}
+
 export function sceneSupportsCinematicDefault(scene: Pick<Scene, 'type'>): boolean {
   return scene.type !== 'hold' && scene.type !== 'screenshot';
 }
@@ -998,17 +1018,46 @@ export const FRAME_VIEWPORTS = {
 
 export const TRANSPARENT_GUTTER = 96;
 
-export function frameViewport(frame: Frame): { width: number; height: number } {
+// Screen-pixel model of the terminal frame (frames/terminal.ts + scene CSS):
+// 24px outer margin per side, ~42px chrome bar, 16px rail padding per side,
+// 15px mono type at 1.7 line-height.
+const TERMINAL_FIT = { chrome: 48 + 42 + 32, lineHeight: 25.5, slack: 12, minHeight: 320 };
+
+// Terminal demos are usually a handful of lines inside a 520px-tall default frame;
+// the dead space below reads unpolished and cold agents burn turns shrinking it.
+// When the author did not pick a height and every scene lives in the terminal
+// session, fit the frame to the largest settled session instead.
+export function autoTerminalHeight(frame: Frame, scenes?: Scene[]): number | null {
+  if (frame.type !== 'terminal' || frame.height !== undefined || !scenes?.length) return null;
+  if (!scenes.every((s) => s.type === 'terminal-playback' || s.type === 'hold')) return null;
+  let maxLines = 0;
+  for (let i = 0; i < scenes.length; i++) {
+    const scene = scenes[i];
+    if (scene.type !== 'terminal-playback') continue;
+    const session = [...terminalSessionHistory(scenes, i), scene];
+    const lines = session.reduce(
+      (sum, s) => sum + 1 + normalizeTermLines(s.output).length + (s.spinner || s.exit ? 1 : 0),
+      1, // trailing next-prompt line
+    );
+    maxLines = Math.max(maxLines, lines);
+  }
+  if (maxLines === 0) return null;
+  const fit = TERMINAL_FIT.chrome + Math.ceil(maxLines * TERMINAL_FIT.lineHeight) + TERMINAL_FIT.slack;
+  return Math.min(FRAME_VIEWPORTS.terminal.height, Math.max(TERMINAL_FIT.minHeight, fit));
+}
+
+export function frameViewport(frame: Frame, scenes?: Scene[]): { width: number; height: number } {
   const d = FRAME_VIEWPORTS[frame.type];
-  return { width: frame.width ?? d.width, height: frame.height ?? d.height };
+  const height = frame.height ?? autoTerminalHeight(frame, scenes) ?? d.height;
+  return { width: frame.width ?? d.width, height };
 }
 
 export function isTransparentFrame(frame: Frame): boolean {
   return frame.outside === 'transparent';
 }
 
-export function captureViewport(frame: Frame): { width: number; height: number } {
-  const viewport = frameViewport(frame);
+export function captureViewport(frame: Frame, scenes?: Scene[]): { width: number; height: number } {
+  const viewport = frameViewport(frame, scenes);
   if (!isTransparentFrame(frame)) return viewport;
   return {
     width: viewport.width + TRANSPARENT_GUTTER * 2,
