@@ -1,25 +1,59 @@
-title: Product dashboard demo
-output: { format: gif, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
-theme: { accent: "#2f7de1", mode: light, font: inter }
-frame: { type: browser, chrome: thin, title: Product dashboard }
+# Product dashboard: a light full-bleed stage with a staged analytics surface.
+# Everything about "Lumen" is fictional placeholder content. Replace every
+# REPLACE-marked value with this repository's real product, copy, and numbers.
+title: Lumen product dashboard
+output: { format: webp, width: 854, fps: 20, budget: 4MB, displayWidth: 640 }
+theme:
+  accent: "#2f7de1" # REPLACE: brand accent
+  mode: light
+  font: inter
+  palette:
+    page: "#eef2f9"
+    screen: "#eef2f9"
+    card: "#ffffff"
+    text: "#16202f"
+    muted: "#5a6a82"
+    border: "#dbe3ef"
+    shadow: "rgba(22, 32, 47, 0.14)"
+frame: { type: none, width: 854, height: 480, outside: "#eef2f9", shadow: false }
+cinematic: { composition: center-hero, motion: float-in, ambient: ember }
 scenes:
+  # Scene 1: the product at a glance. Header, three numbers, momentum.
   - type: screen
-    duration: 5.5
+    duration: 5.2
     blocks:
-      - { block: app-header, title: Your Product, subtitle: "A clean product moment", icon: bolt }
+      # REPLACE: product name and one-line description
+      - { block: app-header, title: Lumen, subtitle: "Product analytics without the setup", icon: spark }
+      # REPLACE: three metrics that are true for this product
       - block: stat-strip
         tiles:
-          - { label: Active users, value: { value: 1240 } }
-          - { label: Activation, value: { value: 42, suffix: "%" }, delta: { value: 6, dir: up } }
-          - { label: Time saved, value: { value: 18, suffix: h } }
+          - { label: Active users, value: { value: 12480 }, delta: { value: 8, dir: up } }
+          - { label: Retention, value: { value: 92, suffix: "%" } }
+          - { label: Events today, value: { value: 1.4, suffix: M, decimals: 1 } }
+      # REPLACE: one chart with a believable series
       - block: chart-card
-        title: Momentum
-        chart: { kind: area, series: [4, 6, 5, 9, 12, 14, 18], labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun] }
-      - block: card-grid
-        cards:
-          - { title: Import, desc: "Source data connected", icon: paperclip }
-          - { title: Analyze, value: "3.2s", desc: "Median run" }
-          - { title: Share, desc: "Ready for the team", badge: New }
-          - { title: Outcome, value: "98%", desc: "Within target" }
+        title: Weekly active users
+        chart: { kind: area, series: [820, 940, 1180, 1260, 1520, 1740, 2080], labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun] }
+  # Scene 2: one level deeper. What users actually do inside the product.
+  - type: screen
+    duration: 4.8
+    transition: crossfade
+    layout: split
+    cinematic: { composition: macro-card, motion: rise }
+    blocks:
+      # REPLACE: the real top actions or objects in this product
+      - block: list
+        name: top-events
+        rows:
+          - { icon: bolt, label: dashboard_viewed, trailing: "48,210" }
+          - { icon: share, label: report_shared, trailing: "9,644" }
+          - { icon: check, label: funnel_created, trailing: "3,102" }
+          - { icon: user, label: teammate_invited, trailing: "1,987" }
+      # REPLACE: a real funnel or progress the product improves
+      - block: progress
+        items:
+          - { label: Signed up, value: 100 }
+          - { label: Created a dashboard, value: 64 }
+          - { label: Invited the team, value: 41 }
   - type: hold
     duration: 1.2

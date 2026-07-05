@@ -1,38 +1,51 @@
-title: Premium motion hero
+# Premium motion hero: a dark full-bleed stage, one hero claim, one proof scene.
+# Everything about "Relay" is fictional placeholder content. Replace every
+# REPLACE-marked value with this repository's real product, copy, and numbers.
+title: Relay premium hero
 output: { format: webp, width: 854, fps: 24, budget: 4MB, displayWidth: 640, motionBlur: cinematic }
 theme:
-  accent: "#e2603a"
-  mode: light
+  accent: "#7c6cff" # REPLACE: brand accent
+  mode: dark
   font: inter
   palette:
-    page: "#f7f9fc"
-    screen: "#f7f9fc"
-    card: "#ffffff"
-    text: "#182033"
-    muted: "#526176"
-    border: "#dce4ef"
-    shadow: "rgba(24, 32, 51, 0.14)"
-frame: { type: none, width: 854, height: 480, outside: "#f7f9fc", shadow: false }
+    page: "#0b1020"
+    screen: "#0b1020"
+    card: "#141b31"
+    text: "#eef2fb"
+    muted: "#96a2c2"
+    border: "#26314f"
+    shadow: "rgba(3, 6, 16, 0.55)"
+frame: { type: none, width: 854, height: 480, outside: "#0b1020", shadow: false }
 cinematic: { composition: floating-stage, motion: float-in, ambient: ember }
 scenes:
+  # Scene 1: the hero claim. One product name, one big number, nothing else.
   - type: screen
-    duration: 5.8
-    motion: reveal
+    duration: 4.6
+    layout: hero
     blocks:
-      - { block: app-header, title: Premium demo ready, subtitle: "Synthetic hero, no screenshots", icon: spark }
+      # REPLACE: product name and one-line value proposition
+      - { block: app-header, title: Relay, subtitle: "Instant preview environments for every pull request", icon: bolt }
+      # REPLACE: the single number this product wants to be known for
+      - block: callout
+        name: hero-claim
+        variant: hero-stat
+        value: { value: 2.1, suffix: s, decimals: 1 }
+        label: from git push to live preview
+  # Scene 2: the proof. Real-looking metrics and momentum, not feature lists.
+  - type: screen
+    duration: 5.2
+    transition: crossfade
+    cinematic: { composition: macro-card, motion: rise }
+    blocks:
+      # REPLACE: three metrics that are true for this product
       - block: stat-strip
         tiles:
-          - { label: Width, value: { value: 854, suffix: px } }
-          - { label: FPS, value: { value: 24 } }
-          - { label: Assets, value: { value: 0 } }
-      - block: card-grid
-        cards:
-          - { title: Rebuilt UI, value: synthetic, desc: "Screenshots stay reference", badge: clean, icon: check }
-          - { title: Motion blur, value: cinematic, desc: "Subframes on choreography", badge: WebP, icon: spark }
-      - block: callout
-        name: launch
-        variant: message
-        text: "Premium motion hero ready for the README."
+          - { label: Previews today, value: { value: 3480 }, delta: { value: 12, dir: up } }
+          - { label: Median boot, value: { value: 2.1, suffix: s, decimals: 1 } }
+          - { label: Uptime, value: { value: 99.98, suffix: "%", decimals: 2 } }
+      # REPLACE: one chart with a believable series
+      - block: chart-card
+        title: Previews per day
+        chart: { kind: area, series: [140, 220, 310, 460, 520, 680, 840], labels: [Mon, Tue, Wed, Thu, Fri, Sat, Sun] }
   - type: hold
     duration: 1.4
-    celebrate: true

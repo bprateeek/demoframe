@@ -110,7 +110,12 @@ before the loop restarts.
 1. **Scaffold or author.** `npx demoframe init --template <name>` writes a
    `demo.yml` with a TODO `brief:` stub (`--list` shows templates). Get the authoritative schema with
    `npx demoframe schema` (JSON Schema on stdout); the schema is pre-1.0, so
-   read it instead of relying on memorized field names.
+   read it instead of relying on memorized field names. For a polished
+   marketing-grade result start from `premium-hero` or `product-dashboard`:
+   they demonstrate the premium path (full-bleed `frame: none` staging,
+   `cinematic:` composition/motion/ambient, claim-then-proof scenes). Their
+   product "Relay"/"Lumen" is fictional; replace every REPLACE-marked value
+   with this repository's real product, copy, and numbers before rendering.
 2. **Validate.** `npx demoframe check demo.yml` after every edit. Rendering for
    a specific destination? Pass the same `--for github-readme|x-post|linkedin|product-hunt`
    to `check`, `preview`, and `render` so preset width/fps/quality/format policy

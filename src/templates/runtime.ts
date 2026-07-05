@@ -122,7 +122,7 @@ export function runtimeJs(timelineJson: string): string {
     const line = scope.querySelector('.df-chart-line');
     if (line) {
       const p = ease(clamp((lt - start) / (0.45 * d), 0, 1));
-      line.style.strokeDashoffset = 100 * (1 - p);
+      line.style.setProperty('--df-chart-reveal', String(p));
       const area = scope.querySelector('.df-chart-area');
       if (area) area.style.opacity = String(0.85 * p);
     }

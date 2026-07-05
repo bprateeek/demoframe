@@ -42,8 +42,9 @@ export const metricCardCss = `
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
+  /* dash-based draw-in breaks under non-scaling-stroke (dashes become screen units),
+     so the reveal is a clip that sweeps the line's own box left to right */
+  clip-path: inset(-10px calc((1 - var(--df-chart-reveal, 1)) * 105% - 4px) -10px -10px);
 }
 .df-chart-area {
   opacity: 0;
@@ -98,10 +99,10 @@ export function chartSvg(chart: ChartSvgSpec): string {
     const baseline = VIEW_H - 3;
     return `<svg viewBox="0 0 ${VIEW_W} ${VIEW_H}" preserveAspectRatio="none">
       <polygon class="df-chart-area" points="${firstX},${baseline} ${points} ${lastX},${baseline}" fill="${color}" fill-opacity="0.18"/>
-      <polyline class="df-chart-line" points="${points}" pathLength="100" stroke="${color}"/>
+      <polyline class="df-chart-line" points="${points}" stroke="${color}"/>
     </svg>`;
   }
-  return `<svg viewBox="0 0 ${VIEW_W} ${VIEW_H}" preserveAspectRatio="none"><polyline class="df-chart-line" points="${points}" pathLength="100" stroke="${color}"/></svg>`;
+  return `<svg viewBox="0 0 ${VIEW_W} ${VIEW_H}" preserveAspectRatio="none"><polyline class="df-chart-line" points="${points}" stroke="${color}"/></svg>`;
 }
 
 export function metricCardHtml(scene: MetricCardScene, index: number): string {
