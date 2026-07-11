@@ -44,7 +44,7 @@ always listed here.
   `foreignObject`, and embedded assets before compositor rendering. Primitive
   copy participates in story/proof binding, assets use the render registry, and
   every primitive exposes layout-QA markers.
-- A strict Pulseboard primitive example, deterministic HTML golden, hostile SVG
+- A strict Pulseboard primitive example, deterministic HTML contract test, hostile SVG
   fixture, and pairwise/extreme layout matrix across browser, phone, and
   frameless compositions.
 - P5 deterministic recipe compilation for code-to-result,

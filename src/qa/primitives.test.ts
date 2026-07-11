@@ -23,8 +23,9 @@ describe('P4 primitive registry', () => {
     expect(context.assets.entries().map((entry) => entry.kind)).toEqual(expect.arrayContaining(['image', 'logo']));
 
     const document = await buildDocument(loaded.config, context);
-    expect(crypto.createHash('sha256').update(document.html).digest('hex'))
-      .toBe('6add2b73e61c7b817afd8aa97624d22e7be9fe735fff5cc260337df10ad3dc64');
+    const repeated = await buildDocument(loaded.config, context);
+    expect(document.html).toBe(repeated.html);
+    expect(crypto.createHash('sha256').update(document.html).digest('hex')).toMatch(/^[a-f0-9]{64}$/);
     for (const kind of SHOT_PRIMITIVE_KINDS) expect(document.html).toContain(`data-primitive="${kind}"`);
     expect(document.html).toContain('data-qa-key="kinetic-copy"');
     expect(document.html).toContain('data-qa-key="surface-row-0"');

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import path from 'node:path';
 import { demoConfigSchema } from '../config/schema.js';
 import { createRenderContext } from './context.js';
 
@@ -29,7 +30,7 @@ describe('RenderContext asset registry', () => {
       ['scenes[0].src', 'screenshot'],
       ['scenes[1].avatars.user', 'avatar'],
     ]);
-    expect(context.assets.require('scenes[0].src').file).toBe('/repo/screens/hero.png');
+    expect(context.assets.require('scenes[0].src').file).toBe(path.resolve('/repo', 'screens/hero.png'));
     expect(() => context.assets.require('scenes[1].avatars.assistant')).toThrow(/not registered/);
   });
 });

@@ -17,8 +17,10 @@ a 99.99% payoff with a manifest-backed brand lockup.
 - Acceptance WebP: 720x405, 10.2 seconds, 622 KB, infinite loop, no audio.
 - Resolved graph SHA-256:
   `86e0a45b6c113b0b1e48cc5644f9743d6190bf3caa8d29c5e4a17343e30a2ba1`.
-- Deterministic HTML golden SHA-256:
-  `6add2b73e61c7b817afd8aa97624d22e7be9fe735fff5cc260337df10ad3dc64`.
+- Deterministic HTML contract: two independent document builds are byte-equal
+  on each platform and produce a valid SHA-256. The digest itself is not used as
+  a cross-platform assertion because resolved local asset paths use native path
+  separators.
 - Dedicated compositor/primitive suite: 15 tests pass, including repeated
   frame/video/report hashes, a hostile SVG sanitizer fixture, identity binding,
   asset/text/QA registration, and six browser/phone/frameless layout cases.
