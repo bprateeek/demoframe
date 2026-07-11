@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { compileRecipe, RECIPE_NAMES, RECIPE_VARIANTS } from '../recipes/registry.js';
 import { DESTINATION_NAMES } from './destinations.js';
 import { MOTION_PRESET_NAMES } from '../templates/motion/presets.js';
 
@@ -195,6 +196,66 @@ export const FRAME_TYPE_NAMES = ['phone', 'browser', 'terminal', 'desktop', 'non
 
 const placementValue = z.enum(DESTINATION_NAMES);
 const briefIntent = z.enum(['product', 'abstract', 'hybrid']);
+export const PROFILE_NAMES = ['readme-loop', 'social-film', 'product-tour'] as const;
+const profileSchema = z.enum(PROFILE_NAMES);
+
+const storyProof = z
+  .object({
+    evidence: z.string().min(1).max(80),
+    mode: z.enum(['exact', 'formatted', 'paraphrase']),
+    display: z.string().min(1).max(160).optional(),
+  })
+  .strict();
+
+const storyBeat = z
+  .object({
+    id: z.string().min(1).max(60),
+    role: z.enum(['hook', 'build', 'payoff', 'outro']),
+  })
+  .strict();
+
+const storyRecipe = z
+  .object({
+    name: z.enum(RECIPE_NAMES),
+    recipeVersion: z.literal(1),
+    variant: z.string().min(1).max(80),
+  })
+  .strict()
+  .superRefine((recipe, ctx) => {
+    if (!(RECIPE_VARIANTS[recipe.name] as readonly string[]).includes(recipe.variant)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['variant'],
+        message: `${recipe.name} variant must be one of: ${RECIPE_VARIANTS[recipe.name].join(', ')}`,
+      });
+    }
+  });
+
+const storySchema = z
+  .object({
+    version: z.literal(2).optional(),
+    promise: z.string().min(1).max(240).optional(),
+    proof: z.array(storyProof).max(8).optional(),
+    beats: z.array(storyBeat).min(1).max(12).optional(),
+    visualMetaphor: z.string().min(1).max(160).optional(),
+    recipe: storyRecipe.optional(),
+  })
+  .strict();
+
+const appearanceEvidenceItem = z.union([
+  z
+    .object({
+      field: z.string().min(1).max(120),
+      evidence: z.string().min(1).max(80),
+    })
+    .strict(),
+  z
+    .object({
+      field: z.string().min(1).max(120),
+      noSource: z.string().min(8).max(300),
+    })
+    .strict(),
+]);
 
 const briefSchema = z
   .object({
@@ -219,6 +280,36 @@ const briefSchema = z
     repo: z.string().optional(),
     verbatimCopy: z.array(z.string()).optional(),
     assumptions: z.array(z.string().trim().min(1)).max(10).optional(),
+    story: storySchema.optional(),
+    appearanceEvidence: z.array(appearanceEvidenceItem).max(40).optional(),
+  })
+  .strict();
+
+const contextConfigSchema = z
+  .object({
+    manifest: z.string().min(1).default('demoframe-context.yml'),
+  })
+  .strict();
+
+const artDirectionSchema = z
+  .object({
+    typography: z
+      .object({
+        display: z.string().min(1).max(120).optional(),
+        body: z.string().min(1).max(120).optional(),
+      })
+      .strict()
+      .optional(),
+    colors: z
+      .object({
+        primary: hexColor.optional(),
+        secondary: hexColor.optional(),
+        highlight: hexColor.optional(),
+      })
+      .strict()
+      .optional(),
+    shapeLanguage: z.string().min(1).max(160).optional(),
+    motionPersonality: z.enum(['calm', 'crisp', 'elastic']).optional(),
   })
   .strict();
 
@@ -272,6 +363,7 @@ const sceneBase = {
   duration: z.number().positive().max(30),
   transition: z.enum(['cut', 'crossfade', 'push', 'dip-to-color']).default('cut'),
   name: z.string().max(40).optional(),
+  beatId: z.string().min(1).max(60).optional(),
   celebrate: z.boolean().default(false),
   frame: sceneFrameOverride.optional(),
   cinematic: cinematicSchema.optional(),
@@ -688,33 +780,383 @@ export const sceneSchema = z.discriminatedUnion('type', [
   screenScene,
 ]);
 
+export const SHOT_SLOT_NAMES = ['hero', 'supporting', 'background', 'foreground'] as const;
+export const SHOT_OBJECT_MOTION_NAMES = ['none', 'fade', 'slide-up', 'slide-left', 'scale'] as const;
+export const SHOT_EMPHASIS_NAMES = ['none', 'focus', 'pulse'] as const;
+export const SHOT_TRANSITION_NAMES = ['cut', 'shared-element', 'masked-wipe', 'directional'] as const;
+export const SHOT_PRIMITIVE_KINDS = ['kinetic-text', 'logo-lockup', 'product-surface', 'hero-metric', 'chart-path', 'image'] as const;
+
+const shotObjectMotionSchema = z
+  .object({
+    type: z.enum(SHOT_OBJECT_MOTION_NAMES).default('none'),
+    duration: z.number().min(0.1).max(3).default(0.45),
+  })
+  .strict()
+  .default({});
+
+const shotObjectEmphasisSchema = z
+  .object({
+    type: z.enum(SHOT_EMPHASIS_NAMES).default('none'),
+    at: z.number().min(0).max(30).default(0),
+    duration: z.number().min(0.1).max(6).default(0.8),
+  })
+  .strict()
+  .default({});
+
+const shotObjectBase = {
+  id: z.string().min(1).max(60),
+  slot: z.enum(SHOT_SLOT_NAMES),
+  enter: shotObjectMotionSchema,
+  emphasize: shotObjectEmphasisSchema,
+  exit: shotObjectMotionSchema,
+  carry: z.boolean().default(false),
+};
+
+const shotSceneObjectSchema = z.object({
+  ...shotObjectBase,
+  kind: z.literal('scene'),
+  scene: sceneSchema,
+}).strict();
+
+const kineticTextObjectSchema = z.object({
+  ...shotObjectBase,
+  kind: z.literal('kinetic-text'),
+  text: z.string().min(1).max(180),
+  eyebrow: z.string().min(1).max(60).optional(),
+  align: z.enum(['left', 'center']).default('left'),
+  scale: z.enum(['headline', 'display']).default('display'),
+}).strict();
+
+const logoLockupObjectSchema = z.object({
+  ...shotObjectBase,
+  kind: z.literal('logo-lockup'),
+  product: z.string().min(1).max(80),
+  src: z.string().min(1).max(500),
+  manifestRef: z.string().regex(/^[a-z][a-z0-9-]{0,79}$/),
+  tagline: z.string().min(1).max(120).optional(),
+  arrangement: z.enum(['mark-left', 'mark-top']).default('mark-left'),
+}).strict();
+
+const productSurfaceObjectSchema = z.object({
+  ...shotObjectBase,
+  kind: z.literal('product-surface'),
+  title: z.string().min(1).max(80),
+  subtitle: z.string().min(1).max(120).optional(),
+  device: z.enum(['browser', 'phone', 'panel']).default('browser'),
+  state: z.enum(['neutral', 'success', 'warn', 'error']).default('neutral'),
+  rows: z.array(z.object({
+    label: z.string().min(1).max(80),
+    value: z.string().min(1).max(60).optional(),
+    tone: z.enum(['neutral', 'success', 'warn', 'error']).default('neutral'),
+  }).strict()).min(1).max(5),
+}).strict();
+
+const heroMetricObjectSchema = z.object({
+  ...shotObjectBase,
+  kind: z.literal('hero-metric'),
+  label: z.string().min(1).max(TEXT_LIMITS.metricLabel),
+  metric: metricValue,
+  detail: z.string().min(1).max(TEXT_LIMITS.caption).optional(),
+  tone: z.enum(['neutral', 'success', 'warn']).default('neutral'),
+}).strict();
+
+const chartPathObjectSchema = z.object({
+  ...shotObjectBase,
+  kind: z.literal('chart-path'),
+  title: z.string().min(1).max(TEXT_LIMITS.cardTitle).optional(),
+  series: z.array(z.number().finite()).min(2).max(16),
+  labels: z.array(z.string().min(1).max(TEXT_LIMITS.chartLabel)).optional(),
+  tone: z.enum(['neutral', 'success', 'warn']).default('neutral'),
+}).strict();
+
+const imageObjectSchema = z.object({
+  ...shotObjectBase,
+  kind: z.literal('image'),
+  src: z.string().min(1).max(500),
+  alt: z.string().min(1).max(160),
+  fit: z.enum(['contain', 'cover']).default('contain'),
+  mask: z.enum(['none', 'rounded', 'circle']).default('none'),
+  tint: hexColor.optional(),
+  parallax: z.number().min(0).max(0.15).default(0),
+}).strict();
+
+const shotObjectSchema = z.discriminatedUnion('kind', [
+  shotSceneObjectSchema,
+  kineticTextObjectSchema,
+  logoLockupObjectSchema,
+  productSurfaceObjectSchema,
+  heroMetricObjectSchema,
+  chartPathObjectSchema,
+  imageObjectSchema,
+]);
+
+const shotTransitionSchema = z
+  .object({
+    type: z.enum(SHOT_TRANSITION_NAMES).default('cut'),
+    duration: z.number().min(0.1).max(2).default(0.45),
+    direction: z.enum(['left', 'right', 'up', 'down']).optional(),
+  })
+  .strict()
+  .superRefine((transition, ctx) => {
+    if (transition.type === 'directional' && !transition.direction) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['direction'],
+        message: 'a directional transition needs direction: left|right|up|down',
+      });
+    }
+    if (transition.type !== 'directional' && transition.direction) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['direction'],
+        message: 'direction is only used by a directional transition',
+      });
+    }
+  });
+
+function validateEmbeddedSceneContent(
+  scene: z.infer<typeof sceneSchema>,
+  objectIndex: number,
+  ctx: z.RefinementCtx,
+): void {
+  const prefix: Array<string | number> = ['objects', objectIndex, 'scene'];
+  if (scene.type === 'code') {
+    const lines = scene.code.split('\n');
+    if (lines.length > CODE_MAX_LINES) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'code'], message: `code has ${lines.length} lines; the panel fits at most ${CODE_MAX_LINES}` });
+    }
+    const long = lines.findIndex((line) => line.length > CODE_MAX_LINE_LENGTH);
+    if (long !== -1) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'code'], message: `line ${long + 1} is ${lines[long].length} chars; keep lines at or under ${CODE_MAX_LINE_LENGTH}` });
+    }
+    for (const field of ['added', 'removed'] as const) {
+      const bad = scene[field].find((line) => line > lines.length);
+      if (bad !== undefined) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, field], message: `line ${bad} is out of range; the code has ${lines.length} lines` });
+      }
+    }
+    const overlap = scene.added.find((line) => scene.removed.includes(line));
+    if (overlap !== undefined) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'added'], message: `line ${overlap} is marked both added and removed` });
+    }
+  }
+  if (scene.type === 'metric-card' && scene.chart?.labels && scene.chart.labels.length !== scene.chart.series.length) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'chart', 'labels'], message: `labels has ${scene.chart.labels.length} entries but series has ${scene.chart.series.length}; they must match` });
+  }
+  if (scene.type !== 'screen') return;
+  const names = scene.blocks.flatMap((block) => (block.name ? [block.name] : []));
+  const duplicate = names.find((name, index) => names.indexOf(name) !== index);
+  if (duplicate) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'blocks'], message: `screen block name "${duplicate}" is used more than once` });
+  }
+  if (scene.motion === 'focus') {
+    if (!scene.focus) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'focus'], message: 'screen motion "focus" needs focus to name a block' });
+    } else if (!names.includes(scene.focus)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'focus'], message: `focus "${scene.focus}" does not match a named block` });
+    }
+  } else if (scene.focus) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...prefix, 'focus'], message: 'focus is only used when screen motion is "focus"' });
+  }
+  scene.blocks.forEach((block, blockIndex) => {
+    const blockPrefix = [...prefix, 'blocks', blockIndex];
+    if (block.block === 'chart-card' && block.chart.labels && block.chart.labels.length !== block.chart.series.length) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...blockPrefix, 'chart', 'labels'], message: `labels has ${block.chart.labels.length} entries but series has ${block.chart.series.length}; they must match` });
+    }
+    if (block.block === 'heatmap' && block.values.length !== block.cols * 7) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...blockPrefix, 'values'], message: `heatmap values has ${block.values.length} cells but cols requires ${block.cols * 7}` });
+    }
+    if (block.block === 'callout' && block.variant === 'hero-stat' && !block.value) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...blockPrefix, 'value'], message: 'callout hero-stat needs value' });
+    }
+    if (block.block === 'callout' && block.variant === 'message' && !block.text) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [...blockPrefix, 'text'], message: 'callout message needs text' });
+    }
+  });
+}
+
+const shotSchema = z
+  .object({
+    id: z.string().min(1).max(60),
+    beatId: z.string().min(1).max(60),
+    duration: z.number().positive().max(30),
+    objects: z.array(shotObjectSchema).min(1).max(8),
+    camera: z
+      .object({
+        target: z.string().min(1).max(60),
+        move: z.enum(['none', 'push', 'pan']).default('none'),
+        amount: z.number().min(0).max(0.35).default(0.08),
+      })
+      .strict()
+      .optional(),
+    transition: shotTransitionSchema.default({}),
+    ambient: z
+      .object({
+        type: z.enum(['none', 'ember']).default('none'),
+        start: z.number().min(0).max(1).default(0),
+        end: z.number().min(0).max(1).default(1),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict()
+  .superRefine((shot, ctx) => {
+    const ids = shot.objects.map((object) => object.id);
+    const duplicate = ids.find((id, index) => ids.indexOf(id) !== index);
+    if (duplicate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['objects'],
+        message: `shot object id "${duplicate}" is used more than once`,
+      });
+    }
+    if (shot.ambient && shot.ambient.end <= shot.ambient.start) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ambient', 'end'],
+        message: 'ambient.end must be greater than ambient.start',
+      });
+    }
+    for (const [objectIndex, object] of shot.objects.entries()) {
+      if (object.kind !== 'scene') {
+        if (object.kind === 'chart-path' && object.labels && object.labels.length !== object.series.length) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['objects', objectIndex, 'labels'],
+            message: `labels has ${object.labels.length} entries but series has ${object.series.length}; they must match`,
+          });
+        }
+        if (object.emphasize.type !== 'none' && object.emphasize.at + object.emphasize.duration > shot.duration) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['objects', objectIndex, 'emphasize'],
+            message: 'object emphasis must finish within the shot duration',
+          });
+        }
+        continue;
+      }
+      validateEmbeddedSceneContent(object.scene, objectIndex, ctx);
+      if (object.scene.type === 'hold') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['objects', objectIndex, 'scene'],
+          message: 'hold cannot be embedded as a shot object; use shot duration or carry instead',
+        });
+      }
+      if (object.scene.frame) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['objects', objectIndex, 'scene', 'frame'],
+          message: 'shot object scenes use the compositor frame and cannot override chrome',
+        });
+      }
+      if (object.emphasize.type !== 'none' && object.emphasize.at + object.emphasize.duration > shot.duration) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['objects', objectIndex, 'emphasize'],
+          message: 'object emphasis must finish within the shot duration',
+        });
+      }
+    }
+  });
+
 export const demoConfigSchema = z
   .object({
     title: z.string().max(120).optional(),
     output: outputSchema,
     theme: themeSchema,
     frame: frameSchema,
+    profile: profileSchema.optional(),
+    context: contextConfigSchema.optional(),
+    artDirection: artDirectionSchema.optional(),
     brief: briefSchema.optional(),
     cinematic: cinematicSchema.optional(),
-    scenes: z.array(sceneSchema).min(1).max(12),
+    scenes: z.array(sceneSchema).min(1).max(12).optional(),
+    shots: z.array(shotSchema).min(1).max(12).optional(),
   })
   .superRefine((config, ctx) => {
-    if (config.scenes[0]?.type === 'hold') {
+    const scenes = config.scenes ?? [];
+    const shots = config.shots ?? [];
+    const recipe = config.brief?.story?.recipe;
+    const sourceCount = Number(scenes.length > 0) + Number(shots.length > 0) + Number(Boolean(recipe));
+    if (sourceCount !== 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: recipe ? ['brief', 'story', 'recipe'] : scenes.length > 0 ? ['shots'] : ['scenes'],
+        message: 'exactly one authoring source is required: provide scenes, shots, or brief.story.recipe, never more than one',
+      });
+    }
+    if (recipe && !config.brief?.story?.proof?.[0]?.display) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['brief', 'story', 'proof', 0, 'display'],
+        message: 'recipe compilation needs the first proof item to declare deterministic display copy',
+      });
+    }
+    const shotIds = shots.map((shot) => shot.id);
+    const duplicateShot = shotIds.find((id, index) => shotIds.indexOf(id) !== index);
+    if (duplicateShot) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['shots'],
+        message: `shot id "${duplicateShot}" is used more than once`,
+      });
+    }
+    let carriedIds = new Set<string>();
+    shots.forEach((shot, shotIndex) => {
+      const explicit = new Map(shot.objects.map((object) => [object.id, object]));
+      const activeIds = new Set([...carriedIds, ...explicit.keys()]);
+      if (shot.camera && !activeIds.has(shot.camera.target)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['shots', shotIndex, 'camera', 'target'],
+          message: `camera target "${shot.camera.target}" does not match an object in this shot or a carried object`,
+        });
+      }
+      if (shotIndex === 0 && shot.transition.type !== 'cut') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['shots', shotIndex, 'transition'],
+          message: 'the first shot has no previous shot to transition from; use transition.type: cut',
+        });
+      }
+      shot.objects.forEach((object, objectIndex) => {
+        if (
+          object.kind === 'scene' &&
+          object.scene.type === 'screenshot' &&
+          object.scene.cinematic &&
+          config.brief?.screenshotPolicy !== 'raw-intentional'
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['shots', shotIndex, 'objects', objectIndex, 'scene', 'cinematic'],
+            message: 'screenshot.cinematic needs brief.screenshotPolicy: raw-intentional',
+          });
+        }
+      });
+      const nextCarried = new Set<string>();
+      for (const id of activeIds) {
+        const authored = explicit.get(id);
+        if (authored ? authored.carry : carriedIds.has(id)) nextCarried.add(id);
+      }
+      carriedIds = nextCarried;
+    });
+    if (scenes[0]?.type === 'hold') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['scenes', 0],
         message: 'a "hold" scene extends the previous scene, so it cannot come first',
       });
     }
-    const total = config.scenes.reduce((sum, s) => sum + s.duration, 0);
+    const total = (scenes.length > 0 ? scenes : shots).reduce((sum, item) => sum + item.duration, 0);
     if (total > 60) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['scenes'],
+        path: scenes.length > 0 ? ['scenes'] : ['shots'],
         message: `total duration is ${total.toFixed(1)}s; README demos should stay under 60s`,
       });
     }
-    for (const [index, scene] of config.scenes.entries()) {
+    for (const [index, scene] of scenes.entries()) {
       if (scene.frame) {
         if (scene.type === 'hold') {
           ctx.addIssue({
@@ -803,39 +1245,6 @@ export const demoConfigSchema = z
           });
         }
       }
-      if (scene.type === 'typing' && scene.tap) {
-        if (!scene.send) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['scenes', index, 'tap'],
-            message: 'typing.tap needs send: true so there is a send button to tap',
-          });
-        }
-        if (config.frame.type === 'terminal') {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['scenes', index, 'tap'],
-            message: 'typing.tap is not supported in a terminal frame; no send button renders there',
-          });
-        }
-      }
-      if (scene.type === 'steps' && scene.tap) {
-        const links = scene.items.filter((it) => it.link).length;
-        if (links !== 1) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['scenes', index, 'tap'],
-            message: `steps.tap needs exactly one item with link: true to tap; found ${links}`,
-          });
-        }
-      }
-      if (scene.type === 'status-card' && scene.tap && !scene.cta) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['scenes', index, 'tap'],
-          message: 'status-card.tap needs a cta to tap',
-        });
-      }
       if (scene.type === 'metric-card' && scene.chart?.labels) {
         if (scene.chart.labels.length !== scene.chart.series.length) {
           ctx.addIssue({
@@ -912,13 +1321,39 @@ export const demoConfigSchema = z
         }
       }
     }
+  })
+  .transform((config) => {
+    if (config.brief?.story?.recipe) {
+      const compiled = compileRecipe(config);
+      return {
+        ...config,
+        brief: {
+          ...config.brief,
+          story: { ...config.brief.story, beats: compiled.beats },
+        },
+        scenes: [],
+        shots: z.array(shotSchema).min(1).max(12).parse(compiled.shots),
+      };
+    }
+    return { ...config, scenes: config.scenes ?? [] };
   });
 
 export type DemoConfig = z.infer<typeof demoConfigSchema>;
 export type Brief = NonNullable<DemoConfig['brief']>;
 export type BriefIntent = z.infer<typeof briefIntent>;
+export type StoryV2 = NonNullable<Brief['story']>;
+export type StoryBeat = NonNullable<StoryV2['beats']>[number];
+export type StoryProof = NonNullable<StoryV2['proof']>[number];
+export type ProfileName = (typeof PROFILE_NAMES)[number];
+export type ArtDirection = NonNullable<DemoConfig['artDirection']>;
+export type AppearanceEvidence = NonNullable<Brief['appearanceEvidence']>[number];
 export type Frame = DemoConfig['frame'];
 export type Scene = DemoConfig['scenes'][number];
+export type Shot = NonNullable<DemoConfig['shots']>[number];
+export type ShotObject = Shot['objects'][number];
+export type ShotSlot = (typeof SHOT_SLOT_NAMES)[number];
+export type ShotTransitionName = (typeof SHOT_TRANSITION_NAMES)[number];
+export type StoryRecipe = NonNullable<StoryV2['recipe']>;
 export type SceneFrameOverride = NonNullable<Scene['frame']>;
 export type SceneCinematic = NonNullable<Scene['cinematic']>;
 export type ConfigCinematic = NonNullable<DemoConfig['cinematic']>;
@@ -992,7 +1427,9 @@ export function resolveSceneCinematic(config: DemoConfig, scene: Scene): SceneCi
 }
 
 export function hasCinematicFields(config: DemoConfig): boolean {
-  return config.cinematic !== undefined || config.scenes.some((scene) => scene.cinematic !== undefined);
+  return config.cinematic !== undefined ||
+    config.scenes.some((scene) => scene.cinematic !== undefined) ||
+    (config.shots ?? []).some((shot) => shot.objects.some((object) => object.kind === 'scene' && object.scene.cinematic !== undefined));
 }
 
 export interface ResolvedAmbient {

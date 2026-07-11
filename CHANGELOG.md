@@ -4,6 +4,111 @@ As of 1.0.0 the config schema is stable: additive changes may land in minor
 versions, but breaking schema changes are reserved for a future major and are
 always listed here.
 
+## Unreleased
+
+### Added
+
+- P0 cinematic benchmarks for `readme-loop`, `social-film`, and
+  `product-tour`, including honest current-renderer baselines, deterministic
+  timed HTML targets, entry/peak/exit and pairwise contact strips, the expanded
+  motion/story rubric, a detector specification, and a capability-gap memo.
+- Versioned `demoframe check --json` output with stable finding codes,
+  provenance (`suppliedPaths` plus source hash), strict validity semantics, and
+  story/context summaries.
+- Story v2 via `brief.story.version: 2`: profiles, ordered semantic beats and
+  scene `beatId` binding, durable promise/copy/identity matching, and exact,
+  formatted, or confirmed-paraphrase proof relationships.
+- Typed `demoframe-context.yml` manifests and `demoframe context init`, with
+  selected-line/JSON-pointer hashes, repository confinement, secret checks,
+  typed entry shapes, and licensed/privacy-reviewed assets.
+- Art-direction intent fields and provenance-aware appearance evidence. Fields
+  not wired to pixels remain explicit notices and are excluded from effective
+  appearance-delta enforcement.
+- Render input manifests recording source/normalized config hashes, context and
+  asset hashes, bundled/custom font hashes, package/browser/encoder versions,
+  and output-affecting settings.
+- Generated, sentinel-managed agent guidance with `generate:guidance` and
+  `check:guidance`; package preflight now builds, exports the schema, and checks
+  generated guidance.
+- P3 direct `shots` authoring with named semantic-slot objects, embedded scene
+  surfaces, per-object enter/emphasize/exit, carry-over, camera target/push/pan,
+  independently timed ambient layers, and shared-element/masked/directional
+  transitions. Legacy scenes remain on their original render path and emit
+  single-object graph metadata only.
+- A deterministic resolved shot-graph IR and `report.json` materialization with
+  authoring source, render path, timings, object provenance, and SHA-256 hash.
+- P4 semantic shot primitives: kinetic text, manifest-backed logo lockups,
+  persistent product surfaces with semantic states, hero metrics, chart paths,
+  and local image/SVG objects with fit, mask, tint, and restrained parallax.
+- SVG sanitization removes scripts, event handlers, remote references,
+  `foreignObject`, and embedded assets before compositor rendering. Primitive
+  copy participates in story/proof binding, assets use the render registry, and
+  every primitive exposes layout-QA markers.
+- A strict Pulseboard primitive example, deterministic HTML golden, hostile SVG
+  fixture, and pairwise/extreme layout matrix across browser, phone, and
+  frameless compositions.
+- P5 deterministic recipe compilation for code-to-result,
+  problem-to-solution, workflow-transformation, metric-proof, ui-focus-tour,
+  and architecture-flow. Recipes are the third exclusive authoring source and
+  compile profile, brief, proof display, product identity, and art direction
+  into ordinary compositor shots.
+- Versioned recipe-specific variant registries with no arbitrary strings,
+  randomness, or copy-hash layout. Resolved graph reports record the variant
+  and all structural dimensions; the same-recipe fixture pair asserts at least
+  two differing dimensions while preserving the beat skeleton.
+- P6 browser-free static dwell estimation plus complete structural/appearance
+  signatures in `check --json`; render reports copy the same signatures.
+- Full-timeline rendered QA at the profile-locked 12/15 Hz rates for readable
+  text collision, actual dwell, empty/static intervals, clipping, and README
+  loop continuity. First-release findings are warnings, while `render --strict`
+  blocks staged output promotion atomically.
+- Relationship-aware eval diversity gates using structural dimensions and
+  CIEDE2000 appearance distance, including the five-plus-fixture matrix and both
+  held-out extraction fixtures.
+- Compositor readme loops now crossfade back into their opening state, and
+  directional transitions fade outgoing/incoming layers while moving. Semantic
+  product rows reveal across the work beat so calm layouts still communicate
+  progress without decorative motion.
+
+### Not shipped
+
+- Optional P7 audio remains out of scope: no approved benchmark requires it,
+  and adding a second media timeline would not improve the accepted stories.
+  Existing profiles remain intentionally silent.
+
+### Compatibility
+
+- Story v2 is opt-in only. Existing configs without both `brief.story` and
+  `profile` remain on legacy behavior and receive no new narrative findings,
+  including when a destination preset is supplied.
+- Legacy scene `tap` fields remain accepted but are now inert. Cursor rendering,
+  cursor preview samples, and cursor-specific validation have been removed.
+
+## 1.0.1
+
+Correctness patch and visual-baseline reset for the 1.x renderer.
+
+### Fixed
+
+- Status-card check bubbles now consistently use the success color, success
+  CTAs use the resolved `success` theme role, and the empty dashed avatar
+  placeholder has been removed.
+- The first command in every terminal session is already present when the
+  scene opens. Commands after a non-terminal scene and commands marked
+  `session: fresh` receive the same treatment; subsequent commands in a
+  continuing terminal session still type in.
+- Terminal-frame surfaces, text, muted output, success output, status sections,
+  and metric panels now follow the resolved theme palette. The bezel edge and
+  accessible error/warning terminal roles remain intentionally fixed; see
+  `docs/terminal-palette-inventory.md`.
+- Celebration bursts prefer an action/result anchor, stay inside the rendered
+  viewport, and omit the success check when a scene has no meaningful anchor.
+
+### Changed
+
+- 1.0.1 is the exact-rendering baseline for future legacy compatibility tests.
+  These intentional pixel changes supersede the 1.0.0 reference images.
+
 ## 1.0.0
 
 First stable release. The config schema is now frozen under semver: your

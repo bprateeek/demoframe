@@ -1,0 +1,103 @@
+title: fuzzymatch product-tour baseline
+output:
+  format: mp4
+  width: 1200
+  fps: 30
+  budget: 30MB
+  quality: standard
+  motionBlur: cinematic
+theme:
+  mode: light
+  accent: "#6d4aff"
+  palette:
+    page: "#ece9ff"
+    screen: "#f8f7ff"
+    card: "#ffffff"
+    text: "#201a38"
+    muted: "#716a89"
+    faint: "#a39db7"
+    border: "#ddd8ee"
+    success: "#168a56"
+    successBg: "#e5f6ed"
+    info: "#6d4aff"
+    shadow: "rgba(55, 38, 104, 0.16)"
+frame:
+  type: desktop
+  width: 1200
+  height: 675
+  title: fuzzymatch playground
+  subtitle: Command palette · 10,000 files
+brief:
+  mode: inferred
+  audience: UI engineers evaluating fuzzy matching for command palettes
+  source: eval/fixtures/library/README.md score, best, highlight, size, and speed claims
+  screenshotPolicy: reconstruct
+  placement: linkedin
+  arc: Search a large file list, understand the highlighted ranking, and prove speed and bundle size
+  climax: The right file ranks first in under 4 ms
+  brand: { accent: "#6d4aff", frame: desktop, mode: light }
+  product: fuzzymatch
+  repo: fuzzymatch
+  verbatimCopy: ["src/index.js", "under 4ms", "about 2KB"]
+  assumptions:
+    - The command-palette shell is a benchmark reconstruction of the library behavior.
+scenes:
+  - type: screen
+    duration: 5
+    layout: split
+    motion: reveal
+    blocks:
+      - { block: app-header, title: fuzzymatch, subtitle: "Playground · 10,000 files", icon: spark }
+      - { block: callout, name: query, variant: message, text: "Query: idx" }
+      - block: list
+        name: results
+        rows:
+          - { icon: check, label: src/index.js, trailing: score 0.71 }
+          - { label: dist/index.min.js, trailing: score 0.58 }
+          - { label: docs/intro.md, trailing: score 0.32 }
+  - type: screen
+    duration: 5.5
+    transition: crossfade
+    layout: split
+    motion: focus
+    focus: results
+    blocks:
+      - { block: app-header, title: fuzzymatch, subtitle: Prefixes and word boundaries win, icon: spark }
+      - { block: callout, name: query, variant: message, text: "Query: idx" }
+      - block: list
+        name: results
+        rows:
+          - { icon: check, label: src/index.js, trailing: "[i]n[d]e[x] · 0.71" }
+          - { label: dist/index.min.js, trailing: "[i]n[d]e[x] · 0.58" }
+          - { label: docs/intro.md, trailing: "[i]ntro.[d]m · 0.32" }
+  - type: code
+    duration: 5
+    title: One predictable pass per candidate
+    lang: javascript
+    reveal: lines
+    lineNumbers: true
+    code: |
+      import { best } from 'fuzzymatch';
+
+      best('idx', files, 3);
+      // src/index.js ranks first
+  - type: metric-card
+    duration: 4.5
+    transition: crossfade
+    title: Fast enough for search-as-you-type
+    metrics:
+      - { label: 10k candidates, value: 3.7, suffix: ms, decimals: 1 }
+      - { label: bundle size, value: 2, prefix: "~", suffix: KB }
+    chart: { kind: line, series: [0.4, 0.8, 1.5, 2.4, 3.7], labels: [1k, 2k, 4k, 7k, 10k] }
+    caption: Zero dependencies
+    cinematic: { composition: macro-card, motion: dolly-in }
+  - type: status-card
+    duration: 3.5
+    title: src/index.js ranks first
+    subtitle: fuzzymatch · query idx
+    checks: [Prefix hit, Word-boundary boost, Gap penalty applied]
+    cta: { label: Use result, style: primary }
+    cinematic: { composition: center-hero, motion: settle }
+  - type: hold
+    duration: 1.5
+    celebrate: true

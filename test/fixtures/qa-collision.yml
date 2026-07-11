@@ -1,0 +1,42 @@
+title: QA collision seed
+profile: readme-loop
+context: { manifest: qa-context.yml }
+output: { format: webp, width: 320, fps: 5, quality: draft, budget: 5MB }
+theme: { accent: "#e2603a", mode: light }
+frame: { type: none, width: 480, height: 320 }
+brief:
+  mode: user-confirmed
+  audience: QA test authors
+  source: Synthetic seeded collision fixture
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Show a clean promise, seed a collision, and prove strict promotion blocks it
+  climax: The defective output is blocked safely
+  product: QAGate
+  repo: qagate
+  verbatimCopy: ["Blocked safely"]
+  story:
+    version: 2
+    promise: QAGate catches defects
+    proof: [{ evidence: qa-proof, mode: exact }]
+    beats:
+      - { id: hook, role: hook }
+      - { id: build, role: build }
+      - { id: payoff, role: payoff }
+shots:
+  - id: qa-hook
+    beatId: hook
+    duration: 2.8
+    objects:
+      - { id: promise, slot: hero, kind: kinetic-text, text: QAGate catches defects, scale: headline }
+  - id: qa-collision
+    beatId: build
+    duration: 2.4
+    objects:
+      - { id: first, slot: hero, kind: kinetic-text, text: First readable line, scale: headline }
+      - { id: second, slot: hero, kind: kinetic-text, text: Second readable line, scale: headline }
+  - id: qa-payoff
+    beatId: payoff
+    duration: 3.0
+    objects:
+      - { id: proof, slot: hero, kind: kinetic-text, text: Blocked safely, align: center, scale: display }

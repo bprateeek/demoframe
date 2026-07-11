@@ -109,3 +109,95 @@ describe.skipIf(!chromiumInstalled())('runtime cinematic motion', () => {
     }
   });
 });
+
+describe.skipIf(!chromiumInstalled())('runtime 1.0.1 correctness', () => {
+  it('shows a complete first command at t=0.2s after a non-terminal scene', { timeout: 30_000 }, async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'terminal', prompt: '$' },
+      scenes: [
+        { type: 'steps', duration: 1, items: [{ label: 'Ready', state: 'done' }] },
+        { type: 'terminal-playback', duration: 4, command: 'npm test', output: ['passed'] },
+      ],
+    });
+    const session = await openRenderSession(await buildDocument(config, baseDir), 'draft');
+
+    try {
+      await session.seek(1200);
+      const command = await session.page.evaluate(() => {
+        const scene = document.querySelector('[data-scene="1"]') as HTMLElement;
+        return {
+          prompt: scene.querySelector('.df-term-prompt')?.textContent,
+          command: scene.querySelector('.df-play-typed')?.textContent,
+        };
+      });
+      expect(command).toEqual({ prompt: '$', command: 'npm test' });
+    } finally {
+      await session.close();
+    }
+  });
+
+  it('shows a complete command at t=0.2s after session: fresh', { timeout: 30_000 }, async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'terminal', prompt: '$' },
+      scenes: [
+        { type: 'terminal-playback', duration: 3, command: 'npm test', output: ['passed'] },
+        { type: 'terminal-playback', duration: 3, command: 'npm run build', output: ['built'] },
+        { type: 'terminal-playback', duration: 4, command: 'npm pack', session: 'fresh' },
+      ],
+    });
+    const session = await openRenderSession(await buildDocument(config, baseDir), 'draft');
+
+    try {
+      await session.seek(6200);
+      const command = await session.page.evaluate(
+        () => document.querySelector('[data-scene="2"] .df-play-typed')?.textContent,
+      );
+      expect(command).toBe('npm pack');
+    } finally {
+      await session.close();
+    }
+  });
+
+  it('anchors celebration to a result, clamps it, and hides the check when anchorless', { timeout: 30_000 }, async () => {
+    const config = demoConfigSchema.parse({
+      frame: { type: 'phone' },
+      scenes: [
+        { type: 'metric-card', duration: 2, metrics: [{ label: 'Tests', value: 254 }] },
+        { type: 'hold', duration: 1, celebrate: true },
+        { type: 'typing', duration: 2, text: 'No result anchor' },
+        { type: 'hold', duration: 1, celebrate: true },
+      ],
+    });
+    const session = await openRenderSession(await buildDocument(config, baseDir), 'draft');
+
+    try {
+      await session.seek(2200);
+      const anchored = await session.page.evaluate(() => {
+        const host = document.querySelector('.df-scenes') as HTMLElement;
+        const burst = document.querySelector('.df-celebrate') as HTMLElement;
+        const check = burst.querySelector('.df-celebrate-check') as HTMLElement;
+        const match = burst.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+        return {
+          width: host.getBoundingClientRect().width,
+          height: host.getBoundingClientRect().height,
+          x: Number(match?.[1]),
+          y: Number(match?.[2]),
+          checkDisplay: check.style.display,
+        };
+      });
+      expect(anchored.checkDisplay).toBe('flex');
+      expect(anchored.x).toBeGreaterThanOrEqual(64);
+      expect(anchored.x).toBeLessThanOrEqual(anchored.width - 64);
+      expect(anchored.y).toBeGreaterThanOrEqual(64);
+      expect(anchored.y).toBeLessThanOrEqual(anchored.height - 64);
+
+      await session.seek(5200);
+      const anchorlessDisplay = await session.page.evaluate(
+        () => (document.querySelector('.df-celebrate-check') as HTMLElement).style.display,
+      );
+      expect(anchorlessDisplay).toBe('none');
+    } finally {
+      await session.close();
+    }
+  });
+});

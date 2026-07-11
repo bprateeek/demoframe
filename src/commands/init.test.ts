@@ -66,8 +66,12 @@ describe('runInit', () => {
     expect(written).toContain('brief:');
     expect(written).toContain('# mode: user-confirmed');
     expect(written).toContain('audience: "TODO: who is this for"');
-    expect(written.endsWith(original)).toBe(true);
+    expect(written).toContain('profile: readme-loop');
+    expect(written).toContain('version: 2');
+    expect(written).toContain('beatId: payoff');
+    expect(written).toContain(original.split('\n')[0]);
     expect(existsSync(path.join(dir, 'assets'))).toBe(true);
+    expect(existsSync(path.join(dir, 'demoframe-context.yml'))).toBe(true);
     expect(existsSync(path.join(dir, 'AGENTS.md'))).toBe(true);
   });
 
@@ -110,6 +114,7 @@ describe('runInit', () => {
     expect(out).toContain('reconstruct first');
     expect(out).toContain('brief: block');
     expect(out).toContain('brief.mode: user-confirmed');
+    expect(out).toContain('brief.story promise/proof/beats');
   });
 
   it('refreshes agent instructions in place and targets the git root', async () => {
@@ -129,7 +134,7 @@ describe('runInit', () => {
     expect(written).toContain('brief.mode: user-confirmed');
     expect(written).toContain('repo reconnaissance');
     expect(written).toContain('source signal -> intent -> scene -> preserve / simplify / remove / copy');
-    expect(written).not.toContain('stale');
+    expect(written).not.toContain('\nstale\n');
     expect(existsSync(path.join(nested, 'AGENTS.md'))).toBe(false);
   });
 

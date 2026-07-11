@@ -1,4 +1,4 @@
-import { normalizeTermLines, type MetricValue, type Scene, type ScreenBlock } from '../config/schema.js';
+import { normalizeTermLines, type Frame, type MetricValue, type Scene, type ScreenBlock, type ShotObject } from '../config/schema.js';
 
 export type SceneTextLeafKind = 'text' | 'metric-value' | 'callout-value';
 
@@ -6,11 +6,18 @@ export interface SceneTextLeaf {
   path: string;
   text: string;
   kind: SceneTextLeafKind;
+  durable: boolean;
 }
 
-function pushText(out: SceneTextLeaf[], path: string, text: string | undefined, kind: SceneTextLeafKind = 'text'): void {
+function pushText(
+  out: SceneTextLeaf[],
+  path: string,
+  text: string | undefined,
+  kind: SceneTextLeafKind = 'text',
+  durable = true,
+): void {
   if (typeof text !== 'string' || text.trim().length === 0) return;
-  out.push({ path, text, kind });
+  out.push({ path, text, kind, durable });
 }
 
 export function formatMetricValue(value: MetricValue): string {
@@ -85,13 +92,35 @@ function screenBlockTextLeaves(block: ScreenBlock, blockIndex: number): SceneTex
   return out;
 }
 
-export function sceneTextLeaves(scene: Scene): SceneTextLeaf[] {
+export function sceneTextLeaves(scene: Scene, resolvedFrame?: Frame): SceneTextLeaf[] {
   const out: SceneTextLeaf[] = [];
+
+  if (resolvedFrame) {
+    switch (resolvedFrame.type) {
+      case 'phone':
+        pushText(out, 'frame.title', resolvedFrame.title);
+        pushText(out, 'frame.subtitle', resolvedFrame.subtitle);
+        break;
+      case 'browser':
+        pushText(out, 'frame.title', resolvedFrame.title);
+        pushText(out, 'frame.url', resolvedFrame.url);
+        break;
+      case 'terminal':
+        pushText(out, 'frame.title', resolvedFrame.title);
+        break;
+      case 'desktop':
+        pushText(out, 'frame.title', resolvedFrame.title);
+        pushText(out, 'frame.subtitle', resolvedFrame.subtitle);
+        break;
+      case 'none':
+        break;
+    }
+  }
 
   switch (scene.type) {
     case 'typing':
       pushText(out, 'text', scene.text);
-      pushText(out, 'placeholder', scene.placeholder);
+      pushText(out, 'placeholder', scene.placeholder, 'text', false);
       break;
     case 'steps':
       pushText(out, 'header.title', scene.header?.title);
@@ -116,7 +145,7 @@ export function sceneTextLeaves(scene: Scene): SceneTextLeaf[] {
     case 'terminal-playback':
       pushText(out, 'command', scene.command);
       normalizeTermLines(scene.output).forEach((line, index) => pushText(out, `output[${index}]`, line.text));
-      pushText(out, 'spinner', scene.spinner);
+      pushText(out, 'spinner', scene.spinner, 'text', false);
       pushText(out, 'exit.label', scene.exit?.label);
       pushText(out, 'prompt', scene.prompt);
       break;
@@ -143,5 +172,40 @@ export function sceneTextLeaves(scene: Scene): SceneTextLeaf[] {
       break;
   }
 
+  return out;
+}
+
+export function shotObjectTextLeaves(object: ShotObject, resolvedFrame?: Frame): SceneTextLeaf[] {
+  if (object.kind === 'scene') return sceneTextLeaves(object.scene, resolvedFrame);
+  const out: SceneTextLeaf[] = [];
+  switch (object.kind) {
+    case 'kinetic-text':
+      pushText(out, 'eyebrow', object.eyebrow);
+      pushText(out, 'text', object.text);
+      break;
+    case 'logo-lockup':
+      pushText(out, 'product', object.product);
+      pushText(out, 'tagline', object.tagline);
+      break;
+    case 'product-surface':
+      pushText(out, 'title', object.title);
+      pushText(out, 'subtitle', object.subtitle);
+      object.rows.forEach((row, index) => {
+        pushText(out, `rows[${index}].label`, row.label);
+        pushText(out, `rows[${index}].value`, row.value);
+      });
+      break;
+    case 'hero-metric':
+      pushText(out, 'metric', formatMetricValue(object.metric), 'metric-value');
+      pushText(out, 'label', object.label);
+      pushText(out, 'detail', object.detail);
+      break;
+    case 'chart-path':
+      pushText(out, 'title', object.title);
+      object.labels?.forEach((label, index) => pushText(out, `labels[${index}]`, label));
+      break;
+    case 'image':
+      break;
+  }
   return out;
 }

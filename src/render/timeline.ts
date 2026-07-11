@@ -1,4 +1,10 @@
-import { normalizeTermLines, resolveSceneCinematic, type DemoConfig, type Scene } from '../config/schema.js';
+import {
+  normalizeTermLines,
+  resolveSceneCinematic,
+  terminalSessionHistory,
+  type DemoConfig,
+  type Scene,
+} from '../config/schema.js';
 import { chromeSignature, renderFrame } from './chrome.js';
 
 export interface TimelineScene {
@@ -22,7 +28,7 @@ export interface Timeline {
   scenes: TimelineScene[];
 }
 
-function clientData(scene: Scene): Record<string, unknown> {
+export function sceneClientData(scene: Scene, pretyped = false): Record<string, unknown> {
   switch (scene.type) {
     case 'typing':
       return { text: scene.text, send: scene.send };
@@ -38,6 +44,7 @@ function clientData(scene: Scene): Record<string, unknown> {
         lines: normalizeTermLines(scene.output).length,
         spinner: Boolean(scene.spinner),
         exit: Boolean(scene.exit),
+        pretyped,
       };
     case 'code':
       return { lines: scene.code.split('\n').length, reveal: scene.reveal };
@@ -87,10 +94,12 @@ export function resolveTimeline(config: DemoConfig, fpsOverride?: number): Timel
       chromeLayer: 0,
       transition: scene.transition,
       data: {
-        ...clientData(scene),
+        ...sceneClientData(
+          scene,
+          scene.type === 'terminal-playback' && terminalSessionHistory(config.scenes, index).length === 0,
+        ),
         ...(cinematic ? { cinematic } : {}),
         ...(scene.celebrate ? { celebrate: true } : {}),
-        ...('tap' in scene && scene.tap ? { tap: true } : {}),
       },
     };
   });

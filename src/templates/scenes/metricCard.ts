@@ -58,7 +58,7 @@ export const metricCardCss = `
   opacity: 0;
 }
 .df-metric-caption { margin-top: var(--df-s4); color: var(--df-muted); font-size: var(--df-fs-base); opacity: 0; }
-.df-frame-terminal .df-metric-panel { background: #161b22; border-color: #262d38; }
+.df-frame-terminal .df-metric-panel { background: var(--df-card); border-color: var(--df-border); }
 `;
 
 const VIEW_W = 100;
@@ -106,11 +106,13 @@ export function chartSvg(chart: ChartSvgSpec): string {
 }
 
 export function metricCardHtml(scene: MetricCardScene, index: number): string {
-  const title = scene.title ? `<div class="df-metric-title">${escapeHtml(scene.title)}</div>` : '';
+  const title = scene.title
+    ? `<div class="df-metric-title" data-celebrate-anchor="title">${escapeHtml(scene.title)}</div>`
+    : '';
   const metrics = scene.metrics
     .map(
       (metric, k) => `<div class="df-metric-item" data-metric="${k}">
-        <div class="df-metric-value">${escapeHtml(metric.prefix ?? '')}0${escapeHtml(metric.suffix ?? '')}</div>
+        <div class="df-metric-value"${k === 0 ? ' data-celebrate-anchor="value"' : ''}>${escapeHtml(metric.prefix ?? '')}0${escapeHtml(metric.suffix ?? '')}</div>
         <div class="df-metric-label">${escapeHtml(metric.label)}</div>
       </div>`,
     )

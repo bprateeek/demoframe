@@ -16,7 +16,7 @@ import {
 import { resolveTimeline } from './timeline.js';
 
 describe('previewSampleTimes', () => {
-  it('preserves regular scene, tap, celebrate, and final preview samples', () => {
+  it('preserves regular scene, celebrate, and final preview samples', () => {
     const timeline = resolveTimeline(
       demoConfigSchema.parse({
         frame: { type: 'phone' },
@@ -32,7 +32,6 @@ describe('previewSampleTimes', () => {
       0.6,
       2,
       3.6,
-      3.76,
       4.3,
       5,
       5.8,

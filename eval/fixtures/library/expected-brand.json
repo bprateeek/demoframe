@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "product": "fuzzymatch",
+  "appearance": { "mode": "light", "primary": "#6d4aff", "frame": "browser", "shape": "soft-code-cards" },
+  "structure": { "compositionFamily": "code-to-result", "motif": "highlight-marks", "heroObject": "ranked-code-result", "motionPersonality": "crisp", "productSurfaceTreatment": "code-playground", "supportingObjectArrangement": "code-and-score" },
+  "requiredVocabulary": ["src/index.js", "under 4ms"]
+}

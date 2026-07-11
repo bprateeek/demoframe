@@ -47,7 +47,8 @@ Useful surfaces for agents:
 - `demoframe schema` prints the JSON Schema for configs; `docs/llms.txt` explains the full contract
 - `npx demoframe-mcp` is an MCP server exposing `get_schema`, `validate_config`, `list_templates`, `preview_demo`, `render_demo`, and `get_report`
 - `skills/demoframe/SKILL.md` (shipped in the package) teaches Claude Code the full authoring loop
-- `demoframe check` catches privacy, asset, and config issues before rendering; it errors on a pasted-screenshot demo
+- `demoframe check` catches privacy, asset, context, story, and config issues before rendering; add `--json` for the versioned coded machine contract
+- `demoframe context init` scaffolds `demoframe-context.yml` with selected-content source hashing
 - `report.json` and the preview stills written by every render close the feedback loop
 
 ## Install
@@ -61,6 +62,14 @@ and a pinned [gifski](https://gif.ski) build for best GIF quality; ffmpeg ships
 with the package. Pass `--no-download` to fail instead of downloading, and run
 `demoframe install-browser` / `demoframe doctor` to set up or inspect the
 environment explicitly.
+
+## Compatibility policy
+
+> Schema evolution is backward-compatible and additive. Existing valid
+> configs remain valid; rendered pixels may improve with release notes.
+
+Version 1.0.1 is the visual baseline for later exact-rendering compatibility
+tests. Intentional pixel improvements are listed in `CHANGELOG.md`.
 
 ## Quick start
 
@@ -100,6 +109,71 @@ demoframe serve demo.yml      # live preview with a time scrubber
 For destination-specific output, pass the same `--for github-readme|x-post|linkedin|product-hunt`
 flag to `check`, `preview`, and `render` so validation and stills use the same
 format, width, fps, budget, and quality that the final render will use.
+
+### Story v2 and repository context
+
+New `init` output opts into the additive story-v2 contract with
+`brief.story.version: 2`, an explicit `profile`, a typed context manifest, and
+`beatId` placeholders. The promise must appear as durable rendered copy; proof
+references a typed context entry in `exact`, deterministic `formatted`, or
+user-confirmed-only `paraphrase` mode; ordered hook/build/payoff/outro beats
+bind to content scenes by semantic id. `readme-loop` targets 8–12s,
+`social-film` 15–30s, and `product-tour` 20–45s.
+
+Choose exactly one authoring source. `scenes` keeps the stable legacy path and
+renders one full-canvas scene at a time. `shots` opts into the compositor for
+coordinated named objects in `hero`, `supporting`, `background`, and
+`foreground` slots. Shot objects can embed an existing scene with `kind:
+scene`, or use a restrained semantic primitive: `kinetic-text`,
+`logo-lockup`, `product-surface`, `hero-metric`, `chart-path`, or `image`.
+They add per-object enter/emphasize/exit, explicit carry-over, camera
+target/push/pan, independent ambient timing, and `shared-element`,
+`masked-wipe`, or `directional` transitions. Supplying both arrays is an error.
+Direct shots require story v2 and bind `shots[].beatId` to the declared beats.
+Every render records the resolved graph and deterministic graph hash in
+`report.json`. See
+[`examples/shots-compositor/demo.yml`](examples/shots-compositor/demo.yml).
+The complete primitive registry, including a manifest-backed lockup and a
+sanitized local SVG illustration, is shown in
+[`examples/primitives/demo.yml`](examples/primitives/demo.yml). `image` assets
+support contain/cover fit, rounded/circle masks, optional tint, and restrained
+parallax. SVG input is sanitized before embedding; scripts, event handlers,
+remote references, `foreignObject`, and embedded assets are removed.
+
+For a reliable story skeleton, choose `brief.story.recipe` instead of writing
+`scenes` or `shots`. Recipes are versioned and deterministic; the author must
+select an explicit recipe-specific `variant`. Available recipes are
+`code-to-result`, `problem-to-solution`, `workflow-transformation`,
+`metric-proof`, `ui-focus-tour`, and `architecture-flow`. Each compiles the
+brief promise, first proof display, profile, product identity, and art direction
+into normal shots. Variants never use randomness or mutable copy hashes. See the
+same-brand pair in [`examples/recipes/`](examples/recipes/): `proof-first` and
+`surface-first` keep the metric-proof beat skeleton while changing multiple
+structural dimensions.
+
+### Static and rendered QA
+
+`demoframe check` stays fast and browser-free. It validates the declared story,
+profile, context bindings, estimated text dwell, and emits complete structural
+and appearance signatures in `--json` output. Rendered detectors run only in
+`preview` and `render`, sampling the full timeline at 15 Hz (`readme-loop` and
+`social-film`) or 12 Hz (`product-tour`). They report readable-text collisions,
+actual dwell, empty/static windows, clipping, and README loop continuity.
+During the first detector release these are report warnings; `render --strict`
+still blocks before staged files are promoted. `report.json` records
+`renderedQa`, the same signatures as check, and any applied findings.
+
+Eval pair comparisons are relationship-aware: distinct brands must differ in
+film structure and either CIEDE2000 accent distance ≥ 10 or two appearance
+categories; same-brand pairs skip the appearance requirement; sibling products
+must differ in film structure.
+
+Legacy configs remain legacy: if they omit both `brief.story` and `profile`,
+they receive no new narrative errors, even with `--for`. See
+[`docs/profile-destination-compatibility.md`](docs/profile-destination-compatibility.md)
+for the exact default and compatibility table, and
+[`examples/story-v2/demo.yml`](examples/story-v2/demo.yml) for a clean
+formatted-proof example.
 
 Use `--autonomous` only when there is explicitly no human to interview, and add
 repeatable `--assumption "..."` entries on `preview`/`render` to record what
@@ -192,10 +266,9 @@ scene type ships under `examples/`, including `examples/screen-dashboard`,
 `examples/screen-focus`, `examples/screen-scroll`, and
 `examples/transparent-hero`.
 
-**Delight primitives** (opt-in): `tap: true` on a `typing`/`steps`/`status-card`
-scene drops a touch cursor that taps the action; `celebrate: true` plays a
-restrained success burst at the climax; `chat.avatars` adds per-role avatars.
-See `examples/mobile-flow` for all three.
+**Delight primitives** (opt-in): `celebrate: true` plays a restrained success
+burst at the climax; `chat.avatars` adds per-role avatars. Legacy `tap` fields
+remain accepted for config compatibility but no longer render a cursor.
 
 **Transitions**: `cut` (default), `crossfade`, `push` (incoming scene slides in
 from the right as the outgoing exits left; falls back to a crossfade when the

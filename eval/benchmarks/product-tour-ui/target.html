@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>fuzzymatch · product-tour target animatic</title>
+  <style>
+    :root{color-scheme:light;--violet:#6847e8;--violet-soft:#eeeaff;--ink:#241d35;--muted:#776f87;--line:#e2ddea;--paper:#fbfafd;--panel:#fff;--green:#22855a}
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#ece8f2}body{font-family:Inter,ui-sans-serif,system-ui;color:var(--ink)}
+    .stage{width:100vw;height:100vh;padding:24px;background:#ebe7f1}.window{position:relative;width:100%;height:100%;overflow:hidden;border:1px solid #d7d0e0;border-radius:18px;background:var(--paper);box-shadow:0 24px 70px #372c4926}
+    .titlebar{height:50px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 18px;border-bottom:1px solid var(--line);background:#f5f2f8}.lights{display:flex;gap:7px}.lights i{width:9px;height:9px;border-radius:50%;background:#c9c1d1}.lights i:first-child{background:#ee817e}.lights i:nth-child(2){background:#e9c259}.lights i:last-child{background:#67ca91}.titlebar b{font-size:11px;letter-spacing:.02em}.clock{justify-self:end;color:#9b93a6;font:700 9px/1 ui-monospace,monospace}
+    .app{position:absolute;inset:50px 0 0;display:grid;grid-template-columns:190px 1fr}.sidebar{position:relative;padding:24px 16px;border-right:1px solid var(--line);background:#f7f4fa}.brand{display:flex;align-items:center;gap:9px;padding:0 8px 22px;font-size:14px;font-weight:820}.brand i{width:20px;height:20px;border-radius:6px;background:var(--violet);box-shadow:inset 0 0 0 5px #fff7}.nav{display:grid;gap:4px}.nav span{padding:10px 11px;border-radius:8px;color:#81798d;font-size:12px;font-weight:700}.nav .active{color:var(--violet);background:var(--violet-soft)}.sidebar small{position:absolute;left:25px;bottom:22px;color:#a39aaa;font:700 9px/1.45 ui-monospace,monospace}
+    .workspace{position:relative;padding:26px 34px;background:#fdfcfe}.head{display:flex;justify-content:space-between;align-items:end}.head h1{margin:0;font-size:25px;letter-spacing:-.03em}.head p{margin:5px 0 0;color:var(--muted);font-size:12px}.pill{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#82798d;font:700 9px/1 ui-monospace,monospace}
+    .tour-grid{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:22px;margin-top:25px}.palette{border:1px solid #ddd6e7;border-radius:14px;background:#fff;box-shadow:0 16px 42px #4c3b6314;overflow:hidden}.query{height:62px;display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid var(--line)}.magnify{width:16px;height:16px;border:1.7px solid #958ca0;border-radius:50%;position:relative}.magnify:after{content:"";position:absolute;width:6px;border-top:1.7px solid #958ca0;right:-5px;bottom:-3px;transform:rotate(45deg)}.querytext{font:700 16px/1 ui-monospace,monospace}.placeholder{color:#aaa2b0}.key{margin-left:auto;padding:5px 7px;border:1px solid #e0dae6;border-radius:5px;background:#f8f6fa;color:#9d95a5;font:700 9px/1 ui-monospace,monospace}
+    .results{padding:8px}.row{height:62px;display:grid;grid-template-columns:32px 1fr auto;align-items:center;padding:0 12px;border-radius:9px;opacity:.38}.row.active{background:var(--violet-soft);opacity:1;box-shadow:inset 3px 0 var(--violet)}.fileicon{width:23px;height:27px;border:1.4px solid #a89db7;border-radius:5px}.path{font:700 12px/1.2 ui-monospace,monospace}.path small{display:block;margin-top:5px;color:#9c94a4;font:600 10px/1 ui-sans-serif,system-ui}.score{text-align:right;color:#91889c;font:700 10px/1 ui-monospace,monospace}.score b{display:block;margin-bottom:4px;color:var(--violet);font-size:13px}.hl{padding:1px 2px;border-radius:2px;background:#dcd3ff;color:#4f31d4}
+    .explain{min-height:264px;padding:20px;border:1px solid var(--line);border-radius:14px;background:#faf8fc}.stepnum{color:var(--violet);font:800 10px/1 ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase}.explain h2{margin:14px 0 0;font-size:24px;line-height:1.08;letter-spacing:-.035em}.explain p{margin:13px 0 0;color:var(--muted);font-size:13px;line-height:1.5}.rulelist{display:grid;gap:9px;margin-top:18px}.rule{display:grid;grid-template-columns:8px 1fr auto;gap:7px 9px;align-items:center;color:#655d70;font:700 10px/1.2 ui-monospace,monospace}.rule>i{width:8px;height:8px;border-radius:2px;background:#cfc6d7}.rule.on{color:var(--violet)}.rule.on>i{background:var(--violet)}.rulebar{grid-column:2;height:3px;border-radius:2px;background:#e3deea;overflow:hidden;opacity:var(--tour-focus,0)}.rulebar:after{content:"";display:block;width:calc(var(--weight)*100%);height:100%;background:var(--violet);transform:scaleX(var(--tour-focus,0));transform-origin:left}.rule em{grid-column:3;grid-row:1/3;color:var(--violet);font-style:normal;opacity:var(--tour-focus,0)}
+    .shot{position:absolute;inset:50px 0 0;pointer-events:none;opacity:0;z-index:4}.shot [data-reveal]{opacity:var(--reveal);transform:translateY(calc((1 - var(--reveal))*9px))}.hook{display:grid;align-content:center;padding:50px 70px 50px 250px;background:#fbfafd}.hook .mini{color:var(--violet);font:800 10px/1 ui-monospace,monospace;letter-spacing:.13em;text-transform:uppercase}.hook h2{max-width:760px;margin:17px 0 0;font-size:50px;line-height:1.04;letter-spacing:-.05em}.hook h2 span{color:var(--violet)}.hook p{max-width:580px;margin:19px 0 0;color:var(--muted);font-size:16px;line-height:1.5}.hookline{width:52px;height:3px;margin-top:28px;background:var(--violet)}
+    .tourshot{background:transparent}.tourshot .workspace,.tourshot .sidebar{visibility:hidden}.app .tour-grid{transform:translateX(calc(var(--tour-focus,0)*-6px)) scale(calc(1 + var(--tour-focus,0)*.012));transform-origin:75% center}.proof{display:grid;place-items:center;background:#fbfafd}.proofcard{width:760px;display:grid;grid-template-columns:1.2fr .8fr;overflow:hidden;border:1px solid #d9d2e2;border-radius:18px;background:#fff;box-shadow:0 22px 60px #392c4d21;transform:scale(calc(.98 + var(--ease)*.02))}.proofcopy{padding:37px}.proofcopy .mini{color:var(--violet);font:800 10px/1 ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase}.proofcopy h2{margin:14px 0 0;font-size:33px;line-height:1.08;letter-spacing:-.04em}.proofcopy p{margin-top:14px;color:var(--muted);font-size:13px;line-height:1.55}.metric{display:grid;place-items:center;text-align:center;background:var(--violet);color:#fff}.metric strong{display:block;font-size:66px;letter-spacing:-.06em}.metric span{display:block;margin-top:5px;font-weight:750}.metric small{display:block;margin-top:14px;color:#ded7fb;font:700 10px/1 ui-monospace,monospace}
+  </style>
+</head>
+<body>
+  <main class="stage"><section class="window">
+    <header class="titlebar"><div class="lights"><i></i><i></i><i></i></div><b>fuzzymatch playground</b><div class="clock" data-animatic-clock></div></header>
+    <div class="app"><aside class="sidebar"><div class="brand"><i></i>fuzzymatch</div><nav class="nav"><span class="active">Playground</span><span>API</span><span>Benchmarks</span></nav><small>~2KB<br>zero dependencies</small></aside><section class="workspace">
+      <div class="head"><div><h1>Command palette</h1><p>Rank 10,000 files as you type</p></div><div class="pill">one pass / candidate</div></div>
+      <div class="tour-grid"><div class="palette"><div class="query"><i class="magnify"></i><span class="querytext placeholder" data-query>Search files…</span><span class="key">esc</span></div><div class="results">
+        <div class="row active" data-row="0"><i class="fileicon"></i><div class="path">src/<span class="hl">i</span>n<span class="hl">d</span>e<span class="hl">x</span>.js<small>prefix + word boundary</small></div><div class="score"><b>0.71</b>best</div></div>
+        <div class="row" data-row="1"><i class="fileicon"></i><div class="path">dist/<span class="hl">i</span>n<span class="hl">d</span>e<span class="hl">x</span>.min.js<small>longer path penalty</small></div><div class="score"><b>0.58</b>2</div></div>
+        <div class="row" data-row="2"><i class="fileicon"></i><div class="path">docs/<span class="hl">i</span>ntro.m<span class="hl">d</span><small>gap penalty</small></div><div class="score"><b>0.32</b>3</div></div>
+      </div></div><aside class="explain"><div class="stepnum" data-stepnum>Step 1 · Query</div><h2 data-explain-title>Type a short subsequence.</h2><p data-explain-copy>Results re-rank immediately while the product surface stays still.</p><div class="rulelist"><div class="rule on" data-rule="0"><i></i><span>subsequence match</span><b class="rulebar" style="--weight:.82"></b><em>+0.42</em></div><div class="rule" data-rule="1"><i></i><span>word-boundary boost</span><b class="rulebar" style="--weight:.64"></b><em>+0.21</em></div><div class="rule" data-rule="2"><i></i><span>long-gap penalty</span><b class="rulebar" style="--weight:.38"></b><em>−0.12</em></div></div></aside></div>
+    </section></div>
+    <article class="shot hook" data-shot="hook"><div class="mini">fuzzymatch · about 2KB</div><h2>The right result, <span>before the next keystroke.</span></h2><p data-reveal="1">Predictable ranking for command palettes, file pickers, and search-as-you-type.</p><div class="hookline" data-reveal="2"></div></article>
+    <article class="shot tourshot" data-shot="query"></article>
+    <article class="shot tourshot" data-shot="explain"></article>
+    <article class="shot proof" data-shot="proof"><section class="proofcard"><div class="proofcopy"><div class="mini">Measured on 10,000 entries</div><h2>Fast enough for every keypress.</h2><p>One pass per candidate. Predictable scoring. Zero dependencies.</p></div><div class="metric"><div><strong>3.7 ms</strong><span>rank 10k files</span><small>bundle size · ~2KB</small></div></div></section></article>
+  </section></main>
+  <script>
+    window.ANIMATIC={duration:22,shots:[{id:'hook',start:0,end:4,enter:0,exit:0},{id:'query',start:4,end:10,enter:0,exit:0},{id:'explain',start:10,end:16,enter:0,exit:0},{id:'proof',start:16,end:22,enter:0,exit:0}]};
+    window.addEventListener('animatic:seek',({detail:{t}})=>{
+      const query=document.querySelector('[data-query]');
+      const rows=[...document.querySelectorAll('[data-row]')];
+      const title=document.querySelector('[data-explain-title]');
+      const copy=document.querySelector('[data-explain-copy]');
+      const step=document.querySelector('[data-stepnum]');
+      const rules=[...document.querySelectorAll('[data-rule]')];
+      let value='';
+      if(t>=4){const chars='idx';value=chars.slice(0,Math.min(3,Math.floor((t-4)/.7)+1))}
+      query.textContent=value||'Search files…';query.classList.toggle('placeholder',!value);
+      const ranked=t>=6;
+      rows.forEach((row,index)=>{row.style.opacity=ranked?(index===0?'1':'.58'):'.32';row.classList.toggle('active',index===0&&ranked)});
+      const explaining=t>=10;
+      const focus=explaining?Math.min(1,Math.max(0,(t-10)/1.2)):0;
+      document.documentElement.style.setProperty('--tour-focus',String(focus));
+      step.textContent=explaining?'Step 2 · Ranking':'Step 1 · Query';
+      title.textContent=explaining?'Why src/index.js wins.':'Type a short subsequence.';
+      copy.textContent=explaining?'Prefix hits and word boundaries score higher. Longer paths and gaps fall behind.':'Results re-rank immediately while the product surface stays still.';
+      rules.forEach((rule,index)=>rule.classList.toggle('on',explaining||index===0));
+    });
+  </script>
+  <script src="../animatic-runtime.js"></script>
+</body>
+</html>

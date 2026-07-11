@@ -1,0 +1,152 @@
+title: Shipcheck shot compositor
+profile: readme-loop
+context: { manifest: demoframe-context.yml }
+output: { format: webp, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#e4a93b", mode: dark, font: inter }
+frame: { type: browser, width: 960, height: 540, chrome: thin, title: Shipcheck release gate }
+brief:
+  mode: user-confirmed
+  audience: README visitors evaluating a local release checklist
+  source: Repository-backed Shipcheck release copy and proof
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Promise a repeatable release gate, expose blockers, then land on a clear result
+  climax: The release gate reports three checks passed
+  brand: { accent: "#e4a93b", frame: browser, mode: dark }
+  product: Shipcheck
+  repo: shipcheck
+  verbatimCopy: ["3 checks passed", "Release gate clear"]
+  appearanceEvidence:
+    - field: theme.accent
+      noSource: User confirmed the warm release-gate accent for this synthetic example.
+  story:
+    version: 2
+    promise: Find release blockers before the tag
+    proof:
+      - { evidence: release-proof, mode: exact }
+    beats:
+      - { id: hook, role: hook }
+      - { id: build, role: build }
+      - { id: payoff, role: payoff }
+    visualMetaphor: A checklist moves from blocked to clear beside the terminal evidence
+shots:
+  - id: release-hook
+    beatId: hook
+    duration: 3.1
+    objects:
+      - id: promise
+        slot: hero
+        kind: scene
+        scene:
+          type: typing
+          duration: 3.1
+          text: "Shipcheck · Find release blockers before the tag"
+        enter: { type: slide-up, duration: 0.5 }
+        emphasize: { type: focus, at: 1.2, duration: 0.8 }
+        exit: { type: fade, duration: 0.35 }
+        carry: false
+    camera: { target: promise, move: push, amount: 0.05 }
+  - id: release-build
+    beatId: build
+    duration: 2.6
+    transition: { type: directional, direction: left, duration: 0.45 }
+    ambient: { type: ember, start: 0.15, end: 0.9 }
+    objects:
+      - id: terminal
+        slot: hero
+        kind: scene
+        scene:
+          type: terminal-playback
+          duration: 2.6
+          command: shipcheck run
+          output:
+            - { text: "checking release/1.4.0", style: dim }
+            - { text: "2 blockers found", style: error }
+        enter: { type: slide-left, duration: 0.45 }
+        emphasize: { type: none, at: 0, duration: 0.8 }
+        exit: { type: fade, duration: 0.35 }
+        carry: true
+      - id: gate
+        slot: supporting
+        kind: scene
+        scene:
+          type: steps
+          duration: 2.6
+          header: { title: Release gate, detail: Two blockers need attention }
+          items:
+            - { label: Full test suite, state: done }
+            - { label: Update changelog, state: active }
+            - { label: Smoke test installer, state: pending }
+        enter: { type: scale, duration: 0.5 }
+        emphasize: { type: focus, at: 1, duration: 0.8 }
+        exit: { type: fade, duration: 0.35 }
+        carry: false
+    camera: { target: gate, move: pan, amount: 0.08 }
+  - id: release-clear
+    beatId: build
+    duration: 2.3
+    transition: { type: shared-element, duration: 0.45 }
+    objects:
+      - id: terminal
+        slot: hero
+        kind: scene
+        scene:
+          type: terminal-playback
+          duration: 2.3
+          command: shipcheck done --all
+          output:
+            - { text: "updated CHANGELOG.md", style: success }
+            - { text: "installer smoke test passed", style: success }
+        enter: { type: none, duration: 0.45 }
+        emphasize: { type: none, at: 0, duration: 0.8 }
+        exit: { type: fade, duration: 0.35 }
+        carry: true
+      - id: gate
+        slot: supporting
+        kind: scene
+        scene:
+          type: steps
+          duration: 2.3
+          header: { title: Release gate, detail: Every blocker is cleared }
+          items:
+            - { label: Full test suite, state: done }
+            - { label: Update changelog, state: done }
+            - { label: Smoke test installer, state: done }
+        enter: { type: none, duration: 0.45 }
+        emphasize: { type: focus, at: 0.5, duration: 0.8 }
+        exit: { type: fade, duration: 0.35 }
+        carry: false
+    camera: { target: gate, move: pan, amount: 0.08 }
+  - id: release-payoff
+    beatId: payoff
+    duration: 3.3
+    transition: { type: shared-element, duration: 0.55 }
+    objects:
+      - id: terminal
+        slot: supporting
+        kind: scene
+        scene:
+          type: terminal-playback
+          duration: 3.3
+          command: shipcheck run
+          output:
+            - { text: "3 checks passed", style: success }
+          exit: { status: success, label: Release gate clear }
+        enter: { type: none, duration: 0.45 }
+        emphasize: { type: none, at: 0, duration: 0.8 }
+        exit: { type: fade, duration: 0.35 }
+        carry: false
+      - id: result
+        slot: hero
+        kind: scene
+        scene:
+          type: status-card
+          duration: 3.3
+          title: "Shipcheck · Release gate clear"
+          checks: ["3 checks passed"]
+          cta: { label: Release gate clear, style: success }
+        enter: { type: scale, duration: 0.5 }
+        emphasize: { type: focus, at: 1.1, duration: 1 }
+        exit: { type: none, duration: 0.45 }
+        carry: false
+    camera: { target: result, move: push, amount: 0.06 }

@@ -46,11 +46,26 @@ const { values: opts } = parseArgs({
   },
 });
 
-const AGENT_PROMPT =
-  "Add a demo animation to this repository's README. The demoframe npm package is " +
-  'installed as a dev dependency; use it (CLI: npx demoframe) to design and render a ' +
-  'short demo gif or webp that shows what this product does, then embed it in README.md. ' +
-  'Work autonomously; do not ask the user questions.';
+const fixtureCatalog = JSON.parse(readFileSync(join(evalDir, 'fixtures', 'manifest.json'), 'utf8'));
+const fixtureByName = new Map(fixtureCatalog.fixtures.map((fixture) => [fixture.name, fixture]));
+
+function agentPrompt(name) {
+  const fixture = fixtureByName.get(name);
+  const base =
+    "Add a demo animation to this repository's README. The demoframe npm package is " +
+    'installed as a dev dependency; use it (CLI: npx demoframe) to inspect the repository, author ' +
+    'demoframe-context.yml and a story-v2 config, render a polished artifact, keep the config/report, ' +
+    'and embed the animation in README.md. Do not ask follow-up questions.';
+  if (fixture?.contract === 'inferred') {
+    return `${base}\n\nThis is the explicit inferred fixture. Pass --autonomous, record assumptions, and use only exact or formatted proof. ${fixture.interview.note}`;
+  }
+  const answers = fixture?.interview ?? {};
+  return `${base}\n\nThe user already answered and confirmed the authoring interview. Record mode: user-confirmed and use these answers verbatim as constraints:\n${JSON.stringify(answers, null, 2)}\n${
+    fixture?.heldOutExtraction
+      ? 'This is a held-out extraction fixture: no prepared context manifest exists. Inspect repository sources and author it yourself.'
+      : ''
+  }`;
+}
 
 const AGENT_TIMEOUT_MS = 30 * 60 * 1000;
 const JUDGE_TIMEOUT_MS = 5 * 60 * 1000;
@@ -94,7 +109,7 @@ function walk(dir, out = []) {
 function findConfigs(dir) {
   return walk(dir)
     .filter((f) => f.endsWith('.yml') || f.endsWith('.yaml'))
-    .filter((f) => /^scenes:/m.test(readFileSync(f, 'utf8')))
+    .filter((f) => /^(?:scenes|shots):|^\s+recipe:/m.test(readFileSync(f, 'utf8')))
     .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs);
 }
 
@@ -159,6 +174,11 @@ async function evalFixture(name, workRoot, tarball, resultsDir) {
   mkdirSync(fixtureResults, { recursive: true });
 
   const record = { fixture: name, gates: {}, judge: null, agent: null };
+  const fixture = fixtureByName.get(name);
+  if (!fixture) throw new Error(`fixture ${name} is missing from fixtures/manifest.json`);
+  record.contract = fixture.contract;
+  record.heldOutExtraction = fixture.heldOutExtraction;
+  record.relationships = fixtureCatalog.pairs.filter((pair) => pair.left === name || pair.right === name);
 
   console.log('installing demoframe tarball...');
   const install = run('npm', ['install', '--no-audit', '--no-fund', '--save-dev', tarball], work);
@@ -178,7 +198,7 @@ async function evalFixture(name, workRoot, tarball, resultsDir) {
   } else if (!opts['skip-agent']) {
     console.log(`running claude -p (up to ${opts['max-turns']} turns, this can take 10-20 min)...`);
     console.log(`  agent model: ${agentModel}`);
-    const args = ['-p', AGENT_PROMPT, '--dangerously-skip-permissions', '--max-turns', opts['max-turns'], '--output-format', 'json', '--model', agentModel];
+    const args = ['-p', agentPrompt(name), '--dangerously-skip-permissions', '--max-turns', opts['max-turns'], '--output-format', 'json', '--model', agentModel];
     const agent = run('claude', args, work, AGENT_TIMEOUT_MS);
     writeFileSync(join(fixtureResults, 'agent.json'), agent.stdout || agent.stderr);
     const parsed = extractJson(agent.stdout);
@@ -206,10 +226,17 @@ async function evalFixture(name, workRoot, tarball, resultsDir) {
   const config = configs[0];
   if (config) {
     copyFileSync(config, join(fixtureResults, 'demo.yml'));
-    const check = run('npx', ['demoframe', 'check', config], work, 5 * 60 * 1000);
-    const { blocking, briefOnly } = classifyCheck(check.stdout + check.stderr);
-    record.gates.check = check.ok || briefOnly;
-    record.gates.checkBlocking = blocking;
+    const checkArgs = ['demoframe', 'check', config, '--json'];
+    if (fixture.contract === 'inferred') checkArgs.push('--autonomous');
+    const check = run('npx', checkArgs, work, 5 * 60 * 1000);
+    const checked = extractJson(check.stdout);
+    record.gates.check = check.ok && checked?.schemaVersion === 1 && checked?.valid === true;
+    record.gates.checkBlocking = (checked?.findings ?? [])
+      .filter((finding) => finding.severity === 'error')
+      .map((finding) => `${finding.code}: ${finding.message}`);
+    record.checkSchemaVersion = checked?.schemaVersion ?? null;
+    record.structuralSignature = checked?.structuralSignature ?? null;
+    record.appearanceSignature = checked?.appearanceSignature ?? null;
     writeFileSync(join(fixtureResults, 'check.log'), check.stdout + check.stderr);
   } else {
     record.gates.check = false;
@@ -228,22 +255,25 @@ async function evalFixture(name, workRoot, tarball, resultsDir) {
   const kept = embedded.length > 0 ? embedded : artifactFiles;
   for (const f of kept) copyFileSync(f, join(fixtureResults, basename(f)));
 
-  // An agent that renders a valid artifact and embeds it, then deletes its
-  // intermediate config for a tidy git diff, leaves nothing to run `demoframe
-  // check` against. That is good hygiene, not a failure: waive the check gate
-  // when the render clearly succeeded, and record that the config was not kept
-  // so the scorecard stays honest about the weaker signal.
-  if (!record.gates.configFound && record.gates.artifact && record.gates.readmeEmbed) {
-    record.gates.check = true;
-    record.checkWaived = true;
-  }
-
   const reports = findReports(work);
   let report = null;
   if (reports.length > 0) {
     report = JSON.parse(readFileSync(reports[0], 'utf8'));
     copyFileSync(reports[0], join(fixtureResults, 'report.json'));
   }
+  record.gates.report = report !== null;
+  const inputManifest = report?.inputManifest;
+  record.gates.inputManifest = Boolean(
+    inputManifest?.schemaVersion === 1 &&
+      /^sha256:[a-f0-9]{64}$/.test(inputManifest?.sourceConfigHash ?? '') &&
+      Array.isArray(inputManifest?.normalizedConfigHashes) &&
+      inputManifest.normalizedConfigHashes.length > 0 &&
+      Array.isArray(inputManifest?.fontHashes) &&
+      inputManifest.fontHashes.length > 0 &&
+      inputManifest?.packageVersion &&
+      inputManifest?.chromiumRevision &&
+      inputManifest?.encoderVersions,
+  );
   const reportedOutputs = (report?.outputs ?? []).filter((o) => o.file && existsSync(o.file));
   if (reportedOutputs.length > 0) {
     record.gates.budget = reportedOutputs.every((o) => o.withinBudget !== false);
@@ -273,26 +303,43 @@ async function evalFixture(name, workRoot, tarball, resultsDir) {
     record.gates.check &&
     record.gates.artifact &&
     record.gates.budget &&
-    record.gates.readmeEmbed;
+    record.gates.readmeEmbed &&
+    record.gates.report &&
+    record.gates.inputManifest;
 
   if (!opts['skip-judge'] && (record.previews?.length ?? 0) > 0) {
-    console.log('judging preview stills...');
+    console.log('judging animation and preview stills...');
     const rubric = readFileSync(join(evalDir, 'judge-rubric.md'), 'utf8');
     const judgePrompt =
       `${rubric}\n\nThe repository under review is described by README.md in the working ` +
-      `directory. Read these preview stills and grade them:\n` +
-      record.previews.map((p) => `- ${p}`).join('\n');
+      `directory. Read the kept animation plus these preview stills and grade them. Use the artifact timing/report ` +
+      `to assess pacing and loop/outro quality:\n` +
+      [...kept, ...record.previews].map((p) => `- ${p}`).join('\n');
     console.log(`  judge model: ${judgeModel}`);
     const args = ['-p', judgePrompt, '--dangerously-skip-permissions', '--max-turns', '15', '--output-format', 'json', '--allowedTools', 'Read', '--model', judgeModel];
-    const judge = run('claude', args, work, JUDGE_TIMEOUT_MS);
-    writeFileSync(join(fixtureResults, 'judge.json'), judge.stdout || judge.stderr);
-    const outer = extractJson(judge.stdout);
     record.judgeModel = judgeModel;
-    record.judge = typeof outer?.result === 'string' ? extractJson(outer.result) : null;
-    if (!record.judge) console.log('judge output could not be parsed');
+    record.judgeAttempts = 0;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const judge = run('claude', args, work, JUDGE_TIMEOUT_MS);
+      writeFileSync(join(fixtureResults, `judge-attempt-${attempt}.json`), judge.stdout || judge.stderr);
+      const outer = extractJson(judge.stdout);
+      const parsed = typeof outer?.result === 'string' ? extractJson(outer.result) : null;
+      record.judgeAttempts = attempt;
+      if (parsed?.schemaVersion === 2 && typeof parsed?.overall === 'number') {
+        record.judge = parsed;
+        writeFileSync(join(fixtureResults, 'judge.json'), `${JSON.stringify(parsed, null, 2)}\n`);
+        break;
+      }
+    }
+    if (!record.judge) {
+      record.needsHumanReview = true;
+      console.log('judge output could not be parsed after retry; needs-human-review');
+    }
   }
 
-  record.pass = record.mechanicalPass && (opts['skip-judge'] || record.judge?.verdict === 'pass');
+  record.pass =
+    record.mechanicalPass &&
+    (opts['skip-judge'] || (!record.needsHumanReview && record.judge?.verdict === 'pass'));
   console.log(`${name}: mechanical ${record.mechanicalPass ? 'PASS' : 'FAIL'}, overall ${record.pass ? 'PASS' : 'FAIL'}`);
   return record;
 }
@@ -306,26 +353,24 @@ function scorecard(records, stamp) {
       : []),
     `Agent model: ${agentModel} | Judge model: ${judgeModel}`,
     '',
-    `Prompt: ${AGENT_PROMPT}`,
+    'Prompt: fixture-specific confirmed interview answers (one explicitly inferred fixture); see fixtures/manifest.json',
     '',
-    '| fixture | install | config | check | artifact | budget | readme | judge | pass |',
-    '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
+    '| fixture | install | config | check | artifact | budget | readme | report | manifest | diversity | judge | pass |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |',
   ];
   const mark = (v) => (v === undefined || v === null ? '-' : v ? 'yes' : 'NO');
   for (const r of records) {
     const judge = r.judge ? `${r.judge.overall}/5 (${r.judge.verdict})` : '-';
-    const check = r.checkWaived ? 'wv' : mark(r.gates.check);
     lines.push(
-      `| ${r.fixture} | ${mark(r.gates.install)} | ${mark(r.gates.configFound)} | ${check} | ` +
-        `${mark(r.gates.artifact)} | ${mark(r.gates.budget)} | ${mark(r.gates.readmeEmbed)} | ${judge} | ${r.pass ? 'PASS' : 'FAIL'} |`,
+      `| ${r.fixture} | ${mark(r.gates.install)} | ${mark(r.gates.configFound)} | ${mark(r.gates.check)} | ` +
+        `${mark(r.gates.artifact)} | ${mark(r.gates.budget)} | ${mark(r.gates.readmeEmbed)} | ` +
+        `${mark(r.gates.report)} | ${mark(r.gates.inputManifest)} | ${mark(r.gates.diversity)} | ${judge} | ${r.pass ? 'PASS' : 'FAIL'} |`,
     );
   }
   lines.push('');
-  lines.push('check `wv` = waived: the agent cleaned up its config, so check ran against the render + README embed instead.');
-  lines.push('');
   for (const r of records) {
     if (r.judge?.notes) lines.push(`- ${r.fixture}: ${r.judge.notes}`);
-    if (r.checkWaived) lines.push(`- ${r.fixture} check: waived (config not retained; render + README embed verified instead)`);
+    if (r.needsHumanReview) lines.push(`- ${r.fixture}: needs-human-review (judge failed its JSON contract after retry)`);
     if (r.gates.checkBlocking?.length) lines.push(`- ${r.fixture} check blockers: ${r.gates.checkBlocking.join('; ')}`);
     if (r.agent?.costUsd != null) lines.push(`- ${r.fixture} agent: ${r.agent.turns} turns, $${r.agent.costUsd.toFixed(2)}`);
   }
@@ -333,7 +378,7 @@ function scorecard(records, stamp) {
   return lines.join('\n');
 }
 
-const FIXTURE_ORDER = ['cli-tool', 'web-app', 'library'];
+const FIXTURE_ORDER = fixtureCatalog.fixtures.map((fixture) => fixture.name);
 
 // --into resumes a prior run: single-fixture (or partial) results are folded
 // back into that run's directory and its scorecard is regenerated, so you never
@@ -379,7 +424,27 @@ if (resuming) {
   );
 }
 
+const { compareDiversity } = await import('../dist/qa/diversity.js');
+const recordsByFixture = new Map(records.map((record) => [record.fixture, record]));
+const pairwise = fixtureCatalog.pairs.map((pair) => {
+  const left = recordsByFixture.get(pair.left);
+  const right = recordsByFixture.get(pair.right);
+  if (!left?.structuralSignature || !right?.structuralSignature || !left?.appearanceSignature || !right?.appearanceSignature) {
+    return { ...pair, pass: false, issues: ['missing structural or appearance signature'] };
+  }
+  return { ...pair, ...compareDiversity(left.structuralSignature, right.structuralSignature, left.appearanceSignature, right.appearanceSignature, pair.relationship) };
+});
+for (const record of records) {
+  const related = pairwise.filter((pair) => pair.left === record.fixture || pair.right === record.fixture);
+  if (related.length > 0) {
+    record.gates.diversity = related.every((pair) => pair.pass);
+    record.mechanicalPass = record.mechanicalPass && record.gates.diversity;
+    record.pass = record.mechanicalPass && (opts['skip-judge'] || (!record.needsHumanReview && record.judge?.verdict === 'pass'));
+  }
+}
+
 writeFileSync(join(resultsDir, 'results.json'), JSON.stringify(records, null, 2) + '\n');
+writeFileSync(join(resultsDir, 'pairwise.json'), JSON.stringify(pairwise, null, 2) + '\n');
 writeFileSync(join(resultsDir, 'scorecard.md'), scorecard(records, stamp));
 console.log(`\nresults: ${resultsDir}`);
 console.log(records.map((r) => `${r.fixture}: ${r.pass ? 'PASS' : 'FAIL'}`).join(', '));

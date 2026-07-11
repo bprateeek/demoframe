@@ -1,0 +1,16 @@
+{
+  "id": "product-tour-ui",
+  "profile": "product-tour",
+  "subject": "fuzzymatch",
+  "relationship": "baseline-to-target",
+  "durationS": 22,
+  "viewport": { "width": 1200, "height": 675 },
+  "baseline": "baseline.demo.yml",
+  "target": "target.html",
+  "shots": [
+    { "id": "hook", "start": 0.2, "peak": 2, "end": 3.9 },
+    { "id": "query", "start": 4.3, "peak": 7, "end": 9.9 },
+    { "id": "explain", "start": 10.3, "peak": 13, "end": 15.9 },
+    { "id": "proof", "start": 16.4, "peak": 19, "end": 21.9 }
+  ]
+}

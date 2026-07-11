@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "product": "funnelglass",
+  "appearance": { "mode": "light", "primary": "#ef6f61", "frame": "none", "shape": "editorial-cut" },
+  "structure": { "compositionFamily": "funnel-path", "motif": "descending-stages", "heroObject": "activation-funnel", "motionPersonality": "crisp", "productSurfaceTreatment": "frameless-report", "supportingObjectArrangement": "left-rail-proof" },
+  "requiredVocabulary": ["Activation funnel", "24.7% conversion"]
+}

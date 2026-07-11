@@ -1,0 +1,31 @@
+output: { format: webp, width: 640, fps: 15, quality: draft }
+theme: { accent: "#e2603a", mode: dark, font: inter }
+frame: { type: terminal, width: 820, height: 520, title: legacy-terminal, prompt: "$" }
+scenes:
+  - type: terminal-playback
+    duration: 3
+    command: npm test
+    output:
+      - { text: collecting tests, style: dim }
+      - { text: all tests passed, style: success }
+    exit: { status: success, label: done }
+  - type: terminal-playback
+    duration: 3
+    command: npm run build
+    output: [compiled 42 modules]
+    exit: { status: success, label: built }
+  - type: status-card
+    duration: 3
+    title: Release ready
+    subtitle: legacy/repo
+    checks: [Tests, Build, Package]
+    cta: { label: Publish, style: success }
+  - type: metric-card
+    duration: 3
+    title: Release proof
+    metrics:
+      - { label: Tests, value: 128 }
+      - { label: Build, value: 2.1, suffix: s, decimals: 1 }
+    chart: { kind: line, series: [8, 12, 11, 16, 22] }
+  - type: hold
+    duration: 1

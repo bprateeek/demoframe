@@ -101,7 +101,6 @@ If a source signal cannot be mapped to a synthetic scene, either redesign the st
 - Frame polish: `frame.outside: transparent` makes a true alpha cutout (best with `output.format: webp`), `frame.outside: "#hex"` gives an opaque matte fallback, `frame.shadow: false` makes a hard cutout, `frame.margin` adds transparent padding after trim, and phone frames accept `deviceColor` for the bezel. Transparent GIF is 1-bit and drops the soft shadow; transparent MP4/WebM is rejected by check/render.
 - Scene-level frame overrides are for chrome copy only. Use `scenes[].frame.url/title/chrome` to hand off from a VPS work screen to a GitHub PR screen inside one browser demo, or phone title/subtitle/statusBarTime for mobile handoffs. Do not put global output controls (`outside`, `shadow`, `margin`, `deviceColor`) in scene overrides.
 - **Delight primitives (opt-in, keep them rare and intentional):**
-  - `tap: true` on a `typing`, `steps`, or `status-card` scene drops a soft touch cursor that glides to that scene's action and taps it near the scene's end (the send button, the one linked step, the CTA). `typing.tap` needs `send: true`; it is not available in a terminal frame.
   - `celebrate: true` plays a restrained success burst (a checkmark pop, a ring pulse, a few accent dots) anchored to the scene's CTA or result. Put it on the final scene or a trailing `hold` so the burst lands on the closing frame.
   - `chat.avatars: { assistant, user }` adds a per-role avatar to chat rows. Each is an image path or a `{ initials, color }` monogram (1 to 3 letters). App identity in the header still comes from `theme.logo`.
 - Keep total duration 8 to 15s for README heroes; the hard cap is 60s.
@@ -119,3 +118,99 @@ If a source signal cannot be mapped to a synthetic scene, either redesign the st
 - Worked example using the delight primitives: `node_modules/demoframe/examples/mobile-flow/demo.yml`
 - Screen reconstruction examples: `node_modules/demoframe/examples/screen-dashboard/demo.yml`, `screen-focus/demo.yml`, and `screen-scroll/demo.yml`
 - Transparent cutout example: `node_modules/demoframe/examples/transparent-hero/demo.yml`
+
+<!-- demoframe:guidance-v2:start -->
+## Demos (demoframe)
+
+Screenshots are reference, not ingredients: reconstruct the flow as synthetic
+demoframe scenes (`typing`, `steps`, `status-card`, `chat`, `screen`), never
+paste screenshots into a frame.
+
+Interview before authoring:
+
+1. Narrative arc: the ask, the work, the result.
+2. Climax / money shot: which single moment to land and hold on.
+3. Destination: readme, x-post, linkedin, or product-hunt.
+4. Brand: accent color, frame type, light or dark.
+5. Product and repo names.
+6. Copy to feature verbatim (exact labels and titles).
+7. Screenshot extraction: preserve, simplify, remove, and exact copy.
+
+Record the answers in `brief`, set `brief.mode: user-confirmed` only after the
+user confirms the story and source-to-scene mapping, and fill
+audience/source/screenshotPolicy/placement/arc/climax. `--autonomous` allows an
+inferred brief only; it never downgrades errors on a user-confirmed brief.
+
+New configs use story v2. Set `brief.story.version: 2`, choose an explicit
+`profile` (`readme-loop`, `social-film`, or `product-tour`), and bind:
+
+- `promise` to durable copy that is visibly rendered;
+- `proof` to typed ids in `demoframe-context.yml` (`exact`, deterministic
+  `formatted`, or user-confirmed-only `paraphrase` with exact display copy);
+- ordered beats (`hook`, one or more `build`, one `payoff`, optional `outro`)
+  to scenes/shots through `beatId`; recipe mode generates its beat skeleton.
+
+Run `demoframe context init` to scaffold the versioned typed context manifest.
+Every source digest covers selected lines or a JSON pointer, so unrelated file
+edits do not stale the entry. Keep sources inside the repo; assets need license
+and privacy acknowledgement. Use `demoframe check --json` for the stable coded
+machine contract.
+
+Legacy scene authoring remains supported: a config with no `brief.story` and no
+`profile` stays on legacy behavior and receives no story-v2 narrative errors,
+including when `--for` is supplied. Do not add partial story-v2 fields to a
+legacy config unless you intend to migrate it.
+
+Choose exactly one authoring source: `scenes`, `shots`, or
+`brief.story.recipe`, never more than one. Use
+legacy `scenes` for a single full-canvas object per beat. Use direct `shots`
+only when the story needs two or more coordinated objects, carry-over, or an
+attention-guiding camera move. Every shot needs `id`, `beatId`, `duration`, and
+named objects in semantic slots (`hero`, `supporting`, `background`,
+`foreground`). Shot objects may embed existing scenes with `kind: scene`, or
+use the small semantic registry: `kinetic-text`, `logo-lockup`,
+`product-surface`, `hero-metric`, `chart-path`, and local `image`. Use a
+manifest-backed `logo-lockup` for visible identity; a bare `theme.logo` is only
+a watermark. Local SVG images are sanitized, but still require licensed,
+privacy-reviewed source art. Keep the same durable-copy and proof rules.
+Object enter/emphasize/exit, camera target,
+carry, ambient timing, and transitions must explain state or causality—not add
+motion for its own sake. `report.json` records the resolved shot graph and hash.
+Do not add cursor objects, orbit/sonar decoration, floating perspective cards,
+or a character unless that character materially improves comprehension. If the
+user supplies an Excalidraw/SVG character, include it as an `image` object and
+keep it subordinate to the product flow.
+
+Use a recipe when its reliable narrative skeleton matches the story:
+`code-to-result`, `problem-to-solution`, `workflow-transformation`,
+`metric-proof`, `ui-focus-tour`, or `architecture-flow`. Set
+`recipeVersion: 1` and choose an explicit recipe-specific variant from the
+schema; never invent a string. Recipe mode needs deterministic display copy on
+the first proof item. Variants intentionally change composition, motif, hero,
+motion, product-surface treatment, or supporting arrangement while preserving
+the recipe's beat sequence. There is no random selection and no layout derived
+from mutable copy hashes. Inspect `report.json.shotGraph.recipe` to verify the
+materialized choice.
+
+Treat `check` and rendered QA as separate gates. Plain `check` never launches a
+browser; use its estimated dwell and `--json` structural/appearance signatures
+while authoring. `preview` and `render` sample the entire timeline for text
+collision, actual dwell, empty/static time, clipping, and loop continuity.
+Rendered findings are warnings during their first release, but `render
+--strict` blocks atomic promotion. Fix the underlying composition or pacing;
+never remove `data-qa-key` coverage or add movement solely to silence a gate.
+Eval compares signatures according to pair relationships: distinct brands also
+need real appearance distance, while same-brand and sibling-product pairs are
+judged on film structure.
+
+Do repo reconnaissance before scenes: inspect the nearest README/app
+metadata/routes/examples, identify
+product vocabulary, success state, exact copy, and privacy risks, then write:
+
+```md
+source signal -> intent -> scene -> preserve / simplify / remove / copy
+```
+
+`check`/`render` reject a frameless all-screenshot demo. Use
+`--allow-raw-screenshots` only when raw pixels are the subject.
+<!-- demoframe:guidance-v2:end -->

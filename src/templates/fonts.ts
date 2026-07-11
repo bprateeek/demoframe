@@ -2,6 +2,7 @@ import { readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import type { Theme } from '../config/schema.js';
+import type { RenderContext } from '../render/context.js';
 
 const require = createRequire(import.meta.url);
 
@@ -33,8 +34,7 @@ function builtinFontCss(): string {
 
 const customCache = new Map<string, string>();
 
-function customFontFace(family: string, at: string, file: string, baseDir: string): string {
-  const abs = path.resolve(baseDir, file);
+function customFontFace(family: string, at: string, abs: string): string {
   let key: string;
   try {
     key = `${abs}:${statSync(abs).mtimeMs}:${family}`;
@@ -68,11 +68,23 @@ export function fontStacks(font: Theme['font']): { sans: string; mono: string } 
   };
 }
 
-export function fontCss(font: Theme['font'], baseDir: string): string {
+export function fontCss(font: Theme['font'], contextOrBaseDir: RenderContext | string): string {
   const parts = [builtinFontCss()];
   if (typeof font === 'object') {
-    if (font.sans) parts.push(customFontFace('DF Custom Sans', 'theme.font.sans', font.sans, baseDir));
-    if (font.mono) parts.push(customFontFace('DF Custom Mono', 'theme.font.mono', font.mono, baseDir));
+    if (font.sans) {
+      const file =
+        typeof contextOrBaseDir === 'string'
+          ? path.resolve(contextOrBaseDir, font.sans)
+          : contextOrBaseDir.assets.require('theme.font.sans').file;
+      parts.push(customFontFace('DF Custom Sans', 'theme.font.sans', file));
+    }
+    if (font.mono) {
+      const file =
+        typeof contextOrBaseDir === 'string'
+          ? path.resolve(contextOrBaseDir, font.mono)
+          : contextOrBaseDir.assets.require('theme.font.mono').file;
+      parts.push(customFontFace('DF Custom Mono', 'theme.font.mono', file));
+    }
   }
   return parts.join('\n');
 }

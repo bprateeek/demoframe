@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { ZodError } from 'zod';
@@ -39,6 +40,50 @@ export interface LoadedConfig {
   config: DemoConfig;
   configPath: string;
   baseDir: string;
+  provenance: ConfigProvenance;
+}
+
+export interface ConfigProvenance {
+  suppliedPaths: string[];
+  sourceHash: string;
+}
+
+function childPath(parent: string, key: string | number): string {
+  if (typeof key === 'number') return `${parent}[${key}]`;
+  return parent ? `${parent}.${key}` : key;
+}
+
+export function suppliedDotPaths(value: unknown): string[] {
+  const supplied = new Set<string>();
+
+  const walk = (current: unknown, at: string): boolean => {
+    if (Array.isArray(current)) {
+      let meaningful = false;
+      current.forEach((child, index) => {
+        if (walk(child, childPath(at, index))) meaningful = true;
+      });
+      if (meaningful && at) supplied.add(at);
+      return meaningful;
+    }
+    if (current && typeof current === 'object') {
+      let meaningful = false;
+      for (const [key, child] of Object.entries(current)) {
+        if (walk(child, childPath(at, key))) meaningful = true;
+      }
+      if (meaningful && at) supplied.add(at);
+      return meaningful;
+    }
+    if (current === undefined) return false;
+    if (at) supplied.add(at);
+    return true;
+  };
+
+  walk(value, '');
+  return [...supplied].sort();
+}
+
+export function wasSupplied(loaded: LoadedConfig, path: string): boolean {
+  return loaded.provenance.suppliedPaths.includes(path);
 }
 
 export function loadConfig(file: string): LoadedConfig {
@@ -67,5 +112,13 @@ export function loadConfig(file: string): LoadedConfig {
     );
   }
 
-  return { config: result.data, configPath, baseDir: path.dirname(configPath) };
+  return {
+    config: result.data,
+    configPath,
+    baseDir: path.dirname(configPath),
+    provenance: {
+      suppliedPaths: suppliedDotPaths(data),
+      sourceHash: crypto.createHash('sha256').update(raw).digest('hex'),
+    },
+  };
 }

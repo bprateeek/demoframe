@@ -37,6 +37,11 @@ import {
 } from '../qa/report.js';
 import { measureLayout } from '../qa/layout.js';
 import { briefSummary, resolveInferredAssumptions } from '../qa/brief.js';
+import { createInputManifest } from '../qa/inputManifest.js';
+import { resolveShotGraph } from '../render/shotGraph.js';
+import { measureRenderedQa, type RenderedQaFinding } from '../qa/rendered.js';
+import { structuralSignature } from '../qa/signature.js';
+import { appearanceSignature } from '../qa/diversity.js';
 
 interface LadderStep {
   fps: number;
@@ -120,6 +125,7 @@ export function renderInputKey(
   const input = {
     baseDir,
     scenes: config.scenes,
+    shots: config.shots,
     frame: config.frame,
     theme: config.theme,
     fps,
@@ -382,6 +388,8 @@ export async function runRender(
   if (needsGifski && !(await ensureGifski(opts.download !== false))) {
     console.log('  hint: gifski unavailable; encoding GIF with ffmpeg (install gifski or allow downloads for best quality)');
   }
+  const inputManifest = createInputManifest(loaded, targets, encoderProfile, baseCheck.story?.context);
+  const shotGraph = resolveShotGraph(loaded.config);
   const stageDir = mkdtempSync(path.join(outDir, '.demoframe-stage-'));
   const framesRoot = path.join(stageDir, '.frames');
 
@@ -573,6 +581,7 @@ export async function runRender(
   try {
     let previews: string[] = [];
     let layout: Array<{ sceneIndex: number; sceneName: string; kind: string; detail: string }> = [];
+    let renderedQa: RenderedQaFinding[] = [];
     if (opts.stills !== false) {
       const previewDir = path.join(stageDir, 'preview');
       const previewTarget = canonicalPreviewTarget(targets);
@@ -580,12 +589,14 @@ export async function runRender(
       const artifacts = await writePreviewArtifacts({ ...loaded, config: previewTarget.config }, previewDir);
       previews = artifacts.files;
       layout = artifacts.layout;
+      renderedQa = artifacts.renderedQa;
     } else {
       const previewTarget = canonicalPreviewTarget(targets);
       const doc = await buildDocument(previewTarget.config, baseDir);
       const session = await openRenderSession(doc, previewTarget.config.output.quality);
       try {
         layout = await measureLayout(session, doc.timeline);
+        renderedQa = await measureRenderedQa(session, doc.timeline, previewTarget.config);
       } finally {
         await session.close();
       }
@@ -597,8 +608,10 @@ export async function runRender(
         kind: item.kind,
       }),
     );
-    const allWarnings = [...warnings, ...layoutWarnings];
+    const renderedQaWarnings = renderedQa.map((item) => finding(item.code, item.message, item.details));
+    const allWarnings = [...warnings, ...layoutWarnings, ...renderedQaWarnings];
     printFindings(layoutWarnings, '!');
+    for (const item of renderedQa) console.log(`  ! ${item.message}`);
 
     const outputMoves: ManagedMove[] = reports.map((report) => ({
       stage: report.file,
@@ -621,19 +634,44 @@ export async function runRender(
       ...(presets.length > 0 ? { presets } : {}),
       budgetBytes: targets.length === 1 ? budgetToBytes(targets[0].config.output.budget) : undefined,
       brief: reportBrief.brief,
+      ...(baseCheck.story?.active
+        ? {
+            story: {
+              version: 2,
+              profile: baseCheck.story.profile,
+              profileSource: baseCheck.story.profileSource,
+              proofBindings: baseCheck.story.proofBindings,
+              appearanceDelta: baseCheck.story.appearanceDelta,
+            },
+          }
+        : {}),
+      ...(baseCheck.story?.context
+        ? {
+            contextManifest: {
+              file: baseCheck.story.context.file,
+              hash: baseCheck.story.context.hash,
+              entryIds: [...baseCheck.story.context.entries.keys()],
+            },
+          }
+        : {}),
       ...(reportCinematic ? { cinematic: reportCinematic } : {}),
       motionBlur: reportMotionBlur,
+      shotGraph,
+      structuralSignature: structuralSignature(loaded.config),
+      appearanceSignature: appearanceSignature(loaded.config),
+      inputManifest,
       attempts,
       errors: [],
       warnings: allWarnings.map(reportFinding),
       notices: notices.map(reportFinding),
       layout,
+      renderedQa,
       previews: previewEntries,
     });
 
-    if (opts.strict && layout.length > 0) {
+    if (opts.strict && (layout.length > 0 || renderedQa.length > 0)) {
       throw new Error(
-        `render failed under --strict: ${layout.length} layout finding${layout.length === 1 ? '' : 's'} above`,
+        `render failed under --strict: ${layout.length} layout and ${renderedQa.length} rendered QA findings above`,
       );
     }
 

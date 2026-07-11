@@ -7,15 +7,18 @@ import {
   budgetToBytes,
   frameViewport,
   isTransparentFrame,
-  normalizeLogo,
   outputFormats,
   resolveFrameCapture,
   type DemoConfig,
 } from '../config/schema.js';
 import { applyPreset } from '../config/presets.js';
+import { createRenderContext, type AssetPathEntry } from '../render/context.js';
 import { briefGateFinding, briefWarnings, screenshotRuntimeShare } from '../qa/brief.js';
-import { sceneTextLeaves } from '../qa/sceneText.js';
+import { sceneTextLeaves, shotObjectTextLeaves } from '../qa/sceneText.js';
 import { resolveTimeline } from '../render/timeline.js';
+import { validateStoryV2, type StoryValidationResult } from '../qa/story.js';
+import type { Scene } from '../config/schema.js';
+import { staticQaFindings } from '../qa/static.js';
 
 export interface CheckFinding {
   code: string;
@@ -29,6 +32,7 @@ export interface CheckResult {
   warnings: CheckFinding[];
   notices: CheckFinding[];
   briefGate?: CheckFinding;
+  story?: StoryValidationResult;
 }
 
 export interface CheckOptions {
@@ -36,9 +40,8 @@ export interface CheckOptions {
   allowInferred?: boolean;
   forDestinations?: string[];
   skipBrief?: boolean;
+  skipStory?: boolean;
 }
-
-type AssetKind = 'screenshot' | 'logo' | 'font' | 'avatar';
 
 function finding(code: string, message: string, details?: Record<string, unknown>): CheckFinding {
   return details ? { code, message, details } : { code, message };
@@ -46,6 +49,18 @@ function finding(code: string, message: string, details?: Record<string, unknown
 
 function findingKey(item: CheckFinding): string {
   return `${item.code}\0${item.message}`;
+}
+
+function authoredSceneRefs(config: DemoConfig): Array<{ scene: Scene; at: string }> {
+  if ((config.shots?.length ?? 0) > 0) {
+    return (config.shots ?? []).flatMap((shot, shotIndex) =>
+      shot.objects.flatMap((object, objectIndex) => object.kind === 'scene' ? [{
+        scene: object.scene,
+        at: `shots[${shotIndex}].objects[${objectIndex}].scene`,
+      }] : []),
+    );
+  }
+  return config.scenes.map((scene, sceneIndex) => ({ scene, at: `scenes[${sceneIndex}]` }));
 }
 
 function addFinding(target: Map<string, CheckFinding>, item: CheckFinding): void {
@@ -60,34 +75,8 @@ function prefixFinding(item: CheckFinding, preset: string): CheckFinding {
   };
 }
 
-function referencedAssets(loaded: LoadedConfig): Array<{ at: string; file: string; kind: AssetKind }> {
-  const refs: Array<{ at: string; file: string; kind: AssetKind }> = [];
-  const { config, baseDir } = loaded;
-  const logo = normalizeLogo(config.theme.logo);
-  if (logo) refs.push({ at: 'theme.logo', file: path.resolve(baseDir, logo.src), kind: 'logo' });
-  if (typeof config.theme.font === 'object') {
-    const { sans, mono } = config.theme.font;
-    if (sans) refs.push({ at: 'theme.font.sans', file: path.resolve(baseDir, sans), kind: 'font' });
-    if (mono) refs.push({ at: 'theme.font.mono', file: path.resolve(baseDir, mono), kind: 'font' });
-  }
-  config.scenes.forEach((scene, i) => {
-    if (scene.type === 'screenshot') {
-      refs.push({ at: `scenes[${i}].src`, file: path.resolve(baseDir, scene.src), kind: 'screenshot' });
-    }
-    if (scene.type === 'chat' && scene.avatars) {
-      for (const role of ['user', 'assistant'] as const) {
-        const spec = scene.avatars[role];
-        if (typeof spec === 'string') {
-          refs.push({
-            at: `scenes[${i}].avatars.${role}`,
-            file: path.resolve(baseDir, spec),
-            kind: 'avatar',
-          });
-        }
-      }
-    }
-  });
-  return refs;
+function referencedAssets(loaded: LoadedConfig): AssetPathEntry[] {
+  return createRenderContext(loaded.config, loaded.baseDir, loaded.configPath).assets.entries();
 }
 
 async function screenshotSizeWarnings(loaded: LoadedConfig): Promise<CheckFinding[]> {
@@ -175,10 +164,13 @@ function screenshotIntentErrors(config: DemoConfig): CheckFinding[] {
   const intent = config.brief?.intent ?? 'product';
   if (intent !== 'abstract' || config.brief?.screenshotPolicy === 'raw-intentional') return [];
 
-  const sceneIndexes = config.scenes
-    .map((scene, index) => (scene.type === 'screenshot' ? index : undefined))
-    .filter((index): index is number => index !== undefined);
-  if (sceneIndexes.length === 0) return [];
+  const screenshotPaths = authoredSceneRefs(config)
+    .filter(({ scene }) => scene.type === 'screenshot')
+    .map(({ at }) => at);
+  if (screenshotPaths.length === 0) return [];
+  const sceneIndexes = (config.shots?.length ?? 0) > 0
+    ? []
+    : config.scenes.flatMap((scene, index) => (scene.type === 'screenshot' ? [index] : []));
 
   return [
     finding(
@@ -188,6 +180,7 @@ function screenshotIntentErrors(config: DemoConfig): CheckFinding[] {
       {
         intent,
         screenshotPolicy: config.brief?.screenshotPolicy,
+        screenshotPaths,
         sceneIndexes,
       },
     ),
@@ -267,8 +260,11 @@ function abstractPayloadSignals(config: DemoConfig): AbstractPayloadSignal[] {
 
   if (config.theme.logo) addSignal({ strength: 'weak', source: 'theme.logo' });
 
-  for (const sceneIndex of renderedSceneIndexes) {
-    for (const leaf of sceneTextLeaves(config.scenes[sceneIndex])) {
+  const renderedScenes = (config.shots?.length ?? 0) > 0
+    ? authoredSceneRefs(config).map(({ scene }, sceneIndex) => ({ scene, sceneIndex }))
+    : renderedSceneIndexes.map((sceneIndex) => ({ scene: config.scenes[sceneIndex], sceneIndex }));
+  for (const { scene, sceneIndex } of renderedScenes) {
+    for (const leaf of sceneTextLeaves(scene)) {
       if (leaf.kind === 'metric-value' || leaf.kind === 'callout-value') {
         addSignal({ strength: 'strong', source: leaf.kind, sceneIndex, path: leaf.path, match: leaf.text });
       }
@@ -280,6 +276,26 @@ function abstractPayloadSignals(config: DemoConfig): AbstractPayloadSignal[] {
       for (const copy of verbatimCopy) {
         if (payloadTextIncludes(leaf.text, copy)) {
           addSignal({ strength: 'strong', source: 'verbatimCopy', sceneIndex, path: leaf.path, match: copy });
+        }
+      }
+    }
+  }
+  if ((config.shots?.length ?? 0) > 0) {
+    let objectIndex = 0;
+    for (const shot of config.shots ?? []) {
+      for (const object of shot.objects) {
+        const sceneIndex = objectIndex++;
+        if (object.kind === 'scene') continue;
+        for (const leaf of shotObjectTextLeaves(object)) {
+          if (leaf.kind === 'metric-value' || leaf.kind === 'callout-value') {
+            addSignal({ strength: 'strong', source: leaf.kind, sceneIndex, path: leaf.path, match: leaf.text });
+          }
+          for (const alias of aliases) {
+            if (payloadTextIncludes(leaf.text, alias)) addSignal({ strength: 'strong', source: 'product', sceneIndex, path: leaf.path, match: alias });
+          }
+          for (const copy of verbatimCopy) {
+            if (payloadTextIncludes(leaf.text, copy)) addSignal({ strength: 'strong', source: 'verbatimCopy', sceneIndex, path: leaf.path, match: copy });
+          }
         }
       }
     }
@@ -333,6 +349,7 @@ async function addDestinationPresetFindings(
         allowRawScreenshots: opts.allowRawScreenshots,
         allowInferred: opts.allowInferred,
         skipBrief: true,
+        skipStory: true,
       },
     );
     for (const error of checked.errors) addFinding(errorSet, prefixFinding(error, preset));
@@ -353,6 +370,7 @@ export async function runCheckLoaded(
   const warnings: CheckFinding[] = [];
   const notices: CheckFinding[] = [];
   let briefGate: CheckFinding | undefined;
+  let story: StoryValidationResult | undefined;
 
   for (const ref of referencedAssets(loaded)) {
     if (!existsSync(ref.file)) {
@@ -390,7 +408,8 @@ export async function runCheckLoaded(
     }
   }
 
-  if (loaded.config.frame.type === 'terminal' && loaded.config.scenes.some((s) => s.type === 'chat')) {
+  const authoredScenes = authoredSceneRefs(loaded.config);
+  if (loaded.config.frame.type === 'terminal' && authoredScenes.some(({ scene }) => scene.type === 'chat')) {
     warnings.push(
       finding(
         'frame.chatTerminal',
@@ -398,7 +417,7 @@ export async function runCheckLoaded(
       ),
     );
   }
-  if (loaded.config.output.quality === 'draft' && loaded.config.scenes.some((s) => s.type === 'screen')) {
+  if (loaded.config.output.quality === 'draft' && authoredScenes.some(({ scene }) => scene.type === 'screen')) {
     warnings.push(
       finding(
         'output.draftScreen',
@@ -450,9 +469,19 @@ export async function runCheckLoaded(
   if (!opts.skipBrief) {
     briefGate = briefGateFinding(loaded.config);
     if (briefGate) {
-      (opts.allowInferred ? notices : errors).push(briefGate);
+      const mayInfer = opts.allowInferred && loaded.config.brief?.mode !== 'user-confirmed';
+      (mayInfer ? notices : errors).push(briefGate);
     }
     warnings.push(...briefWarnings(loaded.config, { forDestinations: opts.forDestinations }));
+  }
+  if (!opts.skipStory) {
+    story = validateStoryV2(loaded, opts.forDestinations);
+    errors.push(...story.errors);
+    warnings.push(...story.warnings);
+    notices.push(...story.notices);
+  }
+  if (loaded.config.brief?.story?.version === 2 || loaded.config.profile) {
+    warnings.push(...staticQaFindings(loaded.config));
   }
 
   // Screenshot-dominant demos read as "screenshots pasted in a frame". Count a
@@ -460,7 +489,7 @@ export async function runCheckLoaded(
   // hold tail cannot dodge the warning.
   const screenshotShare = screenshotRuntimeShare(loaded.config);
   if (screenshotShare.totalDuration > 0 && screenshotShare.share > 0.5) {
-    const content = loaded.config.scenes.filter((s) => s.type !== 'hold');
+    const content = authoredScenes.map(({ scene }) => scene).filter((scene) => scene.type !== 'hold');
     const framelessGallery =
       loaded.config.frame.type === 'none' &&
       content.length > 0 &&
@@ -500,7 +529,7 @@ export async function runCheckLoaded(
 
   await addDestinationPresetFindings(loaded, opts, errors, warnings, notices);
 
-  return { loaded, errors, warnings, notices, briefGate };
+  return { loaded, errors, warnings, notices, briefGate, story };
 }
 
 export async function runCheck(file: string, opts: CheckOptions = {}): Promise<CheckResult> {

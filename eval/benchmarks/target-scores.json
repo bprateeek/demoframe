@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "rubricVersion": 2,
+  "status": "p0-approved",
+  "gate": {
+    "judge": "overall >= 4, distinctiveness >= 4, and no individual dimension below 4",
+    "user": "explicit approval of each timed target animatic and the capability-gap memo"
+  },
+  "benchmarks": [
+    {
+      "id": "readme-loop-cli",
+      "judge": {
+        "schemaVersion": 2,
+        "readability": 5,
+        "polish": 5,
+        "specificity": 5,
+        "brand": 5,
+        "placeholders": 5,
+        "hookClarity": 5,
+        "pacing": 4,
+        "visualHierarchy": 4,
+        "cameraPurpose": 4,
+        "continuity": 5,
+        "payoff": 5,
+        "loopOutroQuality": 5,
+        "distinctiveness": 4,
+        "overall": 4,
+        "verdict": "pass",
+        "p0ApprovalEligible": true,
+        "defects": [
+          {
+            "code": "split-focus",
+            "shot": "build",
+            "note": "Console and checklist read as co-equal focal elements; the paired layout is intentional (code beside checks) but slightly divides attention at the resolution beat."
+          },
+          {
+            "code": "modest-camera",
+            "shot": "all",
+            "note": "Motion is limited to reveals, a subtle checklist scale, and the loop fade; no true push/pan/focus move to actively guide the eye."
+          }
+        ],
+        "notes": "A specific, well-branded release-gate loop that resolves cleanly and restarts seamlessly; its only real ceiling is modest camera work and the dual-focal build shot, keeping it a solid pass rather than exceptional."
+      },
+      "userApproved": true,
+      "judgeModel": "claude-opus-4-8",
+      "attempts": 1,
+      "transportError": null,
+      "needsHumanReview": false
+    },
+    {
+      "id": "social-film-dashboard",
+      "judge": {
+        "schemaVersion": 2,
+        "readability": 4,
+        "polish": 4,
+        "specificity": 5,
+        "brand": 5,
+        "placeholders": 5,
+        "hookClarity": 5,
+        "pacing": 4,
+        "visualHierarchy": 4,
+        "cameraPurpose": 4,
+        "continuity": 5,
+        "payoff": 4,
+        "loopOutroQuality": 4,
+        "distinctiveness": 4,
+        "overall": 4,
+        "verdict": "pass",
+        "p0ApprovalEligible": true,
+        "defects": [],
+        "notes": "The board shot packs a full dashboard (three stats, four service rows, and a drawing latency chart with small mono labels) into ~4.8s, so at social-film downscale it leans dense and is the weakest link for readability; everything else, especially the amber-spike to green-recovery queue-latency motif that recurs across hook, board, resolve, and payoff, is specific and coherent enough to survive a product-name swap."
+      },
+      "userApproved": true,
+      "judgeModel": "claude-opus-4-8",
+      "attempts": 1,
+      "transportError": null,
+      "needsHumanReview": false
+    },
+    {
+      "id": "product-tour-ui",
+      "judge": {
+        "schemaVersion": 2,
+        "readability": 4,
+        "polish": 4,
+        "specificity": 5,
+        "brand": 4,
+        "placeholders": 5,
+        "hookClarity": 5,
+        "pacing": 4,
+        "visualHierarchy": 4,
+        "cameraPurpose": 4,
+        "continuity": 4,
+        "payoff": 4,
+        "loopOutroQuality": 4,
+        "distinctiveness": 4,
+        "overall": 4,
+        "verdict": "pass",
+        "p0ApprovalEligible": true,
+        "defects": [
+          {
+            "code": "minimal-camera",
+            "shot": "query→explain",
+            "note": "Transitions between shots are hard cuts (enter/exit 0); the only true camera move is a subtle 6px push + 1.2% scale on the tour-grid during explain, so causality reads mainly from the copy/rule-highlight swaps rather than motion."
+          },
+          {
+            "code": "dual-panel-focus",
+            "shot": "query,explain",
+            "note": "The palette and the explain/step panel share the frame; the lit rule row does guide the eye, but two competing panels slightly soften the single-focal-point read."
+          }
+        ],
+        "notes": "Strong, product-specific tour: real fuzzymatch objects (src/index.js subsequence highlights, +0.42/+0.21/-0.12 scoring rules, 3.7ms/10k-files/~2KB money shot) and a coherent violet identity, with clean hook and payoff and no empty-frame or text collisions. Weakest link is camera personality: it leans on hard cuts and text swaps with only a whisper of a push, so distinctiveness comes from the motif rather than the motion."
+      },
+      "userApproved": true,
+      "judgeModel": "claude-opus-4-8",
+      "attempts": 1,
+      "transportError": null,
+      "needsHumanReview": false
+    }
+  ],
+  "generatedBy": {
+    "script": "eval/benchmarks/judge-targets.mjs",
+    "model": "claude-opus-4-8"
+  },
+  "userApproval": {
+    "approved": true,
+    "date": "2026-07-11",
+    "scope": ["readme-loop-cli", "social-film-dashboard", "product-tour-ui", "capability-gap-memo"]
+  }
+}

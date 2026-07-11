@@ -8,17 +8,10 @@ export const statusCardCss = `
 .df-card-repo {
   display: flex;
   align-items: center;
-  gap: var(--df-s3);
   color: var(--df-muted);
   font-size: var(--df-fs-base);
   font-weight: 600;
   margin-bottom: var(--df-s4);
-}
-.df-card-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px dashed var(--df-border);
 }
 .df-card-title {
   font-size: clamp(26px, 4vw, 34px);
@@ -70,12 +63,9 @@ export const statusCardCss = `
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
+  background: var(--df-success);
 }
 .df-check-bubble svg { width: 16px; height: 16px; }
-.df-check-bubble-0 { background: var(--df-success); }
-.df-check-bubble-1 { background: var(--df-info); }
-.df-check-bubble-2 { background: var(--df-accent); }
-.df-check-bubble-3 { background: var(--df-muted); }
 .df-cta {
   margin-top: var(--df-s5);
   border-radius: var(--df-radius-sm);
@@ -91,18 +81,22 @@ export const statusCardCss = `
   opacity: 0;
   box-shadow: 0 4px 14px var(--df-shadow);
 }
-.df-cta-success { background: #22a04b; }
+.df-cta-success { background: var(--df-success); }
 .df-cta-primary { background: var(--df-accent); }
 .df-cta-neutral { background: var(--df-muted); }
 .df-card-caption { margin-top: var(--df-s3); color: var(--df-muted); font-size: var(--df-fs-base); opacity: 0; }
 .df-card-subtitle { color: var(--df-muted); font-size: var(--df-fs-base); margin-bottom: var(--df-s4); }
 .df-frame-terminal .df-card-title { font-size: 22px; font-family: var(--df-font-mono); }
-.df-frame-terminal .df-card-section { background: #1a2029; border-color: #262d38; font-size: 16px; }
+.df-frame-terminal .df-card-section {
+  background: var(--df-card);
+  border-color: var(--df-border);
+  font-size: 16px;
+}
 `;
 
 export function statusCardHtml(scene: StatusCardScene, index: number): string {
   const repo = scene.subtitle
-    ? `<div class="df-card-repo"><span class="df-card-avatar"></span>${escapeHtml(scene.subtitle)}</div>`
+    ? `<div class="df-card-repo">${escapeHtml(scene.subtitle)}</div>`
     : '';
   const branch = scene.branch
     ? `<div class="df-branch-row">
@@ -114,12 +108,12 @@ export function statusCardHtml(scene: StatusCardScene, index: number): string {
   const checks = scene.checks
     .map(
       (label, k) => `<div class="df-check-row" data-check="${k}">
-        <span class="df-check-bubble df-check-bubble-${k}">${icons.check}</span>${escapeHtml(label)}
+        <span class="df-check-bubble">${icons.check}</span>${escapeHtml(label)}
       </div>`,
     )
     .join('\n');
   const cta = scene.cta
-    ? `<div class="df-cta df-cta-${scene.cta.style}" data-qa-key="cta"${scene.tap ? ' data-tap-target' : ''} data-celebrate-anchor>${escapeHtml(scene.cta.label)}</div>`
+    ? `<div class="df-cta df-cta-${scene.cta.style}" data-qa-key="cta" data-celebrate-anchor>${escapeHtml(scene.cta.label)}</div>`
     : '';
   const caption = scene.caption
     ? `<div class="df-card-caption" data-qa-key="caption">${escapeHtml(scene.caption)}</div>`
@@ -128,7 +122,7 @@ export function statusCardHtml(scene: StatusCardScene, index: number): string {
     index,
     `    <div class="df-slot-body df-card-body">
       ${repo}
-      <h1 class="df-card-title">${escapeHtml(scene.title)}</h1>
+      <h1 class="df-card-title" data-celebrate-anchor="title">${escapeHtml(scene.title)}</h1>
       ${branch}
       ${scene.checks.length || scene.cta ? '<div class="df-card-section">Status</div>' : ''}
       ${checks}

@@ -932,54 +932,10 @@ describe('delight primitives (v0.5)', () => {
     expect(scene.celebrate).toBe(false);
   });
 
-  it('requires send:true and a non-terminal frame for typing.tap', () => {
-    expect(
-      demoConfigSchema.safeParse({
-        ...minimal,
-        scenes: [{ type: 'typing', duration: 3, text: 'hi', tap: true }],
-      }).success,
-    ).toBe(false);
-    expect(
-      demoConfigSchema.safeParse({
-        frame: { type: 'terminal' },
-        scenes: [{ type: 'typing', duration: 3, text: 'hi', send: true, tap: true }],
-      }).success,
-    ).toBe(false);
-    expect(
-      demoConfigSchema.safeParse({
-        ...minimal,
-        scenes: [{ type: 'typing', duration: 3, text: 'hi', send: true, tap: true }],
-      }).success,
-    ).toBe(true);
-  });
-
-  it('requires exactly one linked item for steps.tap', () => {
-    const linkOne = { type: 'steps', duration: 3, tap: true, items: [{ label: 'a' }, { label: 'b', link: true }] };
-    const linkNone = { type: 'steps', duration: 3, tap: true, items: [{ label: 'a' }] };
-    const linkTwo = {
-      type: 'steps',
-      duration: 3,
-      tap: true,
-      items: [{ label: 'a', link: true }, { label: 'b', link: true }],
-    };
-    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [linkOne] }).success).toBe(true);
-    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [linkNone] }).success).toBe(false);
-    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [linkTwo] }).success).toBe(false);
-  });
-
-  it('requires a cta for status-card.tap', () => {
-    expect(
-      demoConfigSchema.safeParse({
-        ...minimal,
-        scenes: [{ type: 'status-card', duration: 3, title: 'Done', tap: true }],
-      }).success,
-    ).toBe(false);
-    expect(
-      demoConfigSchema.safeParse({
-        ...minimal,
-        scenes: [{ type: 'status-card', duration: 3, title: 'Done', tap: true, cta: { label: 'Merge' } }],
-      }).success,
-    ).toBe(true);
+  it('accepts legacy tap flags as inert compatibility fields', () => {
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [{ type: 'typing', duration: 3, text: 'hi', tap: true }] }).success).toBe(true);
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [{ type: 'steps', duration: 3, tap: true, items: [{ label: 'a' }] }] }).success).toBe(true);
+    expect(demoConfigSchema.safeParse({ ...minimal, scenes: [{ type: 'status-card', duration: 3, title: 'Done', tap: true }] }).success).toBe(true);
   });
 
   it('accepts chat avatars as image paths or monograms and validates the monogram', () => {
@@ -1022,5 +978,51 @@ describe('delight primitives (v0.5)', () => {
       ],
     });
     expect(config.scenes[1].celebrate).toBe(true);
+  });
+});
+
+describe('direct shots authoring (P3)', () => {
+  const shot = {
+    id: 'hook',
+    beatId: 'hook',
+    duration: 2,
+    objects: [
+      {
+        id: 'hero',
+        slot: 'hero',
+        kind: 'scene',
+        scene: { type: 'typing', duration: 2, text: 'hello' },
+      },
+    ],
+  };
+
+  it('requires exactly one of scenes or shots', () => {
+    expect(demoConfigSchema.safeParse({ frame: { type: 'browser' }, scenes: minimal.scenes, shots: [shot] }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ frame: { type: 'browser' } }).success).toBe(false);
+    const parsed = demoConfigSchema.parse({ frame: { type: 'browser' }, shots: [shot] });
+    expect(parsed.scenes).toEqual([]);
+    expect(parsed.shots).toHaveLength(1);
+  });
+
+  it('validates ids, camera targets, embedded holds, and transition direction', () => {
+    expect(demoConfigSchema.safeParse({ frame: { type: 'browser' }, shots: [{ ...shot, camera: { target: 'missing' } }] }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ frame: { type: 'browser' }, shots: [{ ...shot, transition: { type: 'directional' } }] }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ frame: { type: 'browser' }, shots: [{ ...shot, objects: [{ ...shot.objects[0], scene: { type: 'hold', duration: 2 } }] }] }).success).toBe(false);
+    expect(demoConfigSchema.safeParse({ frame: { type: 'browser' }, shots: [shot, shot] }).success).toBe(false);
+  });
+
+  it('allows a later camera to target an implicitly carried object', () => {
+    const parsed = demoConfigSchema.safeParse({
+      frame: { type: 'browser' },
+      shots: [
+        { ...shot, objects: [{ ...shot.objects[0], carry: true }] },
+        {
+          id: 'payoff', beatId: 'payoff', duration: 2,
+          objects: [{ ...shot.objects[0], id: 'result' }],
+          camera: { target: 'hero', move: 'pan' },
+        },
+      ],
+    });
+    expect(parsed.success).toBe(true);
   });
 });

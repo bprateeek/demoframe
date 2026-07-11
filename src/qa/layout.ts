@@ -34,7 +34,32 @@ export async function measureLayout(
         const { renderIndex, sceneType, motion, focusIndex, sceneName } = payload;
         const out = [];
         const active = document.querySelector('[data-scene="' + renderIndex + '"]');
-        const safe = active?.closest('.df-safe');
+        const shotLayer = Array.from(document.querySelectorAll('[data-shot-layer]'))
+          .find((layer) => layer.dataset.shotLayer === sceneName);
+        const safe = (shotLayer ?? active)?.closest('.df-safe');
+        if (shotLayer && safe) {
+          const slack = 1.5;
+          const safeRect = safe.getBoundingClientRect();
+          const outside = (rect, host = safeRect) =>
+            rect.top < host.top - slack || rect.left < host.left - slack ||
+            rect.right > host.right + slack || rect.bottom > host.bottom + slack;
+          const describe = (label, rect, host = safeRect) =>
+            label + ' ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' at ' +
+            Math.round(rect.left - host.left) + ',' + Math.round(rect.top - host.top) + ' exceeds ' +
+            Math.round(host.width) + 'x' + Math.round(host.height);
+          shotLayer.querySelectorAll('[data-shot-object]').forEach((object) => {
+            const objectRect = object.getBoundingClientRect();
+            if (outside(objectRect)) out.push({ kind: 'overflow', detail: describe(object.dataset.objectId || 'object', objectRect) });
+            object.querySelectorAll('[data-qa-key]').forEach((key) => {
+              if (key === object) return;
+              const rect = key.getBoundingClientRect();
+              if (outside(rect, objectRect)) {
+                out.push({ kind: 'clipped-key', detail: describe(key.getAttribute('data-qa-key') || 'key element', rect, objectRect) });
+              }
+            });
+          });
+          return out.map((finding) => ({ ...finding, detail: sceneName + ': ' + finding.detail }));
+        }
         const rail =
           active?.querySelector('.df-scene-motion > .df-rail-motion > .df-rail') ??
           active?.querySelector('.df-rail');

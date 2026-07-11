@@ -17,6 +17,7 @@ import {
   collectPreviewFiles,
 } from './mcpHelpers.js';
 import { briefSummary, INTERVIEW_QUESTIONS } from './qa/brief.js';
+import { checkJsonDocument, checkJsonFailure } from './commands/checkJson.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('../package.json') as { version: string };
@@ -87,32 +88,19 @@ server.registerTool(
   },
   async (input) => {
     try {
-      const { loaded, errors, warnings, notices } = await runCheck(input.config, {
+      const result = await runCheck(input.config, {
         allowInferred: input.autonomous,
         allowRawScreenshots: input.allowRawScreenshots,
         forDestinations: parsePresetNames(input.for),
       });
-      const scenes = loaded.config.scenes;
-      const summary = briefSummary(loaded.config);
-      const valid = errors.length === 0 && !(input.strict && warnings.length > 0);
-      return json({
-        valid,
-        strict: Boolean(input.strict),
-        scenes: scenes.length,
-        totalDurationS: scenes.reduce((sum, s) => sum + s.duration, 0),
-        frame: loaded.config.frame.type,
-        briefMode: summary.mode,
-        briefIntent: summary.intent,
-        confirmed: summary.confirmed,
-        errors,
-        warnings,
-        notices,
-      });
+      return json(
+        checkJsonDocument(result, {
+          strict: input.strict,
+          destinations: parsePresetNames(input.for),
+        }),
+      );
     } catch (err) {
-      if (err instanceof ConfigError) {
-        return json({ valid: false, message: err.message, errors: err.issues });
-      }
-      return failure((err as Error).message);
+      return jsonFailure(checkJsonFailure(err, input.strict, parsePresetNames(input.for)));
     }
   },
 );

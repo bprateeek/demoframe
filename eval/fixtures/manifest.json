@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "name": "cli-tool",
+      "genre": "cli",
+      "contract": "confirmed",
+      "heldOutExtraction": false,
+      "interview": {
+        "audience": "Maintainers evaluating a release checklist CLI in a README",
+        "arc": "Find open release checks, close them, and land on a green ship gate",
+        "climax": "shipcheck reports every check complete and ready to ship",
+        "destination": "github-readme",
+        "brand": "warm amber, terminal frame, dark",
+        "verbatimCopy": ["shipcheck run", "ready to ship"],
+        "extraction": "Preserve commands and checklist names; simplify logs; remove local paths"
+      }
+    },
+    {
+      "name": "web-app",
+      "genre": "operations-dashboard",
+      "contract": "confirmed",
+      "heldOutExtraction": false,
+      "interview": {
+        "audience": "Developers evaluating a tiny self-hosted status dashboard",
+        "arc": "Reveal live service health, isolate a latency spike, and prove uptime",
+        "climax": "Every service is healthy with 99.98% uptime",
+        "destination": "github-readme",
+        "brand": "cyan signal accents, browser frame, dark",
+        "verbatimCopy": ["Live status", "99.98% uptime"],
+        "extraction": "Preserve services, latency, and uptime; simplify configuration; remove internal URLs"
+      }
+    },
+    {
+      "name": "library",
+      "genre": "sdk",
+      "contract": "inferred",
+      "heldOutExtraction": false,
+      "interview": {
+        "destination": "github-readme",
+        "note": "This is the one explicit inferred fixture; record assumptions and do not use paraphrase proof."
+      }
+    },
+    {
+      "name": "analytics",
+      "genre": "analytics",
+      "contract": "confirmed",
+      "heldOutExtraction": true,
+      "interview": {
+        "audience": "Growth teams evaluating privacy-first funnel analytics",
+        "arc": "Start with a conversion leak, trace the funnel, and land on the recovered signup rate",
+        "climax": "Signup conversion rises from 18.4% to 24.7%",
+        "destination": "linkedin",
+        "brand": "coral and ink, frameless 16:9, light",
+        "verbatimCopy": ["Activation funnel", "24.7% conversion"],
+        "extraction": "Preserve named funnel stages and measured rates; simplify filters; remove workspace ids"
+      }
+    },
+    {
+      "name": "collaboration",
+      "genre": "collaboration",
+      "contract": "confirmed",
+      "heldOutExtraction": true,
+      "interview": {
+        "audience": "Product teams evaluating asynchronous design handoffs",
+        "arc": "Turn a scattered review thread into one resolved handoff",
+        "climax": "The launch handoff is approved with every decision attached",
+        "destination": "x-post",
+        "brand": "electric blue, desktop frame, dark",
+        "verbatimCopy": ["Resolve decision", "Handoff approved"],
+        "extraction": "Preserve decision labels and approval state; simplify avatars; remove names and timestamps"
+      }
+    },
+    {
+      "name": "consumer-ui",
+      "genre": "consumer-ui",
+      "contract": "confirmed",
+      "heldOutExtraction": false,
+      "interview": {
+        "audience": "Desktop users evaluating a fast local file finder",
+        "arc": "Type a fuzzy query, understand why the best file wins, and open it",
+        "climax": "src/index.js ranks first in under 4 ms",
+        "destination": "linkedin",
+        "brand": "Fuzzy Labs violet, desktop frame, light",
+        "verbatimCopy": ["src/index.js", "Open result"],
+        "extraction": "Preserve query, highlights, ranking, and speed; simplify the file tree; remove home paths"
+      }
+    }
+  ],
+  "pairs": [
+    { "left": "cli-tool", "right": "analytics", "relationship": "distinct-brand" },
+    { "left": "analytics", "right": "collaboration", "relationship": "distinct-brand", "sharedStorySkeleton": "problem-build-proof" },
+    { "left": "library", "right": "consumer-ui", "relationship": "sibling-product" },
+    { "left": "web-app", "right": "analytics", "relationship": "distinct-brand" }
+  ]
+}

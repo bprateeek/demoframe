@@ -1,0 +1,16 @@
+schemaVersion: 1
+entries:
+  - id: qa-promise
+    kind: claim
+    text: QAGate catches defects
+    source:
+      path: test/fixtures/qa-source.md
+      selector: { lines: [1, 1] }
+      digest: sha256:b9158d3f091691e85ac861fd99294091f3412251798428f0d16fd19187ceaeca
+  - id: qa-proof
+    kind: copy
+    text: Blocked safely
+    source:
+      path: test/fixtures/qa-source.md
+      selector: { lines: [2, 2] }
+      digest: sha256:b87874ac292402734b9bd18cba4d369d79f06276ac5c4f3b385eb1c03a1dfc05

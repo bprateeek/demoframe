@@ -4,14 +4,13 @@ import { buildDocument } from './document.js';
 
 const baseDir = process.cwd();
 
-describe('buildDocument overlay injection (v0.5)', () => {
-  it('omits cursor and celebrate nodes when no scene opts in', async () => {
+describe('buildDocument overlay injection', () => {
+  it('omits celebrate nodes when no scene opts in', async () => {
     const config = demoConfigSchema.parse({
       frame: { type: 'phone' },
       scenes: [{ type: 'typing', duration: 3, text: 'hi' }],
     });
     const doc = await buildDocument(config, baseDir);
-    expect(doc.html).not.toContain('class="df-cursor"');
     expect(doc.html).not.toContain('class="df-celebrate"');
     expect(doc.html).not.toContain('class="df-ambient');
   });
@@ -27,12 +26,11 @@ describe('buildDocument overlay injection (v0.5)', () => {
     const doc = await buildDocument(config, baseDir);
     const ambientIndex = doc.html.indexOf('class="df-ambient df-ambient-ember"');
     const scenesIndex = doc.html.indexOf('class="df-scenes"');
-    const cursorIndex = doc.html.indexOf('class="df-cursor"');
 
     expect(ambientIndex).toBeGreaterThan(-1);
     expect(doc.html).toContain('data-ambient-scope="timeline"');
     expect(scenesIndex).toBeGreaterThan(ambientIndex);
-    expect(cursorIndex).toBeGreaterThan(scenesIndex);
+    expect(doc.html).not.toContain('class="df-cursor"');
   });
 
   it('applies top-level cinematic defaults to rendered content scenes', async () => {
@@ -51,7 +49,7 @@ describe('buildDocument overlay injection (v0.5)', () => {
     expect(doc.html).not.toContain('df-composition-center-hero-screenshot');
   });
 
-  it('injects overlay nodes and anchors when a scene uses tap or celebrate', async () => {
+  it('keeps legacy tap inert and injects only celebration overlays', async () => {
     const config = demoConfigSchema.parse({
       frame: { type: 'phone' },
       scenes: [
@@ -60,9 +58,9 @@ describe('buildDocument overlay injection (v0.5)', () => {
       ],
     });
     const doc = await buildDocument(config, baseDir);
-    expect(doc.html).toContain('class="df-cursor"');
+    expect(doc.html).not.toContain('class="df-cursor"');
     expect(doc.html).toContain('df-celebrate-ring');
-    expect(doc.html).toContain('data-tap-target');
+    expect(doc.html).not.toContain('data-tap-target');
     expect(doc.html).toContain('data-celebrate-anchor');
   });
 

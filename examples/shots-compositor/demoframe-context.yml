@@ -1,0 +1,9 @@
+schemaVersion: 1
+entries:
+  - id: release-proof
+    kind: claim
+    text: 3 checks passed
+    source:
+      path: examples/shots-compositor/source.md
+      selector: { lines: [2, 2] }
+      digest: sha256:c16c34cf709a6c6e68acf29a0427fef7c5f1a9a0e6d7170113b335c54826e1a7

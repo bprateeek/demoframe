@@ -484,4 +484,19 @@ scenes:
     expect(result.notices.map((finding) => finding.code)).toContain('brief.unconfirmed');
     expect(result.errors.map((finding) => finding.code)).toContain('asset.missing');
   });
+
+  it('never downgrades an incomplete user-confirmed brief under autonomous mode', async () => {
+    const file = writeConfig(`
+brief:
+  mode: user-confirmed
+  audience: README visitors
+frame: { type: phone }
+scenes:
+  - { type: typing, duration: 3, text: hi }
+`);
+    const result = await runCheck(file, { allowInferred: true });
+
+    expect(result.errors.map((finding) => finding.code)).toContain('brief.incomplete');
+    expect(result.notices.map((finding) => finding.code)).not.toContain('brief.incomplete');
+  });
 });

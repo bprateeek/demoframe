@@ -1,0 +1,13 @@
+schemaVersion: 1
+entries:
+  - id: hero-metric
+    kind: metric
+    label: Push to preview
+    value: 2.1
+    unit: s
+    formatter: number
+    decimals: 1
+    source:
+      path: examples/story-v2/source.md
+      selector: { lines: [2, 2] }
+      digest: sha256:f391f028bda977b9c738b716f219566043e2e71d63451c3033e0fefd18b6f87f

@@ -1,0 +1,22 @@
+schemaVersion: 1
+entries:
+  - id: recovery-promise
+    kind: claim
+    text: See every service recover in one clear view.
+    source:
+      path: examples/primitives/source.md
+      selector: { lines: [1, 1] }
+      digest: sha256:e791ce9cff82a4709a53cba3cc6a897b5730e0d67b84c9353e673fa771285349
+  - id: availability-proof
+    kind: copy
+    text: 99.99%
+    source:
+      path: examples/primitives/source.md
+      selector: { lines: [2, 2] }
+      digest: sha256:e09d025a0599451daf873c16bcf3ee579e191105d9992de456846e6a61a0291c
+  - id: pulseboard-logo
+    kind: asset
+    path: examples/primitives/mark.svg
+    role: logo
+    license: Original example artwork, MIT
+    privacyReviewed: true

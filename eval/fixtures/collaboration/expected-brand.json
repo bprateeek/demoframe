@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "product": "handoff",
+  "appearance": { "mode": "dark", "primary": "#4f8cff", "frame": "desktop", "shape": "threaded-cards" },
+  "structure": { "compositionFamily": "decision-thread", "motif": "linked-comments", "heroObject": "approval-state", "motionPersonality": "elastic", "productSurfaceTreatment": "persistent-desktop", "supportingObjectArrangement": "thread-and-inspector" },
+  "requiredVocabulary": ["Resolve decision", "Handoff approved"]
+}

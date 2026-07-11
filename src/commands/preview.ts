@@ -7,11 +7,12 @@ import type { LoadedConfig } from '../config/load.js';
 import { buildDocument } from '../templates/document.js';
 import { openRenderSession, type RenderSession } from '../render/browser.js';
 import { applyCrop, computeAlphaBox, type AlphaBox } from '../render/crop.js';
-import { previewSampleTimes, TAP_PRESS_SAMPLE_OFFSET } from '../render/sampling.js';
+import { previewSampleTimes } from '../render/sampling.js';
 import { measureLayout, type LayoutFinding } from '../qa/layout.js';
 import { briefSummary, resolveInferredAssumptions } from '../qa/brief.js';
 import { applyPreset, parsePresetNames } from '../config/presets.js';
 import type { DemoConfig } from '../config/schema.js';
+import { measureRenderedQa, type RenderedQaFinding } from '../qa/rendered.js';
 
 const GITHUB_DARK = '#0d1117';
 const GITHUB_LIGHT = '#ffffff';
@@ -85,6 +86,7 @@ async function captureStill(session: RenderSession, crop: CropPlan | undefined):
 export interface PreviewArtifacts {
   files: string[];
   layout: LayoutFinding[];
+  renderedQa: RenderedQaFinding[];
 }
 
 interface PreviewTarget {
@@ -111,6 +113,7 @@ export async function writePreviewArtifacts(
   const session = await openRenderSession(doc, config.output.quality);
   const written: string[] = [];
   let layout: LayoutFinding[] = [];
+  let renderedQa: RenderedQaFinding[] = [];
   try {
     const crop = await transparentCropPlan(session, doc);
     for (const ts of doc.timeline.scenes) {
@@ -123,14 +126,6 @@ export async function writePreviewArtifacts(
     }
 
     for (const ts of doc.timeline.scenes) {
-      const rendered = config.scenes[ts.renderIndex];
-      if (ts.data.tap) {
-        await session.seek((ts.start + ts.duration * TAP_PRESS_SAMPLE_OFFSET) * 1000);
-        const label = rendered.type === 'status-card' ? 'cta' : 'tap';
-        const file = path.join(outDir, `moment_${ts.index}_${label}.png`);
-        await sharp(await captureStill(session, crop)).png().toFile(file);
-        written.push(file);
-      }
       if (ts.data.celebrate) {
         await session.seek((ts.start + Math.min(0.2, ts.duration * 0.25)) * 1000);
         const file = path.join(outDir, `moment_${ts.index}_celebrate.png`);
@@ -161,10 +156,11 @@ export async function writePreviewArtifacts(
     written.push(darkFile, lightFile);
 
     layout = await measureLayout(session, doc.timeline);
+    renderedQa = await measureRenderedQa(session, doc.timeline, config);
   } finally {
     await session.close();
   }
-  return { files: written, layout };
+  return { files: written, layout, renderedQa };
 }
 
 export async function writePreviewStills(loaded: LoadedConfig, outDir: string): Promise<string[]> {
@@ -215,7 +211,7 @@ export async function runPreview(
   if (previewTarget.preset) {
     console.log(`\nusing preset ${previewTarget.preset} for preview stills`);
   }
-  const { files: written, layout } = await writePreviewArtifacts({ ...loaded, config: previewTarget.config }, outDir);
+  const { files: written, layout, renderedQa } = await writePreviewArtifacts({ ...loaded, config: previewTarget.config }, outDir);
 
   console.log(`\nwrote ${written.length} previews to ${outDir}:`);
   for (const file of written) console.log(`  ${path.basename(file)}`);
@@ -224,6 +220,10 @@ export async function runPreview(
     for (const finding of layout) {
       console.log(`  ! scenes[${finding.sceneIndex}] ${finding.kind}: ${finding.detail}`);
     }
+  }
+  if (renderedQa.length > 0) {
+    console.log(`\n${renderedQa.length} rendered QA finding${renderedQa.length === 1 ? '' : 's'}:`);
+    for (const finding of renderedQa) console.log(`  ! ${finding.message}`);
   }
   console.log(
     '\nreview checklist: text readable at README size, no clipped copy, dark-mode background looks intentional',

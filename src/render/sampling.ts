@@ -8,7 +8,6 @@ import {
   type MotionWindowName,
 } from '../templates/motion/presets.js';
 
-export const TAP_PRESS_SAMPLE_OFFSET = 0.94;
 
 export interface TimelineMotionWindow {
   sceneIndex: number;
@@ -39,7 +38,6 @@ export function previewSampleTimes(timeline: Timeline): number[] {
   const times: number[] = [];
   for (const ts of timeline.scenes) {
     times.push(ts.start + ts.duration * 0.15, ts.start + ts.duration * 0.5, ts.start + ts.duration * 0.9);
-    if (ts.data.tap) times.push(ts.start + ts.duration * TAP_PRESS_SAMPLE_OFFSET);
     if (ts.data.celebrate) times.push(ts.start + Math.min(0.2, ts.duration * 0.25));
     if (ts.index > 0 && (ts.transition === 'push' || ts.transition === 'dip-to-color')) {
       times.push(ts.start + Math.min(timeline.fade, ts.duration / 2) / 2);

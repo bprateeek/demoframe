@@ -90,7 +90,7 @@ export function typingHtml(scene: TypingScene, index: number, frameType: string,
         <div class="df-composer-text"><span class="df-typed"></span><span class="df-caret df-caret-blink"></span>${
           scene.placeholder ? `<span class="df-placeholder">${escapeHtml(scene.placeholder)}</span>` : ''
         }</div>
-        <div class="df-send"${scene.tap ? ' data-tap-target' : ''}>${icons.arrowUp}</div>
+        <div class="df-send">${icons.arrowUp}</div>
       </div>
       <div class="df-composer-bar">
         <span class="df-composer-code">${icons.code} Code</span>

@@ -19,7 +19,6 @@ scenes:
     duration: 2.8
     text: "Add a health probe section to the README"
     send: true
-    tap: true
   - type: chat
     duration: 3.2
     transition: crossfade
@@ -44,7 +43,6 @@ scenes:
     branch: { from: fieldwork/add-health-probe, into: main }
     checks: [Checks passed, Ready for review]
     cta: { label: Merge pull request, style: success }
-    tap: true
   - type: hold
     duration: 1.2
     celebrate: true

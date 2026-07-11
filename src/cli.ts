@@ -33,6 +33,7 @@ program
   .description('validate a demo config (schema, assets, privacy scan) without rendering')
   .argument('<config>', 'path to demo config (.yml, .yaml, or .json)')
   .option('--strict', 'treat warnings as errors (for CI)', false)
+  .option('--json', 'write the versioned machine-readable check result as JSON only', false)
   .option('--autonomous', 'allow an unconfirmed/inferred brief and report it as a notice', false)
   .option(
     '--allow-raw-screenshots',
@@ -43,19 +44,30 @@ program
     '--for <destination>',
     'destination preset(s), comma-separated: github-readme, x-post, linkedin, or product-hunt',
   )
-  .action(async (config: string, opts: { strict: boolean; autonomous: boolean; allowRawScreenshots: boolean; for?: string }) => {
+  .action(async (config: string, opts: { strict: boolean; json: boolean; autonomous: boolean; allowRawScreenshots: boolean; for?: string }) => {
+    const presets = parsePresetNames(opts.for);
     try {
       const { runCheck } = await import('./commands/check.js');
-      const presets = parsePresetNames(opts.for);
       const result = await runCheck(config, {
         allowRawScreenshots: opts.allowRawScreenshots,
         allowInferred: opts.autonomous,
         forDestinations: presets,
       });
-      const scenes = result.loaded.config.scenes;
-      const total = scenes.reduce((sum, s) => sum + s.duration, 0);
+      if (opts.json) {
+        const { checkJsonDocument } = await import('./commands/checkJson.js');
+        const document = checkJsonDocument(result, { strict: opts.strict, destinations: presets });
+        process.stdout.write(`${JSON.stringify(document, null, 2)}\n`);
+        if (!document.valid) process.exitCode = 1;
+        return;
+      }
+      const { resolveShotGraph } = await import('./render/shotGraph.js');
+      const graph = resolveShotGraph(result.loaded.config);
+      const count = graph.source !== 'legacy'
+        ? graph.shots.length
+        : result.loaded.config.scenes.length;
+      const noun = graph.source !== 'legacy' ? 'shot' : 'scene';
       console.log(
-        `${result.errors.length > 0 ? 'fail' : 'ok'}: ${scenes.length} scene${scenes.length === 1 ? '' : 's'}, ${total.toFixed(1)}s ` +
+        `${result.errors.length > 0 ? 'fail' : 'ok'}: ${count} ${noun}${count === 1 ? '' : 's'}, ${graph.duration.toFixed(1)}s ` +
           `at ${result.loaded.config.output.fps}fps (${result.loaded.config.frame.type} frame)`,
       );
       for (const preset of presets) {
@@ -79,6 +91,13 @@ program
         process.exit(1);
       }
     } catch (err) {
+      if (opts.json) {
+        const { checkJsonFailure } = await import('./commands/checkJson.js');
+        const document = checkJsonFailure(err, opts.strict, presets);
+        process.stdout.write(`${JSON.stringify(document, null, 2)}\n`);
+        process.exitCode = 1;
+        return;
+      }
       fail(err);
     }
   });
@@ -182,6 +201,21 @@ program
     try {
       const { runInit } = await import('./commands/init.js');
       await runInit(dir, opts);
+    } catch (err) {
+      fail(err);
+    }
+  });
+
+const contextCommand = program.command('context').description('create and inspect typed repository context manifests');
+
+contextCommand
+  .command('init')
+  .description('write a demoframe-context.yml starter backed by repository source content')
+  .argument('[dir]', 'directory for demoframe-context.yml', '.')
+  .action(async (dir: string) => {
+    try {
+      const { runContextInit } = await import('./commands/contextInit.js');
+      runContextInit(dir);
     } catch (err) {
       fail(err);
     }

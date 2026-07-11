@@ -1,0 +1,17 @@
+{
+  "id": "social-film-dashboard",
+  "profile": "social-film",
+  "subject": "pulseboard",
+  "relationship": "baseline-to-target",
+  "durationS": 18,
+  "viewport": { "width": 1200, "height": 675 },
+  "baseline": "baseline.demo.yml",
+  "target": "target.html",
+  "shots": [
+    { "id": "hook", "start": 0.2, "peak": 1.8, "end": 3.1 },
+    { "id": "board", "start": 3.5, "peak": 5.8, "end": 7.9 },
+    { "id": "resolve", "start": 8.4, "peak": 10.4, "end": 12.4 },
+    { "id": "payoff", "start": 12.9, "peak": 14.1, "end": 15.4 },
+    { "id": "outro", "start": 15.9, "peak": 16.9, "end": 17.9 }
+  ]
+}

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 import { installAgentInstructions } from './install-agent-instructions.js';
+import { runContextInit } from './contextInit.js';
 
 export interface TemplateMeta {
   name: string;
@@ -22,7 +23,9 @@ const CATEGORY_DEFAULTS: Record<string, string> = {
   'web-app': 'starter-browser',
 };
 
-const BRIEF_STUB = `brief:
+const BRIEF_STUB = `profile: readme-loop
+context: { manifest: demoframe-context.yml }
+brief:
   # mode: user-confirmed   # set after interviewing; use --autonomous only for inferred/headless runs
   # intent: product         # product | abstract | hybrid
   audience: "TODO: who is this for"
@@ -30,7 +33,38 @@ const BRIEF_STUB = `brief:
   # screenshotPolicy: reconstruct   # reconstruct | simplify | raw-intentional
   # placement: github-readme        # github-readme | x-post | linkedin | product-hunt
   # recommended: arc, climax        # optional: brand, product, repo, verbatimCopy
+  appearanceEvidence:
+    - { field: theme.accent, noSource: "TODO: cite a context id instead when brand source exists" }
+  story:
+    version: 2
+    promise: "TODO: the durable promise shown on screen"
+    proof:
+      - { evidence: product-title, mode: exact }
+    beats:
+      - { id: hook, role: hook }
+      - { id: build, role: build }
+      - { id: payoff, role: payoff }
 `;
+
+function templateWithBeatIds(template: string): string {
+  const contentTypes = [...template.matchAll(/^  - type: ([^\s#]+)/gm)]
+    .map((match) => match[1])
+    .filter((type) => type !== 'hold');
+  let contentIndex = 0;
+  return template.replace(/^  - type: ([^\s#]+).*$/gm, (line, type: string) => {
+    if (type === 'hold') return line;
+    const beatId =
+      contentTypes.length === 1
+        ? 'payoff'
+        : contentIndex === 0
+          ? 'hook'
+          : contentIndex === contentTypes.length - 1
+            ? 'payoff'
+            : 'build';
+    contentIndex += 1;
+    return `${line}\n    beatId: ${beatId}`;
+  });
+}
 
 function templatesDir(): string {
   return fileURLToPath(new URL('../../templates', import.meta.url));
@@ -106,8 +140,10 @@ export async function runInit(dir: string, opts: InitOptions = {}): Promise<void
   }
   mkdirSync(path.join(target, 'assets'), { recursive: true });
   const template = readFileSync(templateFile, 'utf8');
-  writeFileSync(configFile, `${BRIEF_STUB}\n${template}`);
-  console.log(`created ${configFile} (${name} template) and assets/`);
+  writeFileSync(configFile, `${BRIEF_STUB}\n${templateWithBeatIds(template)}`);
+  const contextFile = path.join(target, 'demoframe-context.yml');
+  if (!existsSync(contextFile)) runContextInit(target);
+  console.log(`created ${configFile} (${name} template), demoframe-context.yml, and assets/`);
   if (opts.agentInstructions !== false) {
     const installed = installAgentInstructions(target);
     console.log(`${installed.action} ${installed.file}`);
@@ -120,6 +156,7 @@ export async function runInit(dir: string, opts: InitOptions = {}): Promise<void
   console.log('\ninterview before authoring:');
   console.log('  ask the 7 interview questions, confirm the scene mapping, then set brief.mode: user-confirmed.');
   console.log('  fill the brief: block with audience/source/screenshotPolicy/placement, then arc and climax.');
+  console.log('  bind brief.story promise/proof/beats to visible copy, context ids, and scene beatId fields.');
   console.log('  use --autonomous only for explicit inferred/headless runs; record assumptions when you do.');
   console.log('  use brand/product/repo/verbatimCopy to capture exact names, labels, and style constraints.');
   console.log('  record screenshot extraction choices in source and screenshotPolicy before writing scenes.');

@@ -19,7 +19,6 @@ scenes:
     duration: 2.8
     text: "Turn these receipts into my March expense report"
     send: true
-    tap: true
   - type: chat
     duration: 3.0
     transition: crossfade
@@ -43,7 +42,6 @@ scenes:
     subtitle: "6 receipts · 1 flagged for review"
     checks: [Receipts matched, 1 flagged for review]
     cta: { label: Submit report, style: success }
-    tap: true
   - type: hold
     duration: 1.4
     celebrate: true
