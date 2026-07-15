@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "product": "pulseboard",
+  "appearance": { "mode": "dark", "primary": "#67e8f9", "frame": "browser", "shape": "signal-panels" },
+  "structure": { "compositionFamily": "metric-proof", "motif": "sonar", "heroObject": "live-board", "motionPersonality": "calm", "productSurfaceTreatment": "floating-dashboard", "supportingObjectArrangement": "board-and-latency-card" },
+  "requiredVocabulary": ["Live status", "99.98% uptime"]
+}

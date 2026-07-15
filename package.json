@@ -1,6 +1,6 @@
 {
   "name": "demoframe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Template-driven demo GIF/MP4 generator: compose scenes in device frames, render deterministically in Chromium, encode for READMEs.",
   "license": "MIT",
   "type": "module",
@@ -40,7 +40,13 @@
     "fieldwork:ab": "npm run build && node scripts/fieldwork-ab-matrix.mjs",
     "fieldwork:cinematic": "npm run build && node scripts/fieldwork-cinematic-sibling.mjs",
     "test": "vitest run",
-    "schema": "tsx src/config/export-schema.ts"
+    "test:shots": "SHOT_LAYOUT=1 SHOT_EXACT=1 vitest run src/qa/compositorLayout.test.ts src/shotsDeterminism.test.ts src/render/shotGraph.test.ts src/qa/shotsStory.test.ts src/qa/primitives.test.ts src/assets/sanitizeSvg.test.ts",
+    "test:recipes": "vitest run src/recipes/registry.test.ts src/qa/primitives.test.ts src/render/shotGraph.test.ts",
+    "test:qa": "RENDERED_QA=1 vitest run src/qa/rendered.test.ts src/qa/static.test.ts src/qa/diversity.test.ts",
+    "schema": "npm run build && node dist/config/export-schema.js",
+    "generate:guidance": "node scripts/generate-guidance.mjs",
+    "check:guidance": "node scripts/generate-guidance.mjs --check",
+    "prepack": "npm run build && node dist/config/export-schema.js && npm run check:guidance"
   },
   "keywords": [
     "gif",

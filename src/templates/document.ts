@@ -1,4 +1,3 @@
-import path from 'node:path';
 import {
   captureViewport,
   isTransparentFrame,
@@ -15,6 +14,7 @@ import {
 import { resolveTimeline, type Timeline } from '../render/timeline.js';
 import { sceneFrame } from '../render/chrome.js';
 import { normalizeImageToDataUrl } from '../assets/normalize.js';
+import { renderContext, type RenderContext } from '../render/context.js';
 import { icons } from './icons.js';
 import { fontCss } from './fonts.js';
 import { resolveTheme, themeCss } from './theme.js';
@@ -46,23 +46,35 @@ export interface BuiltDocument {
 
 async function resolveAvatar(
   spec: AvatarSpec | undefined,
-  baseDir: string,
+  assetFile?: string,
 ): Promise<ResolvedAvatar | undefined> {
   if (!spec) return undefined;
   if (typeof spec === 'string') {
-    return { img: await normalizeImageToDataUrl(path.resolve(baseDir, spec), 96) };
+    if (!assetFile) throw new Error('avatar asset was not registered');
+    return { img: await normalizeImageToDataUrl(assetFile, 96) };
   }
   return { initials: spec.initials, color: spec.color };
 }
 
 async function resolveChatAvatars(
   avatars: ChatScene['avatars'],
-  baseDir: string,
+  context: RenderContext,
+  sceneIndex: number,
 ): Promise<ResolvedAvatars | undefined> {
   if (!avatars) return undefined;
   return {
-    user: await resolveAvatar(avatars.user, baseDir),
-    assistant: await resolveAvatar(avatars.assistant, baseDir),
+    user: await resolveAvatar(
+      avatars.user,
+      typeof avatars.user === 'string'
+        ? context.assets.require(`scenes[${sceneIndex}].avatars.user`).file
+        : undefined,
+    ),
+    assistant: await resolveAvatar(
+      avatars.assistant,
+      typeof avatars.assistant === 'string'
+        ? context.assets.require(`scenes[${sceneIndex}].avatars.assistant`).file
+        : undefined,
+    ),
   };
 }
 
@@ -85,9 +97,15 @@ function withResolvedSceneCinematic<T extends Scene>(config: DemoConfig, scene: 
 
 export async function buildDocument(
   config: DemoConfig,
-  baseDir: string,
+  contextOrBaseDir: RenderContext | string,
   fpsOverride?: number,
 ): Promise<BuiltDocument> {
+  if ((config.shots?.length ?? 0) > 0) {
+    const { buildCompositorDocument } = await import('./compositor.js');
+    return buildCompositorDocument(config, contextOrBaseDir, fpsOverride);
+  }
+  const context = renderContext(config, contextOrBaseDir);
+  const baseDir = context.baseDir;
   const timeline = resolveTimeline(config, fpsOverride);
   const frameType = config.frame.type;
   const resolvedTheme = resolveTheme(config.theme);
@@ -109,7 +127,7 @@ export async function buildDocument(
         sceneParts.push(statusCardHtml(withResolvedSceneCinematic(config, scene), index));
         break;
       case 'screenshot': {
-        const dataUrl = await normalizeImageToDataUrl(path.resolve(baseDir, scene.src));
+        const dataUrl = await normalizeImageToDataUrl(context.assets.require(`scenes[${index}].src`).file);
         sceneParts.push(screenshotHtml(scene, index, dataUrl));
         break;
       }
@@ -130,7 +148,7 @@ export async function buildDocument(
         sceneParts.push(await codeHtml(withResolvedSceneCinematic(config, scene), index, resolvedTheme.mode));
         break;
       case 'chat': {
-        const avatars = await resolveChatAvatars(scene.avatars, baseDir);
+        const avatars = await resolveChatAvatars(scene.avatars, context, index);
         sceneParts.push(chatHtml(withResolvedSceneCinematic(config, scene), index, avatars));
         break;
       }
@@ -147,7 +165,7 @@ export async function buildDocument(
   const logo = normalizeLogo(config.theme.logo);
   let logoDataUrl = '';
   if (logo) {
-    logoDataUrl = await normalizeImageToDataUrl(path.resolve(baseDir, logo.src), 256);
+    logoDataUrl = await normalizeImageToDataUrl(context.assets.require('theme.logo').file, 256);
   }
 
   const chromeLayerFrames: Frame[] = [];
@@ -177,10 +195,9 @@ export async function buildDocument(
         .join('')
     : '';
 
-  const needsOverlay = timeline.scenes.some((s) => s.data.tap || s.data.celebrate);
+  const needsOverlay = timeline.scenes.some((s) => s.data.celebrate);
   const overlayHtml = needsOverlay
-    ? `<div class="df-cursor"><div class="df-cursor-ripple"></div></div>` +
-      `<div class="df-celebrate"><div class="df-celebrate-ring"></div>` +
+    ? `<div class="df-celebrate"><div class="df-celebrate-ring"></div>` +
       [0, 1, 2, 3, 4, 5].map((k) => `<span class="df-celebrate-dot" data-dot="${k}"></span>`).join('') +
       `<div class="df-celebrate-check">${icons.check}</div></div>`
     : '';
@@ -250,7 +267,7 @@ export async function buildDocument(
   }
 
   const css = [
-    fontCss(config.theme.font, baseDir),
+    fontCss(config.theme.font, context),
     themeCss(config.theme),
     baseCss,
     phoneCss,

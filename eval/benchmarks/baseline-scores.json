@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "rubricVersion": 2,
+  "status": "recorded-manual-baseline",
+  "note": "Baselines are evidence, not approval subjects. Scores are intentionally honest and are not forced to fail.",
+  "benchmarks": [
+    {
+      "id": "readme-loop-cli",
+      "scores": { "readability": 4, "polish": 3, "specificity": 5, "brand": 3, "placeholders": 5, "hookClarity": 1, "pacing": 3, "visualHierarchy": 2, "cameraPurpose": 1, "continuity": 3, "payoff": 3, "loopOutroQuality": 2, "distinctiveness": 2, "overall": 2 },
+      "verdict": "fail",
+      "knownDefects": [
+        { "code": "qa.empty-frame", "shot": "hook", "note": "The terminal content occupies a small fraction of the frame for too long." },
+        { "code": "story.hook.missing", "shot": "hook", "note": "The baseline opens on execution detail rather than a product promise." }
+      ]
+    },
+    {
+      "id": "social-film-dashboard",
+      "scores": { "readability": 3, "polish": 3, "specificity": 4, "brand": 3, "placeholders": 5, "hookClarity": 2, "pacing": 2, "visualHierarchy": 2, "cameraPurpose": 1, "continuity": 2, "payoff": 3, "loopOutroQuality": 2, "distinctiveness": 2, "overall": 2 },
+      "verdict": "fail",
+      "knownDefects": [
+        { "code": "qa.empty-frame", "shot": "hook", "note": "The centered typing panel leaves most of a 16:9 stage uncomposed." },
+        { "code": "qa.text-collision", "shot": "resolve", "note": "The crossfade exposes readable dashboard and metric-card copy in the same region." },
+        { "code": "story.outro.missing", "shot": "outro", "note": "A held status card substitutes for a branded social end slate." }
+      ]
+    },
+    {
+      "id": "product-tour-ui",
+      "scores": { "readability": 4, "polish": 3, "specificity": 4, "brand": 4, "placeholders": 5, "hookClarity": 1, "pacing": 2, "visualHierarchy": 3, "cameraPurpose": 2, "continuity": 2, "payoff": 3, "loopOutroQuality": 2, "distinctiveness": 3, "overall": 3 },
+      "verdict": "fail",
+      "knownDefects": [
+        { "code": "qa.text-collision", "shot": "rank", "note": "Crossfading full screen scenes leaves two readable result lists briefly superimposed." },
+        { "code": "story.surface-continuity", "shot": "explain", "note": "The tour abandons the product surface for separate code and metric cards instead of carrying focus through one UI." }
+      ]
+    }
+  ]
+}

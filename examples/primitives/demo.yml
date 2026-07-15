@@ -1,0 +1,128 @@
+title: Pulseboard primitive registry
+profile: readme-loop
+context: { manifest: demoframe-context.yml }
+output: { format: webp, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#e2603a", mode: light, font: inter }
+frame: { type: browser, width: 960, height: 540, chrome: thin, title: Pulseboard recovery }
+brief:
+  mode: user-confirmed
+  audience: README visitors evaluating a clean service-health story
+  source: Repository-backed Pulseboard promise, proof, and original vector assets
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Establish one clear view, show degraded services recover, then land on availability proof
+  climax: Availability holds at 99.99 percent
+  brand: { accent: "#e2603a", frame: browser, mode: light }
+  product: Pulseboard
+  repo: pulseboard
+  verbatimCopy: ["99.99%", "All services healthy"]
+  story:
+    version: 2
+    promise: See every service recover in one clear view.
+    proof:
+      - { evidence: availability-proof, mode: exact }
+    beats:
+      - { id: hook, role: hook }
+      - { id: build, role: build }
+      - { id: payoff, role: payoff }
+    visualMetaphor: Separate service paths resolve into one calm healthy state
+shots:
+  - id: recovery-hook
+    beatId: hook
+    duration: 3.0
+    objects:
+      - id: promise
+        slot: hero
+        kind: kinetic-text
+        eyebrow: Pulseboard
+        text: See every service recover in one clear view.
+        scale: headline
+        enter: { type: slide-up, duration: 0.45 }
+      - id: recovery-map
+        slot: supporting
+        kind: image
+        src: recovery.svg
+        alt: Three services converging on a healthy check
+        fit: contain
+        mask: rounded
+        parallax: 0.04
+        enter: { type: fade, duration: 0.5 }
+    camera: { target: promise, move: push, amount: 0.04 }
+  - id: degraded-board
+    beatId: build
+    duration: 2.2
+    transition: { type: directional, direction: left, duration: 0.45 }
+    objects:
+      - id: service-board
+        slot: hero
+        kind: product-surface
+        title: Pulseboard
+        subtitle: Live service health
+        device: browser
+        state: warn
+        rows:
+          - { label: API, value: Healthy, tone: success }
+          - { label: Queue, value: 418 ms, tone: warn }
+          - { label: Workers, value: Recovering, tone: warn }
+        carry: true
+        enter: { type: slide-left, duration: 0.45 }
+      - id: latency
+        slot: supporting
+        kind: chart-path
+        title: Queue latency
+        series: [112, 148, 210, 418, 360, 292]
+        labels: [1m, 2m, 3m, 4m, 5m, now]
+        tone: warn
+        carry: true
+        enter: { type: scale, duration: 0.45 }
+    camera: { target: latency, move: pan, amount: 0.07 }
+  - id: healthy-board
+    beatId: build
+    duration: 2.2
+    transition: { type: shared-element, duration: 0.5 }
+    objects:
+      - id: service-board
+        slot: hero
+        kind: product-surface
+        title: Pulseboard
+        subtitle: All services healthy
+        device: browser
+        state: success
+        rows:
+          - { label: API, value: Healthy, tone: success }
+          - { label: Queue, value: 96 ms, tone: success }
+          - { label: Workers, value: Healthy, tone: success }
+        carry: false
+      - id: latency
+        slot: supporting
+        kind: chart-path
+        title: Queue latency
+        series: [292, 228, 174, 132, 108, 96]
+        labels: [1m, 2m, 3m, 4m, 5m, now]
+        tone: success
+        carry: false
+    camera: { target: service-board, move: pan, amount: 0.05 }
+  - id: availability-payoff
+    beatId: payoff
+    duration: 2.7
+    transition: { type: masked-wipe, duration: 0.5 }
+    objects:
+      - id: availability
+        slot: hero
+        kind: hero-metric
+        label: Availability
+        metric: { value: 99.99, suffix: "%", decimals: 2 }
+        detail: All services healthy
+        tone: success
+        enter: { type: scale, duration: 0.5 }
+        emphasize: { type: focus, at: 1, duration: 0.8 }
+      - id: brand
+        slot: supporting
+        kind: logo-lockup
+        product: Pulseboard
+        src: mark.svg
+        manifestRef: pulseboard-logo
+        tagline: Service health, without the noise.
+        arrangement: mark-top
+        enter: { type: fade, duration: 0.45 }
+    camera: { target: availability, move: push, amount: 0.05 }

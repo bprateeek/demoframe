@@ -1,0 +1,28 @@
+title: Trialflow metric proof
+profile: readme-loop
+context: { manifest: demoframe-context.yml }
+output: { format: webp, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#6b62d9", mode: light, font: inter }
+frame: { type: browser, width: 960, height: 540, chrome: thin, title: Trialflow conversion }
+brief:
+  mode: user-confirmed
+  audience: README visitors evaluating onboarding impact
+  source: Repository-backed Trialflow promise and proof
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Establish onboarding friction, show the workflow, and land on conversion proof
+  climax: Conversion improves by 42 percent
+  brand: { accent: "#6b62d9", frame: browser, mode: light }
+  product: Trialflow
+  repo: trialflow
+  verbatimCopy: ["42%", "Proof confirmed"]
+  appearanceEvidence:
+    - field: theme.accent
+      noSource: User confirmed the violet Trialflow accent for this synthetic recipe fixture.
+  story:
+    version: 2
+    promise: Turn trial friction into a result you can verify.
+    proof:
+      - { evidence: conversion-proof, mode: exact, display: "42%" }
+    visualMetaphor: A measured onboarding path resolves into one proof number
+    recipe: { name: metric-proof, recipeVersion: 1, variant: proof-first }

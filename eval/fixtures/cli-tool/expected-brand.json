@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "product": "shipcheck",
+  "appearance": { "mode": "dark", "primary": "#f6b73c", "frame": "terminal", "shape": "hard-gate" },
+  "structure": { "compositionFamily": "code-to-result", "motif": "terminal-trace", "heroObject": "release-gate", "motionPersonality": "crisp", "productSurfaceTreatment": "terminal-session", "supportingObjectArrangement": "terminal-and-checklist" },
+  "requiredVocabulary": ["shipcheck run", "ready to ship"]
+}

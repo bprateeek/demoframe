@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { INTERVIEW_QUESTIONS } from '../qa/brief.js';
+import { GENERATED_AGENT_GUIDANCE } from '../generated/guidance.js';
 
 const START = '<!-- demoframe:start -->';
 const END = '<!-- demoframe:end -->';
@@ -21,28 +21,7 @@ function nearestGitRoot(startDir: string): string {
 }
 
 function guidanceBlock(): string {
-  const questions = INTERVIEW_QUESTIONS.map((question, index) => `${index + 1}. ${question}`).join('\n');
-  return `${START}
-## Demos (demoframe)
-Screenshots are reference, not ingredients: reconstruct the flow as synthetic demoframe scenes (typing/steps/status-card/chat/screen), never paste screenshots into a frame.
-
-Interview first before authoring any config:
-${questions}
-
-Record the answers in the top-level brief block, set \`brief.mode: user-confirmed\` only after the user has confirmed the story and screen-to-scene mapping, and fill audience/source/screenshotPolicy/placement/arc/climax. An inferred brief is not a bypass: \`demoframe check\`, \`demoframe preview\`, and \`demoframe render\` refuse unconfirmed briefs unless the run explicitly passes \`--autonomous\` (or MCP \`autonomous: true\`), which labels the output as \`mode: inferred\` and records assumptions.
-
-For reconstructed demos, include product identity (\`brief.product\` or \`brief.repo\`) and \`brief.verbatimCopy\` exact UI copy; confirmed briefs stay valid without them but \`demoframe check\` warns because generic demos are harder to trust.
-
-Before writing scenes, do repo reconnaissance: read the closest README/app metadata/routes/examples, identify product vocabulary, exact copy, success state, destination, frame, and privacy risks. Then make a mapping for each source signal:
-
-\`\`\`md
-source signal -> intent -> scene -> preserve / simplify / remove / copy
-\`\`\`
-
-Only author scenes after every screenshot/source is mapped to a synthetic scene or explicitly marked raw-intentional.
-
-\`demoframe check\`/\`render\` reject a frameless all-screenshot demo; \`--allow-raw-screenshots\` is only for an intentional raw demo such as a bug report or before/after proof. For \`brief.intent: abstract\`, screenshot scenes require \`brief.screenshotPolicy: raw-intentional\`, and rendered scenes need visible product payload from \`brief.product\`, \`brief.verbatimCopy\`, or a metric/callout value.
-${END}`;
+  return `${START}\n${GENERATED_AGENT_GUIDANCE}\n${END}`;
 }
 
 export function installAgentInstructions(dir = '.'): InstallAgentInstructionsResult {

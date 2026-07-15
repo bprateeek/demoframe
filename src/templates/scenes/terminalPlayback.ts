@@ -6,16 +6,16 @@ import { normalizeTermLines, type TerminalPlaybackScene } from '../../config/sch
 export const terminalPlaybackCss = `
 .df-play { font-family: var(--df-font-mono); font-size: 15px; line-height: 1.7; }
 .df-play-line { opacity: 0; white-space: pre-wrap; word-break: break-word; }
-.df-play-line-dim { color: #8d96a3; }
-.df-play-line-success { color: #3fb950; }
+.df-play-line-dim { color: var(--df-muted); }
+.df-play-line-success { color: var(--df-success); }
 .df-play-line-error { color: #f85149; }
 .df-play-line-warn { color: #d29922; }
 .df-play-status { display: flex; align-items: center; min-height: 1.7em; }
-.df-play-spin { display: none; align-items: center; gap: var(--df-s2); color: #8d96a3; }
+.df-play-spin { display: none; align-items: center; gap: var(--df-s2); color: var(--df-muted); }
 .df-play-spin-glyph { color: var(--df-accent); }
 .df-play-exit { opacity: 0; display: inline-flex; align-items: center; gap: var(--df-s2); font-weight: 700; }
 .df-play-exit svg { width: 15px; height: 15px; flex: 0 0 auto; }
-.df-play-exit-success { color: #3fb950; }
+.df-play-exit-success { color: var(--df-success); }
 .df-play-exit-error { color: #f85149; }
 .df-play-next { opacity: 0; }
 .df-play-shown { opacity: 1; }
@@ -29,12 +29,12 @@ export const terminalPlaybackCss = `
   justify-content: center;
 }
 .df-play-panel {
-  background: #11151c;
-  border: 1px solid #262d38;
+  background: var(--df-screen);
+  border: 1px solid var(--df-border);
   border-radius: var(--df-radius);
   padding: var(--df-s4) var(--df-s5);
-  color: #d6dde6;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  color: var(--df-text);
+  box-shadow: 0 10px 30px var(--df-shadow);
 }
 `;
 

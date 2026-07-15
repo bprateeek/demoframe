@@ -6,12 +6,22 @@ Not shipped in the npm package (`files` allowlist excludes `eval/`).
 
 ## What it does
 
-For each fixture repo (`cli-tool`, `web-app`, `library`):
+For each fixture repo listed in `fixtures/manifest.json` (CLI, SDK, operations,
+analytics, collaboration, and consumer UI):
 
 1. Packs the local demoframe and installs the tarball as a dev dependency into a temp copy of the fixture.
-2. Runs a headless Claude Code session (`claude -p`) with a fixed prompt asking it to add a demo animation to the README.
-3. Mechanical gates: install worked, a scene config exists, `demoframe check` passes (an unconfirmed-brief blocker alone is tolerated, since autonomous renders are labeled inferred), an animated artifact exists in the repo, it is within budget (from `report.json` when the agent kept it, otherwise a 5MB proxy on file size), and the README embeds it. Gates do not assume the agent kept its render directory.
-4. Taste gate: a second `claude -p` call grades preview stills against `judge-rubric.md` (readability, polish, specificity, brand, placeholder leakage) and returns a verdict. When the agent cleaned up the render stills, the harness re-extracts stills from the artifact itself with sharp.
+2. Runs a headless Claude Code session (`claude -p`) with fixture-specific,
+   already-confirmed interview answers. One fixture explicitly exercises the
+   inferred contract. At least two are held-out extraction fixtures with no
+   prepared context manifest; the agent must inspect the repo and author it.
+3. Mechanical gates: install worked; config and report were retained;
+   versioned `check --json` passes; the animation exists, is within budget, and
+   is embedded; and `report.json.inputManifest` carries the required hashes and
+   runtime versions. There is no config-cleanup waiver.
+4. Taste gate: a second `claude -p` call grades the kept animation and stills
+   against `judge-rubric.md`, including hook, pacing, hierarchy, camera,
+   continuity, payoff, loop/outro, and distinctiveness. Invalid judge JSON is
+   retried once and then becomes `needs-human-review`, which blocks release.
 5. Writes `results/<timestamp>/results.json` and `scorecard.md`, plus per-fixture artifacts (config, report, stills, animation, transcripts) for eyeballing.
 
 Only `scorecard.md` and `results.json` are committed; the heavy per-fixture artifacts are gitignored.
@@ -29,8 +39,14 @@ node eval/run.mjs --model claude-sonnet-5 --judge-model claude-opus-4-8
 node eval/run.mjs --keep          # keep the temp work dirs for inspection
 ```
 
-Exit code 0 means every fixture passed both gates.
+Exit code 0 means every fixture passed both gates. Relationship metadata for
+`distinct-brand`, `same-brand`, and `sibling-product` comparisons lives beside
+the fixture tasks in `fixtures/manifest.json`; deterministic pairwise signature
+gates consume it in P6.
 
 ## Reading a scorecard
 
-`pass` requires every mechanical gate plus a judge verdict of `pass` (overall >= 4, readability >= 4, placeholders >= 4). Judge notes and check blockers are listed under the table; treat recurring notes as the backlog for the next PR.
+`pass` requires every mechanical gate plus a judge verdict of `pass`
+(`overall >= 4` and `distinctiveness >= 4`). Judge notes and coded check
+blockers are listed under the table; treat recurring notes as the backlog for
+the next release.

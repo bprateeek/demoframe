@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Three services converging on healthy status">
+  <path d="M34 38h66l30 42h76" fill="none" stroke="#d4d8e1" stroke-width="4" stroke-linecap="round"/>
+  <path d="M34 80h172M34 122h66l30-42" fill="none" stroke="#d4d8e1" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="34" cy="38" r="12" fill="#f3b24b"/><circle cx="34" cy="80" r="12" fill="#f3b24b"/><circle cx="34" cy="122" r="12" fill="#f3b24b"/>
+  <circle cx="206" cy="80" r="22" fill="#37a86b"/>
+  <path d="m196 80 7 7 14-16" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

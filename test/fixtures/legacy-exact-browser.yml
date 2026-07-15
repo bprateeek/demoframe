@@ -1,0 +1,40 @@
+output: { format: webp, width: 640, fps: 15, quality: draft }
+theme: { accent: "#2f7de1", mode: light, font: inter }
+frame: { type: browser, width: 960, height: 640, chrome: thin, title: legacy-browser }
+scenes:
+  - { type: typing, duration: 2.5, text: Ship the preview, send: true }
+  - type: steps
+    duration: 2.5
+    items:
+      - { label: Validate, state: done }
+      - { label: Render, state: active }
+  - type: status-card
+    duration: 2.5
+    title: Preview ready
+    checks: [Checks passed]
+    cta: { label: Open preview, style: primary }
+  - type: code
+    duration: 2.5
+    lang: javascript
+    title: Stable code
+    code: "const ready = true;"
+  - type: chat
+    duration: 2.5
+    messages:
+      - { role: user, text: Is the preview ready? }
+      - { role: assistant, text: Yes. All checks passed. }
+  - type: screen
+    duration: 2.5
+    blocks:
+      - { block: app-header, title: Preview, subtitle: Live product surface }
+      - block: stat-strip
+        tiles:
+          - { label: Views, value: { value: 128 } }
+          - { label: Ready, value: { value: 100, suffix: "%" } }
+  - type: screenshot
+    duration: 2.5
+    src: ../../test/golden/hero_2.5.png
+    fit: contain
+    caption: Raw legacy screenshot path
+  - type: hold
+    duration: 1

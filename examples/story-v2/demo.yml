@@ -1,0 +1,55 @@
+title: Relay story-v2 proof binding
+profile: readme-loop
+context: { manifest: demoframe-context.yml }
+output: { format: webp, width: 720, fps: 15, budget: 5MB, displayWidth: 560 }
+theme: { accent: "#5b5bd6", mode: light, font: inter }
+frame: { type: browser, width: 960, height: 540, chrome: thin, title: Relay preview }
+brief:
+  mode: user-confirmed
+  audience: README visitors evaluating deterministic preview generation
+  source: Repository-backed Relay preview copy and performance metric
+  screenshotPolicy: reconstruct
+  placement: github-readme
+  arc: Promise a fast preview, show the build, and prove the measured result
+  climax: Push to preview completes in 2.1 seconds
+  brand: { accent: "#5b5bd6", frame: browser, mode: light }
+  product: Relay
+  repo: relay-preview
+  verbatimCopy: ["Ready to share"]
+  appearanceEvidence:
+    - field: theme.accent
+      noSource: User confirmed the synthetic benchmark accent for this example.
+  story:
+    version: 2
+    promise: From push to preview in one clear loop
+    proof:
+      - { evidence: hero-metric, mode: formatted, display: "2.1 s" }
+    beats:
+      - { id: hook, role: hook }
+      - { id: build, role: build }
+      - { id: payoff, role: payoff }
+    visualMetaphor: A continuous path from source commit to shareable preview
+scenes:
+  - type: typing
+    beatId: hook
+    duration: 3.3
+    text: "Relay · From push to preview in one clear loop"
+    send: true
+  - type: steps
+    beatId: build
+    duration: 3.3
+    header: { title: Relay is building, detail: Deterministic local render }
+    items:
+      - { label: Source selected, state: done }
+      - { label: Preview encoded, state: active }
+  - type: metric-card
+    beatId: payoff
+    duration: 2.4
+    title: Relay preview is ready
+    metrics:
+      - { label: Push to preview, value: 2.1, suffix: " s", decimals: 1 }
+    caption: Ready to share
+    cinematic: { composition: macro-card, motion: dolly-in }
+  - type: hold
+    duration: 1.2
+    celebrate: true

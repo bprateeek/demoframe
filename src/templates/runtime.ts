@@ -1,6 +1,6 @@
 import { MOTION_PRESET_REGISTRY } from './motion/presets.js';
 
-export function runtimeJs(timelineJson: string): string {
+export function runtimeJs(timelineJson: string, includeCompositor = false): string {
   const motionPresetJson = JSON.stringify(MOTION_PRESET_REGISTRY);
   return `(() => {
   const T = ${timelineJson};
@@ -20,15 +20,20 @@ export function runtimeJs(timelineJson: string): string {
   };
   const motionIdentity = { x: 0, y: 0, scale: 1, opacity: 1 };
 
-  // Shared so the cursor tap and the button press land on the same frame.
-  const TAP_PRESS = 0.94;
+  const SEND_PRESS = 0.94;
   const scenesEl = document.querySelector('.df-scenes');
   const chromeEls = Array.from(document.querySelectorAll('[data-chrome]'));
   const ambientEl = document.querySelector('[data-ambient="ember"]');
   const emberEls = ambientEl ? Array.from(ambientEl.querySelectorAll('.df-ember')) : [];
-  const cursorEl = document.querySelector('.df-cursor');
   const burstEl = document.querySelector('.df-celebrate');
   const dipEl = document.querySelector('.df-dip');
+${includeCompositor ? `  const shotLayers = {};
+  document.querySelectorAll('[data-shot-layer]').forEach((el) => { shotLayers[el.dataset.shotLayer] = el; });
+  const shotObjects = {};
+  document.querySelectorAll('[data-shot-object]').forEach((el) => { shotObjects[el.dataset.shotObject] = el; });
+  const sceneByIndex = {};
+  T.scenes.forEach((scene) => { sceneByIndex[scene.index] = scene; });
+` : ''}
 
   function setChromeLayer(layer, opacity) {
     chromeEls.forEach((el) => {
@@ -147,16 +152,17 @@ export function runtimeJs(timelineJson: string): string {
       const send = el.querySelector('.df-send');
       if (send) {
         send.classList.toggle('df-armed', n > 0);
-        send.classList.toggle('df-pressed', !!s.data.send && lt > d * TAP_PRESS);
+        send.classList.toggle('df-pressed', !!s.data.send && lt > d * SEND_PRESS);
       }
     },
     steps(el, s, lt) {
       const n = s.data.count;
       const d = s.duration;
+      const divisor = el.closest('[data-shot-object]') ? n + 3.5 : n + 1.6;
       for (let k = 0; k < n; k++) {
         const row = el.querySelector('[data-step="' + k + '"]');
         if (!row) continue;
-        const at = (d * (k + 1)) / (n + 1.6);
+        const at = (d * (k + 1)) / divisor;
         const e = ease(clamp((lt - at) / 0.35, 0, 1));
         row.style.opacity = e;
         row.style.transform = 'translateY(' + 10 * (1 - e) + 'px)';
@@ -186,9 +192,10 @@ export function runtimeJs(timelineJson: string): string {
       const d = s.duration;
       const cmd = s.data.command;
       const n = s.data.lines;
-      const t0 = Math.min(0.4, d * 0.08);
-      const tRun = t0 + d * 0.3;
-      const p = clamp((lt - t0) / (tRun - t0), 0, 1);
+      const pretyped = Boolean(s.data.pretyped);
+      const t0 = pretyped ? 0 : Math.min(0.4, d * 0.08);
+      const tRun = pretyped ? 0 : t0 + d * 0.3;
+      const p = pretyped ? 1 : clamp((lt - t0) / (tRun - t0), 0, 1);
       el.querySelector('.df-play-typed').textContent = cmd.slice(0, Math.round(p * cmd.length));
       const caret = el.querySelector('.df-play-caret');
       if (caret) caret.style.opacity = lt >= tRun ? 0 : p > 0 && p < 1 ? 1 : Math.floor(lt * 2) % 2 ? 0 : 1;
@@ -389,37 +396,13 @@ export function runtimeJs(timelineJson: string): string {
     const renderEl = els[rScene.index];
     const host = scenesEl.getBoundingClientRect();
 
-    if (cursorEl) {
-      const target = act.data.tap && renderEl ? renderEl.querySelector('[data-tap-target]') : null;
-      const r = target ? target.getBoundingClientRect() : null;
-      if (r && r.width > 0) {
-        const cx = r.left - host.left + r.width / 2;
-        const cy = r.top - host.top + r.height / 2;
-        const g = ease(clamp((tp - 0.45) / (TAP_PRESS - 0.45), 0, 1));
-        const px = cx + 40 * (1 - g);
-        const py = cy + 78 * (1 - g);
-        const appear = ease(clamp((tp - 0.45) / 0.1, 0, 1));
-        const dip = clamp((tp - (TAP_PRESS - 0.05)) / 0.1, 0, 1);
-        const scale = 1 - 0.18 * Math.sin(dip * Math.PI);
-        cursorEl.style.display = 'block';
-        cursorEl.style.opacity = String(curOpacity * appear);
-        cursorEl.style.transform =
-          'translate(' + px + 'px,' + py + 'px) translate(-50%,-50%) scale(' + scale + ')';
-        const ripple = cursorEl.querySelector('.df-cursor-ripple');
-        if (ripple) {
-          const rp = clamp((tp - TAP_PRESS) / 0.06, 0, 1);
-          ripple.style.opacity = String(tp >= TAP_PRESS ? 1 - rp : 0);
-          ripple.style.transform = 'scale(' + (0.5 + rp * 1.6) + ')';
-        }
-      } else {
-        cursorEl.style.display = 'none';
-      }
-    }
-
     if (burstEl) {
       if (act.data.celebrate) {
         const anchor = renderEl
-          ? renderEl.querySelector('[data-tap-target]') || renderEl.querySelector('[data-celebrate-anchor]')
+          ? renderEl.querySelector('.df-cta') ||
+            renderEl.querySelector('[data-celebrate-anchor="value"]') ||
+            renderEl.querySelector('[data-celebrate-anchor="title"]') ||
+            renderEl.querySelector('[data-celebrate-anchor]')
           : null;
         let cx = host.width / 2;
         let cy = host.height / 2;
@@ -436,6 +419,10 @@ export function runtimeJs(timelineJson: string): string {
             cy = r.top - host.top - 18;
           }
         }
+        const insetX = Math.min(64, host.width / 2);
+        const insetY = Math.min(64, host.height / 2);
+        cx = clamp(cx, insetX, host.width - insetX);
+        cy = clamp(cy, insetY, host.height - insetY);
         const bp = clamp((t - act.start) / 0.5, 0, 1);
         const fadeIn = ease(clamp(bp / 0.12, 0, 1));
         const fadeOut = 1 - ease(clamp((bp - 0.7) / 0.3, 0, 1));
@@ -446,6 +433,7 @@ export function runtimeJs(timelineJson: string): string {
         if (ring) ring.style.transform = 'translate(-50%,-50%) scale(' + (0.5 + bp * 1.7) + ')';
         const check = burstEl.querySelector('.df-celebrate-check');
         if (check) {
+          check.style.display = anchor ? 'flex' : 'none';
           const cs = bp < 0.5 ? 0.8 + 0.4 * ease(bp / 0.5) : 1.2 - 0.2 * ease((bp - 0.5) / 0.5);
           check.style.transform = 'translate(-50%,-50%) scale(' + cs + ')';
         }
@@ -469,7 +457,177 @@ export function runtimeJs(timelineJson: string): string {
     }
   }
 
-  window.__seek = (tMs) => {
+${includeCompositor ? `
+  function objectEntranceState(type, progress) {
+    const p = ease(clamp(progress, 0, 1));
+    if (type === 'fade') return { x: 0, y: 0, scale: 1, opacity: p };
+    if (type === 'slide-up') return { x: 0, y: 24 * (1 - p), scale: 1, opacity: p };
+    if (type === 'slide-left') return { x: 28 * (1 - p), y: 0, scale: 1, opacity: p };
+    if (type === 'scale') return { x: 0, y: 0, scale: 0.94 + 0.06 * p, opacity: p };
+    return motionIdentity;
+  }
+
+  function setShotObjectState(object, shot, localTime, sharedOffset) {
+    const wrapper = shotObjects[object.key];
+    const descriptor = sceneByIndex[object.sceneIndex];
+    if (!wrapper) return;
+    const enterDuration = Math.min(object.enter.duration, shot.duration);
+    const exitDuration = Math.min(object.exit.duration, shot.duration);
+    const enter = object.carried ? motionIdentity : objectEntranceState(object.enter.type, localTime / enterDuration);
+    const exitProgress = clamp((localTime - (shot.duration - exitDuration)) / exitDuration, 0, 1);
+    const exit = object.exit.type === 'none'
+      ? motionIdentity
+      : objectEntranceState(object.exit.type, 1 - exitProgress);
+    const emphasisProgress = clamp((localTime - object.emphasize.at) / object.emphasize.duration, 0, 1);
+    const emphasisPulse = Math.sin(emphasisProgress * Math.PI);
+    const emphasisScale = object.emphasize.type === 'focus'
+      ? 1 + 0.045 * ease(emphasisProgress)
+      : object.emphasize.type === 'pulse' ? 1 + 0.035 * emphasisPulse : 1;
+    const offset = sharedOffset || { x: 0, y: 0 };
+    wrapper.style.opacity = String(Math.min(enter.opacity, exit.opacity));
+    wrapper.style.transform =
+      'translate3d(' + (enter.x + exit.x + offset.x) + 'px,' + (enter.y + exit.y + offset.y) + 'px,0) ' +
+      'scale(' + (enter.scale * exit.scale * emphasisScale) + ')';
+    const objectProgress = ease(clamp(localTime / Math.max(0.001, shot.duration * 0.75), 0, 1));
+    wrapper.style.setProperty('--df-object-progress', String(objectProgress));
+    const counter = wrapper.querySelector('[data-primitive-counter]');
+    if (counter) animateDatasetCounter(counter, objectProgress);
+    const parallax = wrapper.querySelector('[data-parallax]');
+    if (parallax) {
+      const amount = Number(parallax.dataset.parallax || 0);
+      parallax.style.setProperty('--df-parallax-x', String(Math.sin(objectProgress * Math.PI) * amount * 80));
+      parallax.style.setProperty('--df-parallax-y', String((objectProgress - 0.5) * amount * 50));
+    }
+    if (descriptor) apply(descriptor, clamp(localTime, 0, descriptor.duration), 1);
+  }
+
+  function setShotAmbient(shot, progress) {
+    const layer = shotLayers[shot.id];
+    if (!layer) return;
+    const ambient = layer.querySelector('[data-shot-ambient]');
+    if (!ambient) return;
+    if (!shot.ambient || shot.ambient.type === 'none') { ambient.style.opacity = 0; return; }
+    const fade = 0.08;
+    const inP = ease(clamp((progress - shot.ambient.start) / fade, 0, 1));
+    const outP = 1 - ease(clamp((progress - (shot.ambient.end - fade)) / fade, 0, 1));
+    ambient.style.opacity = String(0.5 * Math.min(inP, outP));
+    ambient.style.transform = 'translate3d(' + (Math.sin(progress * Math.PI * 2) * 5) + 'px,' +
+      (Math.cos(progress * Math.PI * 2) * 4) + 'px,0)';
+  }
+
+  function cameraTransform(shot, progress) {
+    if (!shot.camera || shot.camera.move === 'none') return '';
+    const layer = shotLayers[shot.id];
+    const stage = document.querySelector('.df-compositor');
+    if (!layer || !stage) return '';
+    const target = Array.from(layer.querySelectorAll('[data-object-id]'))
+      .find((el) => el.dataset.objectId === shot.camera.target);
+    if (!target) return '';
+    const sr = stage.getBoundingClientRect();
+    const tr = target.getBoundingClientRect();
+    const p = ease(clamp((progress - 0.12) / 0.62, 0, 1));
+    const dx = sr.left + sr.width / 2 - (tr.left + tr.width / 2);
+    const dy = sr.top + sr.height / 2 - (tr.top + tr.height / 2);
+    const amount = shot.camera.amount || 0;
+    const scale = shot.camera.move === 'push' ? 1 + amount * p : 1;
+    const panScale = shot.camera.move === 'pan' ? Math.min(1, amount * 5) : Math.min(1, amount * 2.5);
+    return 'translate3d(' + (dx * p * panScale) + 'px,' + (dy * p * panScale) + 'px,0) scale(' + scale + ')';
+  }
+
+  function directionalOffset(direction, distance) {
+    if (direction === 'right') return { x: -distance, y: 0 };
+    if (direction === 'up') return { x: 0, y: distance };
+    if (direction === 'down') return { x: 0, y: -distance };
+    return { x: distance, y: 0 };
+  }
+
+  function applyShot(shot, localTime, sharedOffsets) {
+    const layer = shotLayers[shot.id];
+    if (!layer) return;
+    layer.style.opacity = 1;
+    const progress = clamp(localTime / shot.duration, 0, 1);
+    shot.objects.forEach((object) => setShotObjectState(object, shot, localTime, sharedOffsets && sharedOffsets[object.id]));
+    setShotAmbient(shot, progress);
+    layer.style.transform = cameraTransform(shot, progress);
+  }
+
+  function seekCompositor(tMs) {
+    const graph = T.shotGraph;
+    const t = clamp(tMs / 1000, 0, graph.duration - 1e-4);
+    let activeIndex = graph.shots.findIndex((shot) => t < shot.end - 1e-9);
+    if (activeIndex < 0) activeIndex = graph.shots.length - 1;
+    const shot = graph.shots[activeIndex];
+    const localTime = t - shot.start;
+    Object.values(shotLayers).forEach((layer) => {
+      layer.style.opacity = 0;
+      layer.style.transform = '';
+      layer.style.clipPath = '';
+    });
+    Object.values(shotObjects).forEach((object) => { object.style.opacity = 0; object.style.transform = ''; });
+    T.scenes.forEach((scene) => {
+      const el = els[scene.index];
+      if (el) { el.style.opacity = 0; el.style.transform = ''; }
+    });
+    chromeEls.forEach((el) => { el.style.opacity = 1; });
+
+    const transition = shot.transition;
+    const transitionProgress = transition.type === 'cut' || activeIndex === 0
+      ? 1 : ease(clamp(localTime / transition.duration, 0, 1));
+    if (activeIndex > 0 && transitionProgress < 1) {
+      const previous = graph.shots[activeIndex - 1];
+      applyShot(previous, Math.max(0, previous.duration - transition.duration), null);
+      const previousLayer = shotLayers[previous.id];
+      const currentLayer = shotLayers[shot.id];
+      if (transition.type === 'shared-element') {
+        const offsets = {};
+        shot.objects.forEach((object) => {
+          const previousObject = previous.objects.find((candidate) => candidate.id === object.id);
+          const from = previousObject && shotObjects[previousObject.key];
+          const to = shotObjects[object.key];
+          if (!from || !to) return;
+          const fr = from.getBoundingClientRect();
+          const tr = to.getBoundingClientRect();
+          offsets[object.id] = {
+            x: (fr.left + fr.width / 2 - (tr.left + tr.width / 2)) * (1 - transitionProgress),
+            y: (fr.top + fr.height / 2 - (tr.top + tr.height / 2)) * (1 - transitionProgress),
+          };
+        });
+        if (previousLayer) previousLayer.style.opacity = String(1 - transitionProgress);
+        applyShot(shot, localTime, offsets);
+        if (currentLayer) currentLayer.style.opacity = String(transitionProgress);
+      } else if (transition.type === 'masked-wipe') {
+        applyShot(shot, localTime, null);
+        if (currentLayer) currentLayer.style.clipPath = 'inset(0 ' + ((1 - transitionProgress) * 100) + '% 0 0)';
+      } else if (transition.type === 'directional') {
+        applyShot(shot, localTime, null);
+        const stage = document.querySelector('.df-compositor');
+        const distance = transition.direction === 'up' || transition.direction === 'down'
+          ? (stage ? stage.getBoundingClientRect().height : window.innerHeight)
+          : (stage ? stage.getBoundingClientRect().width : window.innerWidth);
+        const incoming = directionalOffset(transition.direction, distance * (1 - transitionProgress));
+        const outgoing = directionalOffset(transition.direction, -distance * transitionProgress);
+        if (currentLayer) currentLayer.style.transform =
+          'translate3d(' + incoming.x + 'px,' + incoming.y + 'px,0) ' + cameraTransform(shot, localTime / shot.duration);
+        if (previousLayer) previousLayer.style.transform = 'translate3d(' + outgoing.x + 'px,' + outgoing.y + 'px,0)';
+        if (currentLayer) currentLayer.style.opacity = String(transitionProgress);
+        if (previousLayer) previousLayer.style.opacity = String(1 - transitionProgress);
+      }
+    } else {
+      applyShot(shot, localTime, null);
+    }
+    if (graph.loop && activeIndex === graph.shots.length - 1 && localTime > shot.duration - graph.loop.duration) {
+      const loopProgress = ease(clamp((localTime - (shot.duration - graph.loop.duration)) / graph.loop.duration, 0, 1));
+      const finalLayer = shotLayers[shot.id];
+      const first = graph.shots[0];
+      applyShot(first, 0, null);
+      const firstLayer = shotLayers[first.id];
+      if (finalLayer) finalLayer.style.opacity = String(1 - loopProgress);
+      if (firstLayer) firstLayer.style.opacity = String(loopProgress);
+    }
+  }
+
+` : ''}
+  function seekLegacy(tMs) {
     const t = clamp(tMs / 1000, 0, T.duration - 1e-4);
     let a = T.scenes.findIndex((s) => t < s.end - 1e-9);
     if (a < 0) a = T.scenes.length - 1;
@@ -533,7 +691,8 @@ export function runtimeJs(timelineJson: string): string {
     }
     apply(rScene, lt, curOpacity);
     drawOverlays(act, rScene, curOpacity, t);
-  };
+  }
+  window.__seek = ${includeCompositor ? 'seekCompositor' : 'seekLegacy'};
   window.__seek(0);
 })();`;
 }

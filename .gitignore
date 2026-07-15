@@ -3,3 +3,5 @@ dist/
 .demoframe/
 *.tsbuildinfo
 .DS_Store
+eval/benchmarks/artifacts/*/baseline/
+eval/benchmarks/artifacts/*/target/

@@ -1,0 +1,15 @@
+{
+  "id": "readme-loop-cli",
+  "profile": "readme-loop",
+  "subject": "shipcheck",
+  "relationship": "baseline-to-target",
+  "durationS": 10.2,
+  "viewport": { "width": 960, "height": 600 },
+  "baseline": "baseline.demo.yml",
+  "target": "target.html",
+  "shots": [
+    { "id": "hook", "start": 0.2, "peak": 1.6, "end": 2.7 },
+    { "id": "build", "start": 3.1, "peak": 5.1, "end": 6.7 },
+    { "id": "payoff", "start": 7.1, "peak": 8.6, "end": 10.1 }
+  ]
+}

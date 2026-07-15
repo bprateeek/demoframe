@@ -63,16 +63,14 @@ export function stepsHtml(scene: StepsScene, index: number): string {
         </div>
       </div>`
     : '';
-  const tapIdx = scene.tap ? scene.items.findIndex((it) => it.link) : -1;
   let celebrateIdx = -1;
   scene.items.forEach((it, k) => {
     if (it.link) celebrateIdx = k;
   });
   const items = scene.items
     .map((item, k) => {
-      const tapAttr = k === tapIdx ? ' data-tap-target' : '';
       const anchorAttr = k === celebrateIdx ? ' data-celebrate-anchor' : '';
-      return `<div class="df-step" data-step="${k}" data-qa-key="step-${k}"${tapAttr}${anchorAttr}>
+      return `<div class="df-step" data-step="${k}" data-qa-key="step-${k}"${anchorAttr}>
         ${stepIcon(item.state)}
         <div class="df-step-text">
           <strong>${escapeHtml(item.label)}</strong>

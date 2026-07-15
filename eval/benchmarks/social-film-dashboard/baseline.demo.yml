@@ -1,0 +1,80 @@
+title: pulseboard social-film baseline
+output:
+  format: mp4
+  width: 1200
+  fps: 30
+  budget: 25MB
+  quality: standard
+  motionBlur: cinematic
+theme:
+  mode: dark
+  accent: "#67e8f9"
+  palette:
+    page: "#020617"
+    screen: "#07111f"
+    card: "#0d1b2c"
+    text: "#eefcff"
+    muted: "#8ea6b8"
+    faint: "#526879"
+    border: "#193247"
+    success: "#31d17c"
+    successBg: "rgba(49, 209, 124, 0.15)"
+    info: "#67e8f9"
+    shadow: "rgba(0, 0, 0, 0.55)"
+frame: { type: none, width: 1200, height: 675 }
+brief:
+  mode: inferred
+  audience: Developers discovering a self-hosted status dashboard in a social feed
+  source: eval/fixtures/web-app/README.md uptime, latency, and zero-dependency claims
+  screenshotPolicy: reconstruct
+  placement: [x-post, linkedin]
+  arc: Hook on invisible downtime, reveal the live service board, and prove the 30-day result
+  climax: 99.98% uptime with every service healthy
+  brand: { accent: "#67e8f9", frame: none, mode: dark }
+  product: pulseboard
+  repo: pulseboard
+  verbatimCopy: ["Live status", "99.98% uptime", "zero dependencies"]
+  assumptions:
+    - Benchmark baseline uses synthetic service names and values derived from the fixture feature set.
+cinematic: { composition: floating-stage, motion: drift, ambient: ember }
+scenes:
+  - type: typing
+    duration: 3.2
+    text: What failed while nobody was looking?
+  - type: screen
+    duration: 5
+    layout: stack
+    motion: reveal
+    blocks:
+      - { block: app-header, title: pulseboard, subtitle: Live status · refreshes every 5 seconds, icon: bolt }
+      - block: stat-strip
+        tiles:
+          - { label: 30-day uptime, value: { value: 99.98, suffix: "%", decimals: 2 } }
+          - { label: Services, value: { value: 4 } }
+          - { label: Median latency, value: { value: 82, suffix: ms } }
+      - block: list
+        rows:
+          - { icon: check, label: API · Healthy, trailing: 64 ms }
+          - { icon: check, label: Postgres · Healthy, trailing: 91 ms }
+          - { icon: check, label: Queue · Healthy, trailing: 112 ms }
+  - type: metric-card
+    duration: 4.4
+    transition: crossfade
+    title: Latency settles after deploy
+    metrics:
+      - { label: p95 latency, value: 146, suffix: ms }
+      - { label: uptime, value: 99.98, suffix: "%", decimals: 2 }
+    chart: { kind: line, series: [240, 218, 204, 176, 162, 151, 146], color: "#67e8f9" }
+    caption: One process · no database · zero dependencies
+    cinematic: { composition: macro-card, motion: dolly-in, ambient: ember }
+  - type: status-card
+    duration: 3.8
+    transition: crossfade
+    title: Every service is healthy
+    subtitle: pulseboard · live status
+    checks: [API · 64 ms, Postgres · 91 ms, Queue · 112 ms]
+    cta: { label: Open live board, style: primary }
+    cinematic: { composition: center-hero, motion: settle, ambient: ember }
+  - type: hold
+    duration: 2
+    celebrate: true

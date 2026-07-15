@@ -25,10 +25,16 @@ jobs:
         run: node dist/cli.js install-browser
 
       - name: Regenerate goldens
-        run: UPDATE_GOLDEN=1 npx vitest run src/golden.test.ts
+        run: UPDATE_GOLDEN=1 UPDATE_LEGACY_BASELINE=1 npx vitest run src/golden.test.ts src/legacyExact.test.ts
 
       - uses: actions/upload-artifact@v4
         with:
           name: golden-frames
           path: test/golden/
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legacy-exact-1.0.1
+          path: test/legacy-exact/
           if-no-files-found: error

@@ -56,7 +56,7 @@ describe('resolveTimeline', () => {
     expect(timeline.scenes.map((s) => s.transition)).toEqual(['cut', 'push', 'dip-to-color', 'crossfade']);
   });
 
-  it('carries tap and celebrate flags into scene data (v0.5)', () => {
+  it('drops legacy tap flags while carrying celebrate flags', () => {
     const timeline = resolveTimeline(
       demoConfigSchema.parse({
         frame: { type: 'phone' },
@@ -67,7 +67,7 @@ describe('resolveTimeline', () => {
         ],
       }),
     );
-    expect(timeline.scenes[0].data.tap).toBe(true);
+    expect(timeline.scenes[0].data.tap).toBeUndefined();
     expect(timeline.scenes[1].data.tap).toBeUndefined();
     expect(timeline.scenes[1].data.celebrate).toBeUndefined();
     expect(timeline.scenes[2].data.celebrate).toBe(true);
@@ -150,7 +150,13 @@ describe('resolveTimeline', () => {
         ],
       }),
     );
-    expect(timeline.scenes[0].data).toEqual({ command: 'npm test', lines: 2, spinner: true, exit: true });
+    expect(timeline.scenes[0].data).toEqual({
+      command: 'npm test',
+      lines: 2,
+      spinner: true,
+      exit: true,
+      pretyped: true,
+    });
     expect(timeline.scenes[1].data).toEqual({ lines: 3, reveal: 'fade' });
     expect(timeline.scenes[2].data).toEqual({
       messages: [
@@ -163,5 +169,24 @@ describe('resolveTimeline', () => {
       metrics: [{ value: 12840, decimals: 1, prefix: '', suffix: 'x' }],
       chart: { kind: 'bar', count: 3 },
     });
+  });
+
+  it('pretypes the first command in each terminal session', () => {
+    const timeline = resolveTimeline(
+      demoConfigSchema.parse({
+        frame: { type: 'terminal' },
+        scenes: [
+          { type: 'typing', duration: 1, text: 'Open the terminal' },
+          { type: 'terminal-playback', duration: 3, command: 'npm test' },
+          { type: 'terminal-playback', duration: 3, command: 'npm run build' },
+          { type: 'hold', duration: 1 },
+          { type: 'terminal-playback', duration: 3, command: 'npm pack', session: 'fresh' },
+        ],
+      }),
+    );
+
+    expect(timeline.scenes[1].data.pretyped).toBe(true);
+    expect(timeline.scenes[2].data.pretyped).toBe(false);
+    expect(timeline.scenes[4].data.pretyped).toBe(true);
   });
 });

@@ -1,0 +1,16 @@
+schemaVersion: 1
+entries:
+  - id: conversion-promise
+    kind: claim
+    text: Turn trial friction into a result you can verify.
+    source:
+      path: examples/recipes/source.md
+      selector: { lines: [1, 1] }
+      digest: sha256:a5e677f468551c3cd8ab24d38243979b0362d952bc7c0214566071c09ed517fc
+  - id: conversion-proof
+    kind: copy
+    text: 42%
+    source:
+      path: examples/recipes/source.md
+      selector: { lines: [2, 2] }
+      digest: sha256:8640b64bbd40b579f65acec121bb6b2a7cd6a694b0d0f6e148032d6b7c363f85

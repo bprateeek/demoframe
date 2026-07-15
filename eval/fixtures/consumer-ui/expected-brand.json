@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "product": "fuzzyfind",
+  "appearance": { "mode": "light", "primary": "#6d4aff", "frame": "desktop", "shape": "soft-command-palette" },
+  "structure": { "compositionFamily": "ui-focus-tour", "motif": "highlight-marks", "heroObject": "ranked-result", "motionPersonality": "crisp", "productSurfaceTreatment": "persistent-desktop", "supportingObjectArrangement": "palette-and-explainer" },
+  "requiredVocabulary": ["src/index.js", "Open result"]
+}

@@ -5,7 +5,7 @@ export const terminalCss = `
 .df-device-terminal {
   width: calc(100vw - 48px);
   height: calc(100vh - 48px);
-  background: #11151c;
+  background: var(--df-screen);
   border-radius: var(--df-radius-lg);
   border: 1px solid #262d38;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
@@ -19,14 +19,14 @@ export const terminalCss = `
   grid-template-columns: 96px 1fr 96px;
   align-items: center;
   padding: var(--df-s3) var(--df-s4);
-  background: #1a2029;
-  border-bottom: 1px solid #262d38;
+  background: var(--df-card);
+  border-bottom: 1px solid var(--df-border);
 }
 .df-terminal-title {
   justify-self: center;
   font-family: var(--df-font-mono);
   font-size: var(--df-fs-xs);
-  color: #8d96a3;
+  color: var(--df-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -39,7 +39,7 @@ export const terminalCss = `
   font-family: var(--df-font-mono);
   font-size: 15px;
   line-height: 1.65;
-  color: #d6dde6;
+  color: var(--df-text);
 }
 .df-frame-terminal .df-rail { padding: var(--df-s4) var(--df-s5); }
 `;

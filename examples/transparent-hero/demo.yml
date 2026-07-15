@@ -25,7 +25,6 @@ scenes:
     duration: 3.0
     text: "Turn the support inbox into a launch-ready changelog"
     send: true
-    tap: true
   - type: steps
     duration: 3.0
     transition: crossfade
@@ -34,7 +33,6 @@ scenes:
       - { label: Summarized 18 requests, state: done }
       - { label: Matched release notes, state: done }
       - { label: Preparing PR, state: active, link: true }
-    tap: true
   - type: status-card
     duration: 2.8
     transition: crossfade

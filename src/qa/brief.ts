@@ -130,6 +130,14 @@ export function briefGateFinding(config: DemoConfig): BriefFinding | undefined {
 }
 
 export function screenshotRuntimeShare(config: DemoConfig): ScreenshotRuntimeShare {
+  if ((config.shots?.length ?? 0) > 0) {
+    const totalDuration = (config.shots ?? []).reduce((sum, shot) => sum + shot.duration, 0);
+    const shotDuration = (config.shots ?? []).reduce(
+      (sum, shot) => sum + (shot.objects.some((object) => object.kind === 'scene' && object.scene.type === 'screenshot') ? shot.duration : 0),
+      0,
+    );
+    return { shotDuration, totalDuration, share: totalDuration > 0 ? shotDuration / totalDuration : 0 };
+  }
   const timeline = resolveTimeline(config);
   const shotDuration = timeline.scenes.reduce(
     (sum, scene) =>
@@ -170,7 +178,9 @@ export function briefWarnings(config: DemoConfig, opts: BriefWarningOptions = {}
 
   if (brief.screenshotPolicy) {
     const screenshotShare = screenshotRuntimeShare(config);
-    const hasScreenshots = config.scenes.some((scene) => scene.type === 'screenshot');
+    const hasScreenshots = (config.shots?.length ?? 0) > 0
+      ? (config.shots ?? []).some((shot) => shot.objects.some((object) => object.kind === 'scene' && object.scene.type === 'screenshot'))
+      : config.scenes.some((scene) => scene.type === 'screenshot');
     if (
       (brief.screenshotPolicy === 'reconstruct' || brief.screenshotPolicy === 'simplify') &&
       screenshotShare.share > 0.5
