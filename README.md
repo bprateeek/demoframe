@@ -68,8 +68,9 @@ environment explicitly.
 > Schema evolution is backward-compatible and additive. Existing valid
 > configs remain valid; rendered pixels may improve with release notes.
 
-Version 1.0.1 is the visual baseline for later exact-rendering compatibility
-tests. Intentional pixel improvements are listed in `CHANGELOG.md`.
+The renderer state developed as 1.0.1 is the visual baseline for later
+exact-rendering compatibility tests. Intentional pixel improvements are listed
+in `CHANGELOG.md`.
 
 ## Quick start
 

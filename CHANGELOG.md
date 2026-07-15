@@ -6,6 +6,12 @@ always listed here.
 
 ## Unreleased
 
+## 1.1.0 - 2026-07-15
+
+Cinematic, brand-distinct authoring with deterministic shot composition,
+recipes, story/context binding, and motion QA. This release also includes the
+correctness work prepared as 1.0.1, which was not published separately.
+
 ### Added
 
 - P0 cinematic benchmarks for `readme-loop`, `social-film`, and
@@ -83,10 +89,6 @@ always listed here.
   including when a destination preset is supplied.
 - Legacy scene `tap` fields remain accepted but are now inert. Cursor rendering,
   cursor preview samples, and cursor-specific validation have been removed.
-
-## 1.0.1
-
-Correctness patch and visual-baseline reset for the 1.x renderer.
 
 ### Fixed
 
